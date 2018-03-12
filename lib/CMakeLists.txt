@@ -1,9 +1,11 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# list here your source files (*.cpp) of your module
 set(source_files
 	generic/vec_addition.cpp
 	)
 
+# list here your testing files (*.test.cc) of your module
 set(test_files
 	test_root.cc
 	generic/vec_addition.test.cc
