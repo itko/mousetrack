@@ -1,5 +1,9 @@
+# Build directories
 build/
 build-debug/
+
+# Doxygen output directory
+docs/
 
 
 # Created by https://www.gitignore.io/api/vim,c++,linux,macos,python,windows,eclipse
@@ -155,7 +159,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
