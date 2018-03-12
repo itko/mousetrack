@@ -4,14 +4,20 @@ This project will be awesome!
 
 ## Dependencies
 
-// TODO: I need to do a fresh install of Ubuntu and test everything
+TL;DR: Convenient one-liner for Ubuntu: `$ sudo apt install -y cmake libboost-all-dev libopencv-dev`
 
-Boost.Test
-OpenCV
-make
-CMake
+- CMake: `$ sudo apt install cmake`
+- Boost.Test: `$ sudo apt install libboost-all-dev`
+- [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
+
+
+If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
+- Atlas: `$ sudo apt-get install libatlas-base-dev gfortran`
+- Eigen: `$ sudo apt install libeigen3-dev`
 
 ## Build project
+
+TL;RD: `$ mkdir build && cd build && cmake .. & make -j7`
 
 We use CMake as main building tool. CMake uses one or more input files (called `CMakeLists.txt`), to understand how to compile the project.
 You can find those files in the root of the project and in the `lib/` and `app/` folders.
