@@ -12,7 +12,8 @@ namespace Mousetrack {
 
 class Descripting {
 	public:
-		virtual ClusterDescriptor operator(const std::vector<Cluster>& clusters) const = 0;
+		/// Takes a cluster and its referencing PointCloud and creates a cluster descriptor
+		virtual std::unique_ptr<ClusterDescriptor> operator(const Cluster& clusters, const PointCloud& cloud) const = 0;
 };
 
 
