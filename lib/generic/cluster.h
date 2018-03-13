@@ -10,6 +10,10 @@
 namespace Mousetrack {
 
 /// Describes a cluster within a PointCloud. Nothing more than a list of indexes to 3D points in the PointCloud.
-typedef std::vector<size_t> Cluster;
+class Cluster {
+public:
+	std::vector<size_t>& points();
+	const std::vector<size_t>& points() const;
+};
 
 }
