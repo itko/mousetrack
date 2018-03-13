@@ -19,7 +19,7 @@ public:
 	/// Important properties:
 	/// 1. 0 <= n <= inf
 	/// 2. if this == other -> n == 0
-	double compare(const ClusterDescriptor* other) const;
+	virtual double compare(const ClusterDescriptor* other) const = 0;
 };
 
 
