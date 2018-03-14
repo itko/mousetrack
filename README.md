@@ -17,7 +17,7 @@ If operations run slow, you can try reinstalling OpenCV with these additional de
 
 ## Build project
 
-TL;RD: `$ mkdir build && cd build && cmake .. & make -j7`
+TL;DR: `$ mkdir build && cd build && cmake .. & make -j7`
 
 We use CMake as main building tool. CMake uses one or more input files (called `CMakeLists.txt`), to understand how to compile the project.
 You can find those files in the root of the project and in the `lib/` and `app/` folders.
