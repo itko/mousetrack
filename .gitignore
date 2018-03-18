@@ -1,6 +1,11 @@
 # Build directories
 build/
 build-debug/
+data/
+
+# QT Creator
+CMakeLists.txt.user
+
 
 # Doxygen output directory
 docs/
