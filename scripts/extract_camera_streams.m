@@ -19,10 +19,6 @@ clear;
 config;
 
 %% start script
-% create ouput path if it doesn't exist
-if 0 == exist(output_path, 'dir')
-    mkdir(output_path);
-end
 
 %read calibration file
 camchain = YAML.read(camchain_path);
@@ -39,11 +35,16 @@ T_cn_cnm{6} = camchain.cam5.T_cn_cnm1;
 T_cn_cnm{7} = camchain.cam6.T_cn_cnm1;
 T_cn_cnm{8} = camchain.cam7.T_cn_cnm1;
 
-% TODO: write file containing parameters R and T_cn_cnm
-
 % read rosbag
 fprintf('Reading bag...\n');
 bag = rosbag(rosbag_path);
+
+% create ouput path if it doesn't exist
+if 0 == exist(output_path, 'dir')
+    mkdir(output_path);
+end
+
+% TODO: write file containing parameters R and T_cn_cnm
 
 % extract camera image messages
 img_streams(1) = select(bag, 'Topic', '/uvc_baseboard0/cam_0/image_rect');
@@ -100,7 +101,7 @@ for image_index = 1:lowestIndex
         s = int2str(i);
         out_pics{i} = [output_path '/pic' '_s_' s '_f_' f '.png' ];
         out_depths{i} = [output_path '/depth' '_s_' s '_f_' f '.png' ];
-        out_depthsCleaned{i} = [output_path '/depth_cleaned' '_s_' s '_f_' f '.png' ];
+        out_depthsCleaned{i} = [output_path '/depth_normalized' '_s_' s '_f_' f '.png' ];
         out_ptCloud{i} = [output_path '/point_cloud' '_s_' s '_f_' f ];
     end
     out_frame_params = [output_path '/params_f_' f '.csv'];
@@ -153,7 +154,8 @@ for image_index = 1:lowestIndex
         % TODO: write file containing parameters focallengths, baselines, ccx, ccy
         imwrite(pics{i}, out_pics{i});
         imwrite(depths{i}, out_depths{i});
-        imwrite(depthsCleaned{i}, out_depthsCleaned{i});
+        cleaned = uint8(depthsCleaned{i});
+        imwrite(cleaned, out_depthsCleaned{i});
     end
     M = [focallengths baselines ccx ccy];
     csvwrite(out_frame_params, M);
@@ -198,7 +200,6 @@ for image_index = 1:lowestIndex
 
         for i = 1:streams
             ptCloud = pointCloud(xyzPoints{i});
-            pcwrite(ptCloud,'ptCloudBox','PLYFormat','binary');
             pcwrite(ptCloud, out_ptCloud{i}, 'PLYFormat', 'binary');
         end
 
