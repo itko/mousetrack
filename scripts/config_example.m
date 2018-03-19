@@ -16,3 +16,8 @@ streams = 4;
 
 % calculating point clouds takes a moment and might not be necessary
 extract_point_clouds = false;
+
+% which frames should be processed?
+startFrame = 1;
+% if maxProcessFrames + startFrame > totalFrames, no crash will occur
+maxProcessFrames = 1000000000; 

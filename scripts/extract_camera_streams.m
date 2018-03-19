@@ -28,8 +28,6 @@ cam_color{6} = 'cyan';
 cam_color{7} = 'magenta';
 cam_color{8} = 'red';
 
-startFrame = 1;
-
 %% start script
 
 %read calibration file
@@ -57,6 +55,19 @@ if 0 == exist(output_path, 'dir')
 end
 
 % TODO: write file containing parameters R and T_cn_cnm
+out_R = [output_path '/params_R.csv'];
+Rout = zeros(streams, 16);
+for i = 1:streams
+    Rout(i, :) = reshape(R{i}, 1, 16);
+end
+csvwrite(out_R, Rout);
+
+out_camchain = [output_path '/params_camchain.csv'];
+ccOut = zeros(2*streams, 16);
+for i = 1:(2*streams)
+    ccOut(i,:) = reshape(T_cn_cnm{i}, 1, 16);
+end
+csvwrite(out_camchain, ccOut);
 
 % extract camera image messages
 img_streams(1) = select(bag, 'Topic', '/uvc_baseboard0/cam_0/image_rect');
@@ -102,8 +113,9 @@ ccy = zeros(streams, 1);
 % initialize point clouds
 xyzPoints = cell(streams, 1);
 
+endIndex = min(lowestIndex, startFrame + maxProcessFrames);
 
-for image_index = startFrame:lowestIndex
+for image_index = startFrame:endIndex
     progress = ['Extracting: ' int2str(image_index) '/' int2str(lowestIndex) ];
     fprintf(progress);
     
@@ -143,7 +155,7 @@ for image_index = startFrame:lowestIndex
         %get camera instrinsics and baseline values from camera info messages
         camMsgs{i} = readMessages(cams{1},image_index);
         focallengths(i) = camMsgs{i}{1}.K(1);
-        baselines(i) = -T_cn_cnm{2*i-1}(1,4);
+        baselines(i) = -T_cn_cnm{2*i}(1,4);
         ccx(i) = camMsgs{i}{1}.K(3);
         ccy(i) = camMsgs{i}{1}.K(6);
     
