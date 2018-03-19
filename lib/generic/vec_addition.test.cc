@@ -10,7 +10,7 @@ BOOST_AUTO_TEST_CASE( vector_add_equal_length ) {
 	std::vector<double> a, b, sum;
 	a.push_back(0.2);
 	b.push_back(0.3);
-	sum = Mousetrack::add(a, b);
+    sum = MouseTrack::add(a, b);
 
 	BOOST_CHECK_MESSAGE( 1 == sum.size(), "Output size should be max(a.size(), b.size())." );
 	BOOST_CHECK_CLOSE( 0.5, sum[0], .00001);
