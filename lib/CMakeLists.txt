@@ -7,15 +7,15 @@ set(source_files
         generic/disparity_map.cpp
         generic/point_cloud.cpp
         generic/trajectory.cpp
-	generic/vec_addition.cpp
-	)
+        generic/vec_addition.cpp
+        )
 
 # list here your testing files (*.test.cc) of your module
 set(test_files
-	test_root.cc
+        test_root.cc
         generic/point_cloud.test.cc
-	generic/vec_addition.test.cc
-	)
+        generic/vec_addition.test.cc
+        )
 
 add_library(libmousetrack ${source_files})
 
