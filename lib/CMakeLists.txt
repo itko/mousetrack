@@ -6,6 +6,7 @@ set(source_files
         generic/cluster.cpp
         generic/disparity_map.cpp
         generic/point_cloud.cpp
+        generic/trajectory.cpp
 	generic/vec_addition.cpp
 	)
 

@@ -5,17 +5,25 @@
 
 #pragma once
 
-#include<vector>
-#include<Eigen/Core>
+#include <map>
+#include <memory>
+#include <Eigen/Core>
 
-namespace Mousetrack {
+namespace MouseTrack {
 
 
 /// Describes a path in 3D space
 class Trajectory {
 public:
-	std::map<size_t, std::shared_ptr<const ClusterDescriptor>> controlPoints;
+    /// Read-Write access to control points.
+    /// Key: frame number
+    /// Value: point position in 3D space, might be null if no correspondence could be found in a certain frame
+    std::map<size_t, std::shared_ptr<Eigen::Vector3d>> controlPoints();
+    /// Read access to control points.
+    const std::map<size_t, std::shared_ptr<Eigen::Vector3d>> controlPoints() const;
+private:
+    std::map<size_t, std::shared_ptr<Eigen::Vector3d>> _controlPoints;
 };
 
 
-}
+} // MouseTrack
