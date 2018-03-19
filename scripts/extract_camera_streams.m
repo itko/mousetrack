@@ -18,6 +18,18 @@ clear;
 % and set the paths accordingly
 config;
 
+
+cam_color{1} = 'red';
+cam_color{2} = 'blue';
+cam_color{3} = 'green';
+cam_color{4} = 'yellow';
+cam_color{5} = 'black';
+cam_color{6} = 'cyan';
+cam_color{7} = 'magenta';
+cam_color{8} = 'red';
+
+startFrame = 1;
+
 %% start script
 
 %read calibration file
@@ -91,7 +103,7 @@ ccy = zeros(streams, 1);
 xyzPoints = cell(streams, 1);
 
 
-for image_index = 1:lowestIndex
+for image_index = startFrame:lowestIndex
     progress = ['Extracting: ' int2str(image_index) '/' int2str(lowestIndex) ];
     fprintf(progress);
     
@@ -216,10 +228,33 @@ for image_index = 1:lowestIndex
             subplot(2,4,i+4)
             imshow(depths{i});
         end
+        if extract_point_clouds
+            figure(2);
+            pcshow(xyzPoints{1});
+            hold on;
+            for i = 2:streams
+                pcshow(xyzPoints{i});
+            end
+
+            T = cell(2*streams, 1);
+            acc = T_cn_cnm{1};
+            T{1} = acc;
+            for i = 2:(2*streams)
+                acc = T_cn_cnm{i} * acc;
+                T{i} = inv(acc);
+            end
+
+            %plot camera positions in 3d view
+            size_cam = 0.012;
+            for i = 1:(2*streams)
+                plotCamera('Location',T{i}([1 2 3],4),'Orientation',T{i}([1 2 3],[1 2 3])','Opacity',0,'Size',size_cam,'Color',cam_color{i});
+            end
+
+            hold off;
+        end
         % give the gui a chance to redraw the figure
         pause(0.1);
     end
-    
     fprintf(repmat('\b', 1, numel(progress)));
 end
 
