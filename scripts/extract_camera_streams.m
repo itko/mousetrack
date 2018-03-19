@@ -126,10 +126,10 @@ for image_index = startFrame:endIndex
         out_pics{i} = [output_path '/pic' '_s_' s '_f_' f '.png' ];
         out_depths{i} = [output_path '/depth' '_s_' s '_f_' f '.png' ];
         out_depthsCleaned{i} = [output_path '/depth_normalized' '_s_' s '_f_' f '.png' ];
-        out_ptCloud{i} = [output_path '/point_cloud' '_s_' s '_f_' f ];
+        out_ptCloud{i} = [output_path '/point_cloud' '_s_' s '_f_' f '.ply' ];
     end
     out_frame_params = [output_path '/params_f_' f '.csv'];
-    out_ptCloudTotal = [output_path '/point_cloud_total_f_' f];
+    out_ptCloudTotal = [output_path '/point_cloud_total_f_' f '.ply'];
 
     % some logic to skip frames we've already processed
     skip = exist(out_frame_params, 'file') && (exist(out_ptCloudTotal, 'file') || ~extract_point_clouds);
@@ -143,15 +143,14 @@ for image_index = startFrame:endIndex
         end
     end
 
-    if skip
+    if skip && use_cache
         fprintf(repmat('\b', 1, numel(progress)));
         continue;
     end
     
 
-    % core processing, extact images, disparity maps, parameters
+    % core processing, extract images, disparity maps, parameters
     for i = 1:streams
-        
         %get camera instrinsics and baseline values from camera info messages
         camMsgs{i} = readMessages(cams{1},image_index);
         focallengths(i) = camMsgs{i}{1}.K(1);
@@ -175,12 +174,12 @@ for image_index = startFrame:endIndex
 
     % write first batch of data
     for i = 1:streams
-        % TODO: write file containing parameters focallengths, baselines, ccx, ccy
         imwrite(pics{i}, out_pics{i});
         imwrite(depths{i}, out_depths{i});
         cleaned = uint8(depthsCleaned{i});
         imwrite(cleaned, out_depthsCleaned{i});
     end
+    % write file containing parameters focallengths, baselines, ccx, ccy
     M = [focallengths baselines ccx ccy];
     csvwrite(out_frame_params, M);
     
@@ -199,6 +198,10 @@ for image_index = startFrame:endIndex
         xRange = (1+frame):1:(w-frame);
         for i = 1:streams
             xyzPoints{i} = single(zeros(h,w,3));
+            T = eye(4);
+            for iter = 2:i
+                T = T_cn_cnm{2*iter-1}*T_cn_cnm{2*iter-2}*T;
+            end
             for y=yRange
                 for x=xRange
                     if(depthsCleaned{i}(y,x,1) < mindisp)
@@ -210,7 +213,14 @@ for image_index = startFrame:endIndex
                     xyzPoints{i}(y,x,2) = (y+yshift-ccy(i))/focallengths(i)*xyzPoints{i}(y,x,3);
 
                     %rotate/translate 3D points to cam rect reference frame
-                    temp = R{i}*[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
+                    % t = eye(4);
+                    temp = R{i}*T*[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
+                    % t = T_cn_cnm2*T_cn_cnm1;
+                    % temp = R_1*t\[xyzPoints1(y,x,1),xyzPoints1(y,x,2),xyzPoints1(y,x,3),1 ]';
+                    % t = T_cn_cnm4*T_cn_cnm3 * T_cn_cnm2*T_cn_cnm1;
+                    % temp = R_2*t\[xyzPoints2(y,x,1),xyzPoints2(y,x,2),xyzPoints2(y,x,3),1 ]';
+                    % t = T_cn_cnm6*T_cn_cnm5 * T_cn_cnm4*T_cn_cnm3 * T_cn_cnm2*T_cn_cnm1;
+                    % temp = R_3*t\[xyzPoints3(y,x,1),xyzPoints3(y,x,2),xyzPoints3(y,x,3),1 ]';
                     xyzPoints{i}(y,x,1) = temp(1);
                     xyzPoints{i}(y,x,2) = temp(2);
                     xyzPoints{i}(y,x,3) = temp(3);

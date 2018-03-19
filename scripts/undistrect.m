@@ -359,7 +359,7 @@ KR = [fc_right(1) 0 cc_right(1);0 fc_right(2) cc_right(2);0 0 1];
 Hleft =  KL*R_L'/(KK_left_new);%*inv(KK_left_new;
 Hright = KR*R_R'/(KK_right_new);
 
-Rout{3} = [[R_L [0;0;0]];0 ,0, 0, 1]
+Rout{3} = [[R_L [0;0;0]];0 ,0, 0, 1];
 
 fc_left = [camchain.cam6.intrinsics(1), camchain.cam6.intrinsics(2)];
 fc_right =[camchain.cam7.intrinsics(1), camchain.cam7.intrinsics(2)];

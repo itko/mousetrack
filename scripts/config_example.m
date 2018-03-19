@@ -20,4 +20,9 @@ extract_point_clouds = false;
 % which frames should be processed?
 startFrame = 1;
 % if maxProcessFrames + startFrame > totalFrames, no crash will occur
+% if maxProcessFrames = 0: only startFrame will be processed
 maxProcessFrames = 1000000000; 
+
+% does not overwrite complete frames on disk (but overwrites all files, if
+% some are missing)
+use_cache = true;
