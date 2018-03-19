@@ -1,5 +1,10 @@
+/// \file
+/// Maintainer: Felice Serena
+///
+///
+
 #include "vec_addition.h"
-#define BOOST_TEST_MODULE VecAddTest
+
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
 

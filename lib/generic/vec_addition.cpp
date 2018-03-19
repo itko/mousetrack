@@ -1,3 +1,9 @@
+/// \file
+/// Maintainer: Felice Serena
+///
+///
+
+
 #include "vec_addition.h"
 
 namespace MouseTrack {
