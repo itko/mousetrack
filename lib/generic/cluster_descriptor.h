@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include<vector>
-
-namespace Mousetrack {
+namespace MouseTrack {
 
 
 /// This is an abstract class. Derive from this class to create a usable cluster descriptor.
@@ -20,8 +18,7 @@ public:
 	/// 1. 0 <= n <= inf
 	/// 2. if this == other -> n == 0
 	virtual double compare(const ClusterDescriptor* other) const = 0;
-	virtual const Eigen::Vector3d center() const;
 };
 
 
-}
+} // MouseTrack
