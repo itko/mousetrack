@@ -12,8 +12,6 @@ namespace MouseTrack {
 
 /// Stores the perspective depth for each pixel in a matrix.
 class DisparityMap {
-private:
-    Eigen::MatrixXd _map;
 public:
     /// Create empty map.
     DisparityMap();
@@ -29,6 +27,8 @@ public:
 
     /// Access the depth map with the intention to only read.
 	const Eigen::MatrixXd& zMap() const;
+private:
+    Eigen::MatrixXd _map;
 };
 
 
