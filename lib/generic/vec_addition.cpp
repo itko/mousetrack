@@ -24,4 +24,4 @@ std::vector<double> add(const std::vector<double>& a, const std::vector<double>&
 	return sum;
 }
 
-}
+} // MouseTrack

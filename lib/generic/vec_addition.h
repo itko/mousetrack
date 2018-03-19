@@ -14,4 +14,4 @@ namespace MouseTrack {
 /// Add two STL vectors a and b
 std::vector<double> add(const std::vector<double>& a, const std::vector<double>& b);
 
-}
+} // MouseTrack

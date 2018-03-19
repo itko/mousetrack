@@ -1,7 +1,9 @@
+# add this path to include path of library files
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here your source files (*.cpp) of your module
 set(source_files
+        generic/disparity_map.cpp
 	generic/vec_addition.cpp
 	)
 
@@ -13,10 +15,15 @@ set(test_files
 
 add_library(libmousetrack ${source_files})
 
+# add this path to include path of target
 target_include_directories(libmousetrack PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 find_package( OpenCV REQUIRED )
+
+find_package( Eigen3 REQUIRED )
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 target_link_libraries(libmousetrack ${OpenCV_LIBS})
 
 add_executable(tests ${test_files})
