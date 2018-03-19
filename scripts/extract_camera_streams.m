@@ -177,10 +177,10 @@ for image_index = 1:lowestIndex
             xyzPoints{i} = single(zeros(h,w,3));
             for y=yRange
                 for x=xRange
-                    if(disparityMap(y,x,1) < mindisp)
+                    if(depthsCleaned{i}(y,x,1) < mindisp)
                         xyzPoints{i}(y,x,3) = focallengths(i)*baselines(i)/scaleddisp;
                     else
-                        xyzPoints{i}(y,x,3) = focallengths(i)*baselines(i)/(disparityMap(y,x,1));
+                        xyzPoints{i}(y,x,3) = focallengths(i)*baselines(i)/(depthsCleaned{i}(y,x,1));
                     end
                     xyzPoints{i}(y,x,1) = (x+xshift-ccx(i))/focallengths(i)*xyzPoints{i}(y,x,3);
                     xyzPoints{i}(y,x,2) = (y+yshift-ccy(i))/focallengths(i)*xyzPoints{i}(y,x,3);
