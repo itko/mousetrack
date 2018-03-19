@@ -152,7 +152,7 @@ for image_index = startFrame:endIndex
     % core processing, extract images, disparity maps, parameters
     for i = 1:streams
         %get camera instrinsics and baseline values from camera info messages
-        camMsgs{i} = readMessages(cams{1},image_index);
+        camMsgs{i} = readMessages(cams{i},image_index);
         focallengths(i) = camMsgs{i}{1}.K(1);
         baselines(i) = -T_cn_cnm{2*i}(1,4);
         ccx(i) = camMsgs{i}{1}.K(3);
@@ -214,8 +214,9 @@ for image_index = startFrame:endIndex
 
                     %rotate/translate 3D points to cam rect reference frame
                     % t = eye(4);
-                    temp = R{i}*T*[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
+                    temp = R{i}*T\[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
                     % t = T_cn_cnm2*T_cn_cnm1;
+                    % t = T_cn_cnm{3}*T_cn_cnm{2};
                     % temp = R_1*t\[xyzPoints1(y,x,1),xyzPoints1(y,x,2),xyzPoints1(y,x,3),1 ]';
                     % t = T_cn_cnm4*T_cn_cnm3 * T_cn_cnm2*T_cn_cnm1;
                     % temp = R_2*t\[xyzPoints2(y,x,1),xyzPoints2(y,x,2),xyzPoints2(y,x,3),1 ]';
