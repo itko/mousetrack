@@ -18,6 +18,7 @@ clear;
 % and set the paths accordingly
 config;
 
+tic;
 
 cam_color{1} = 'red';
 cam_color{2} = 'blue';
@@ -54,7 +55,8 @@ if 0 == exist(output_path, 'dir')
     mkdir(output_path);
 end
 
-% TODO: write file containing parameters R and T_cn_cnm
+% write file containing parameters R and T_cn_cnm
+% Note: reshapes linearizes columns ([1 2; 3 4] -> [1 3 2 4])
 out_R = [output_path '/params_R.csv'];
 Rout = zeros(streams, 16);
 for i = 1:streams
@@ -94,8 +96,6 @@ lowestIndex = min([img_streams.NumMessages]);
 msg = readMessages(img_streams(1), 1);
 pic1 = readImage(msg{1});
 [h, w] = size(pic1);
-%pics = zeros(streams, h, w, 'uint8');
-%depths = zeros(streams, h, w, 'uint8');
 
 % preallocate
 out_pics = cell(streams, 1);
@@ -105,7 +105,6 @@ out_ptCloud = cell(streams, 1);
 pics = cell(streams, 1);
 depths = cell(streams, 1);
 depthsCleaned = cell(streams, 1);
-camMsgs = cell(streams, 1);
 focallengths = zeros(streams, 1);
 baselines = zeros(streams, 1);
 ccx = zeros(streams, 1);
@@ -143,26 +142,29 @@ for image_index = startFrame:endIndex
         end
     end
 
+    % perform skip of frame, or not.
     if skip && use_cache
         fprintf(repmat('\b', 1, numel(progress)));
         continue;
     end
     
 
-    % core processing, extract images, disparity maps, parameters
+    % core processing: extract images, disparity maps, parameters
     for i = 1:streams
         %get camera instrinsics and baseline values from camera info messages
-        camMsgs{i} = readMessages(cams{i},image_index);
-        focallengths(i) = camMsgs{i}{1}.K(1);
+        camMsg = readMessages(cams{i},image_index);
+        focallengths(i) = camMsg{1}.K(1);
         baselines(i) = -T_cn_cnm{2*i}(1,4);
-        ccx(i) = camMsgs{i}{1}.K(3);
-        ccy(i) = camMsgs{i}{1}.K(6);
+        ccx(i) = camMsg{1}.K(3);
+        ccy(i) = camMsg{1}.K(6);
     
-        
+        % read intensity image
         msg = readMessages(img_streams(2*i-1), image_index);
         pics{i} = readImage(msg{1});
+        % read disparity map
         msgDepth = readMessages(img_streams(2*i), image_index);
         depths{i} = readImage(msgDepth{1});
+        % process disparity map to get a cleaned version
         % crop last 3 bits of 8 bit disparity value (contains debug info)
         disparityMap = bitand(depths{i},248);%248 = 11111000bin
         %adjust for extended disparity range with offset of 32 pixels and every 2nd
@@ -183,6 +185,8 @@ for image_index = startFrame:endIndex
     M = [focallengths baselines ccx ccy];
     csvwrite(out_frame_params, M);
     
+    % also calculate each point cloud per disparity map
+    % also calculate total point cloud
     if extract_point_clouds
         %avoid division 0, crop last 4 disparity values
         mindisp = 1*2+32;
@@ -202,6 +206,8 @@ for image_index = startFrame:endIndex
             for iter = 2:i
                 T = T_cn_cnm{2*iter-1}*T_cn_cnm{2*iter-2}*T;
             end
+            % convert each pixel to a point in the point cloud (without
+            % border)
             for y=yRange
                 for x=xRange
                     if(depthsCleaned{i}(y,x,1) < mindisp)
@@ -213,26 +219,20 @@ for image_index = startFrame:endIndex
                     xyzPoints{i}(y,x,2) = (y+yshift-ccy(i))/focallengths(i)*xyzPoints{i}(y,x,3);
 
                     %rotate/translate 3D points to cam rect reference frame
-                    % t = eye(4);
                     temp = R{i}*T\[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
-                    % t = T_cn_cnm2*T_cn_cnm1;
-                    % t = T_cn_cnm{3}*T_cn_cnm{2};
-                    % temp = R_1*t\[xyzPoints1(y,x,1),xyzPoints1(y,x,2),xyzPoints1(y,x,3),1 ]';
-                    % t = T_cn_cnm4*T_cn_cnm3 * T_cn_cnm2*T_cn_cnm1;
-                    % temp = R_2*t\[xyzPoints2(y,x,1),xyzPoints2(y,x,2),xyzPoints2(y,x,3),1 ]';
-                    % t = T_cn_cnm6*T_cn_cnm5 * T_cn_cnm4*T_cn_cnm3 * T_cn_cnm2*T_cn_cnm1;
-                    % temp = R_3*t\[xyzPoints3(y,x,1),xyzPoints3(y,x,2),xyzPoints3(y,x,3),1 ]';
                     xyzPoints{i}(y,x,1) = temp(1);
                     xyzPoints{i}(y,x,2) = temp(2);
                     xyzPoints{i}(y,x,3) = temp(3);
                 end
             end
         end
+        % concatenate point clouds to get one large cloud
         xyzPointsTotal = [];
         for i = 1:streams
             xyzPointsTotal = [xyzPointsTotal, xyzPoints{i}];
         end
 
+        % write point clouds
         for i = 1:streams
             ptCloud = pointCloud(xyzPoints{i});
             pcwrite(ptCloud, out_ptCloud{i}, 'PLYFormat', 'binary');
@@ -242,6 +242,7 @@ for image_index = startFrame:endIndex
         pcwrite(ptCloud, out_ptCloudTotal, 'PLYFormat', 'binary');
     end
     
+    % show some progress by displaying the processed frame
     if display
         figure(1);
         %show figure with extracted rect and depth images
@@ -252,6 +253,7 @@ for image_index = startFrame:endIndex
             imshow(depths{i});
         end
         if extract_point_clouds
+            % show point cloud (if we calculated it)
             figure(2);
             pcshow(xyzPoints{1});
             hold on;
@@ -278,7 +280,10 @@ for image_index = startFrame:endIndex
         % give the gui a chance to redraw the figure
         pause(0.1);
     end
+    % reset our progress bar in the console
     fprintf(repmat('\b', 1, numel(progress)));
 end
 
+fprintf('\nFinished.\n');
 
+toc;
