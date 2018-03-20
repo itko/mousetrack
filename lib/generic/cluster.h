@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include <cstddef>
+
+#include "types.h"
 #include <vector>
 
 namespace MouseTrack {
@@ -15,15 +16,18 @@ namespace MouseTrack {
 class Cluster {
 public:
     /// Construct a new cluster with a list of indices.
-    Cluster(const std::vector<size_t>& points);
+    Cluster(const std::vector<PointIndex>& points);
+
     /// Construct a new cluster with a list of indices.
-    Cluster(std::vector<size_t>&& points);
+    Cluster(std::vector<PointIndex>&& points);
+
     /// Read-Write access to indices
-	std::vector<size_t>& points();
+    std::vector<PointIndex>& points();
+
     /// Read access to indices.
-	const std::vector<size_t>& points() const;
+    const std::vector<PointIndex>& points() const;
 private:
-    std::vector<size_t> _points;
+    std::vector<PointIndex> _points;
 };
 
 } // MouseTrack
