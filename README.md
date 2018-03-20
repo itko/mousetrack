@@ -6,16 +6,16 @@ This project will be awesome!
 
 ## Dependencies
 
-TL;DR: Convenient one-liner for Ubuntu: `$ sudo apt install -y cmake libboost-all-dev libopencv-dev`
+TL;DR: Convenient one-liner for Ubuntu: `$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev`
 
 - CMake: `$ sudo apt install cmake`
 - Boost.Test: `$ sudo apt install libboost-all-dev`
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
+- Eigen: `$ sudo apt install libeigen3-dev`
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
 - Atlas: `$ sudo apt-get install libatlas-base-dev gfortran`
-- Eigen: `$ sudo apt install libeigen3-dev`
 
 ## Build project
 
