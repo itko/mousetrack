@@ -13,7 +13,7 @@
 namespace MouseTrack {
 
 
-/// A point clouds holds a list of 3D points. Each point can have additional attributes like color intensity.
+/// A point cloud holds a list of 3D points. Each point can have additional attributes like color intensity.
 class PointCloud {
 	// Design note: In general, one has to decide betwen two basic concepts:
 	// - Structure of Arrays
@@ -62,9 +62,6 @@ public:
 
     /// Exactly the same as `Point` but it only provides read-only access to the data.
     class ConstantPoint {
-        // Design note: I tend to keep the hierarchy flat,
-        // this way we can implement it by storing a reference to the PointCloud
-        // and an index, and nothing more.
         friend class PointCloud;
     private:
         const PointCloud& _cloud;

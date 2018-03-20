@@ -19,7 +19,6 @@ public:
     /// chains: a list of cluster chains to which we want to appeand one cluster from descriptors
     /// returns a vector of size descriptors.size(), which holds the index of the matching chain for each descriptor.
     /// If no match was found, the vector value is set to -1.
-    //virtual std::vector<long> operator()(const std::vector<std::shared_ptr<const ClusterDescriptor>>& descriptors, const std::vector<ClusterChain>& chains) const = 0;
     virtual std::vector<long> operator()(const std::vector<std::shared_ptr<const ClusterDescriptor>>& descriptors, const std::vector<ClusterChain>& cahins) = 0;
 };
 

@@ -8,7 +8,6 @@
 #include "types.h"
 
 #include <map>
-#include <memory>
 #include <Eigen/Core>
 
 namespace MouseTrack {
