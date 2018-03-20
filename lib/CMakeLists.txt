@@ -4,6 +4,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # list here your source files (*.cpp) of your module
 set(source_files
         generic/cluster.cpp
+        generic/cluster_chain.cpp
         generic/disparity_map.cpp
         generic/point_cloud.cpp
         generic/trajectory.cpp
@@ -33,3 +34,7 @@ target_link_libraries(libmousetrack ${OpenCV_LIBS})
 add_executable(tests ${test_files})
 target_link_libraries(tests libmousetrack ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
+# create a target for the headers, we don't actually need the result
+# but this way, IDE's also show header files in their project overviews
+file(GLOB_RECURSE header_files "*.h")
+add_custom_target(headers SOURCES ${header_files})
