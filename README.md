@@ -1,5 +1,7 @@
 # Mousetrack
 
+[![Build Status](https://travis-ci.org/Fluci/mousetrack.svg?branch=master)](https://travis-ci.org/Fluci/mousetrack)
+
 This project will be awesome!
 
 ## Dependencies
