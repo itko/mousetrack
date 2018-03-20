@@ -37,35 +37,35 @@ PointCloud::Point::Point(PointCloud& cloud, size_t i) : _cloud(cloud), _index(i)
 }
 
 
-PointCloud::Coord& PointCloud::Point::x() {
+Coordinate& PointCloud::Point::x() {
     return _cloud._xs[_index];
 }
 
-const PointCloud::Coord& PointCloud::Point::x() const {
+const Coordinate& PointCloud::Point::x() const {
     return _cloud._xs[_index];
 }
 
-PointCloud::Coord& PointCloud::Point::y() {
+Coordinate& PointCloud::Point::y() {
     return _cloud._ys[_index];
 }
 
-const PointCloud::Coord& PointCloud::Point::y() const {
+const Coordinate& PointCloud::Point::y() const {
     return _cloud._ys[_index];
 }
 
-PointCloud::Coord& PointCloud::Point::z() {
+Coordinate& PointCloud::Point::z() {
     return _cloud._zs[_index];
 }
 
-const PointCloud::Coord& PointCloud::Point::z() const {
+const Coordinate& PointCloud::Point::z() const {
     return _cloud._zs[_index];
 }
 
-PointCloud::Color& PointCloud::Point::intensity() {
+ColorChannel& PointCloud::Point::intensity() {
     return _cloud._color[_index];
 }
 
-const PointCloud::Color& PointCloud::Point::intensity() const {
+const ColorChannel& PointCloud::Point::intensity() const {
     return _cloud._color[_index];
 }
 
@@ -76,19 +76,19 @@ PointCloud::ConstantPoint::ConstantPoint(const PointCloud& cloud, size_t i) : _c
     // empty
 }
 
-const PointCloud::Coord& PointCloud::ConstantPoint::x() const {
+const Coordinate& PointCloud::ConstantPoint::x() const {
     return _cloud._xs[_index];
 }
 
-const PointCloud::Coord& PointCloud::ConstantPoint::y() const {
+const Coordinate& PointCloud::ConstantPoint::y() const {
     return _cloud._ys[_index];
 }
 
-const PointCloud::Coord& PointCloud::ConstantPoint::z() const {
+const Coordinate& PointCloud::ConstantPoint::z() const {
     return _cloud._zs[_index];
 }
 
-const PointCloud::Color& PointCloud::ConstantPoint::intensity() const {
+const ColorChannel& PointCloud::ConstantPoint::intensity() const {
     return _cloud._color[_index];
 }
 

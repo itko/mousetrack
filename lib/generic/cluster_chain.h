@@ -19,13 +19,20 @@ namespace MouseTrack {
 /// The key does not exist, if no cluster was found in a frame
 class ClusterChain {
 public:
-    std::map<size_t, const Cluster*>& clusters();
-    const std::map<size_t, const Cluster*>& clusters() const;
-    std::map<size_t, std::shared_ptr<const ClusterDescriptor>>& descriptors();
-    const std::map<size_t, std::shared_ptr<const ClusterDescriptor>>& descriptors() const;
+    /// Write access to all clusters.
+    std::map<FrameNumber, const Cluster*>& clusters();
+
+    /// Read access to all clusters.
+    const std::map<FrameNumber, const Cluster*>& clusters() const;
+
+    /// Write access to all cluster descriptors.
+    std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>>& descriptors();
+
+    /// Read access to all cluster descriptors
+    const std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>>& descriptors() const;
 private:
-    std::map<size_t, std::shared_ptr<const ClusterDescriptor>> _descriptors;
-    std::map<size_t, const Cluster*> _clusters;
+    std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>> _descriptors;
+    std::map<FrameNumber, const Cluster*> _clusters;
 };
 
 } // MouseTrack
