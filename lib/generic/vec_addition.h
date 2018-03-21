@@ -9,9 +9,9 @@
 #include<vector>
 
 /// The Mousetrack namespace holds all declarations available from the library.
-namespace Mousetrack {
+namespace MouseTrack {
 
 /// Add two STL vectors a and b
 std::vector<double> add(const std::vector<double>& a, const std::vector<double>& b);
 
-}
+} // MouseTrack

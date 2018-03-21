@@ -1,6 +1,12 @@
+/// \file
+/// Maintainer: Felice Serena
+///
+///
+
+
 #include "vec_addition.h"
 
-namespace Mousetrack {
+namespace MouseTrack {
 
 /// Add two STL vectors together, if one vector is larger, its elements are copied to the result.
 std::vector<double> add(const std::vector<double>& a, const std::vector<double>& b) {
@@ -24,4 +30,4 @@ std::vector<double> add(const std::vector<double>& a, const std::vector<double>&
 	return sum;
 }
 
-}
+} // MouseTrack
