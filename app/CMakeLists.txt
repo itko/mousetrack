@@ -3,11 +3,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here all source files appart from main
 set(source_files
-	)
+        matlab_reader.cpp
+        )
 
 # list here your testing files (*.test.cc) of your module
 set(test_files
         test_root.cc
+        matlab_reader.test.cc
         )
 
 # find and import dependencies

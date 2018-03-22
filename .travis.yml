@@ -13,15 +13,17 @@ compiler:
 
 addons:
  apt:
-  sources:
-  - boost-latest
   packages:
    - cmake
    - libboost-all-dev
    - libopencv-dev
    - libeigen3-dev
+   - libpng12-dev
 
 before_install:
+ - sudo add-apt-repository -y ppa:nschloe/boost-nightly
+ - sudo apt update -qq
+ - apt search boost
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; if ! [[ `brew ls --versions boost` ]]; then brew install boost; fi; fi
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then if ! [[ `brew ls --versions gcc` ]]; then brew install gcc; fi; fi
  - gcc --version
@@ -29,10 +31,11 @@ before_install:
  - clang --version
  - clang++ --version
 
+
 script:
 - mkdir -p build
 - cd build
 - cmake -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_VERBOSE_MAKEFILE=ON ..
 - make
-- ./lib/tests
+- ../run_tests.sh
   #- ./app/mousetrack
