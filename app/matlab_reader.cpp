@@ -85,7 +85,7 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
     /// store the paths from following symlinks in all other cases.
     std::unordered_map<std::string, IndexAggregateSF> aggSF;
     std::unordered_map<std::string, IndexAggregateF> aggF;
-    std::regex nameShape("([A-Za-z0-9_-]+?)(?:_s_([0-9]+))?_f_([0-9]+)\\.([A-Za-z]+)");
+    std::regex nameShape("^([A-Za-z0-9_-]+?)(?:_s_([0-9]+))?_f_([0-9]+)\\.([A-Za-z0-9]+)$", std::regex::ECMAScript);
     // TODO: Boost 1.54 does not support fs::directory_iterator as we would like to use it here
     // for(const auto& p : fs::directory_iterator(_root)){
     // Later versions do, but I can't make travis use the newer versions, hence this older code until an update is possible
