@@ -11,7 +11,7 @@
 
 BOOST_AUTO_TEST_CASE( matlab_reader_average_success_case ) {
     // Note: make sure to run ./app/appTests to pass this test (from the build directory which in turn is located in the project root)
-    const auto reader = MouseTrack::MatlabReader("../app/matlab_reader.test.bag1/mock_data");
+    const auto reader = MouseTrack::MatlabReader("../app/matlab_reader.test/mock_data");
 
     BOOST_CHECK(reader.valid());
 
