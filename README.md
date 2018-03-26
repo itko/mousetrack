@@ -21,6 +21,19 @@ $ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng1
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
 - Atlas: `$ sudo apt-get install libatlas-base-dev gfortran`
 
+### Version requirements
+
+This list is not complete, but might help you to finding possible problems when compiling for the first time.
+Feel free to add or adjust entries on your own experience.
+
+- g++ 4.9 or larger: we need C++11 with regex fully implemented, g++ 4.8 or bellow won't work
+- gcc 5.4 is known to work
+- clang 3.8 is known to work
+- libpng 1.2 and 1.6 are known to work
+- boost 1.56 and 1.58 are known to work
+- OpenCV 3.3 is known to work
+- Eigen 2.91 is known to work
+
 ## Build project
 
 TL;DR:
