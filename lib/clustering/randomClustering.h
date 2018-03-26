@@ -4,6 +4,8 @@
 ///
 ///
 
+#pragma once
+
 #include "clustering.h"
 #include <vector>
 
