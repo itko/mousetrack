@@ -8,7 +8,6 @@
 #include "mean_shift.h"
 #include <stdlib.h>
 #include <time.h>
-#include <algorithm>
 namespace MouseTrack {
 
 MeanShift::MeanShift(int k) : _k(k) {
