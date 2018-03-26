@@ -3,6 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here your source files (*.cpp) of your module
 set(source_files
+	clustering/randomClustering.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
         generic/disparity_map.cpp

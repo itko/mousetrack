@@ -8,6 +8,10 @@
 
 namespace MouseTrack {
 
+Cluster::Cluster() : _points(std::vector<PointIndex>()){
+    //empty
+}
+
 Cluster::Cluster(const std::vector<PointIndex>& points) : _points(points) {
     // empty
 }
