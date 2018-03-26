@@ -11,8 +11,8 @@ set(source_files
         generic/vec_addition.cpp
         generic/center.cpp
         descripting/cog.cpp
-	matching/nearest_neighbour.cpp
-	)
+	      matching/nearest_neighbour.cpp
+	  )
 
 # list here your testing files (*.test.cc) of your module
 set(test_files
