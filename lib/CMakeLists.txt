@@ -23,16 +23,30 @@ add_library(libmousetrack ${source_files})
 # add this path to include path of target
 target_include_directories(libmousetrack PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-find_package( Boost COMPONENTS unit_test_framework REQUIRED )
+find_package( Boost COMPONENTS
+    log
+    unit_test_framework
+    REQUIRED )
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+
+
 find_package( OpenCV REQUIRED )
 
 find_package( Eigen3 REQUIRED )
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-target_link_libraries(libmousetrack ${OpenCV_LIBS})
+
+target_link_libraries(libmousetrack
+    ${OpenCV_LIBS}
+    ${Boost_LOG_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    )
 
 add_executable(tests ${test_files})
-target_link_libraries(tests libmousetrack ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(tests
+    libmousetrack
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
 
 # create a target for the headers, we don't actually need the result
 # but this way, IDE's also show header files in their project overviews
