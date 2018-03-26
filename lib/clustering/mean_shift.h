@@ -12,11 +12,11 @@
 
 namespace MouseTrack {
 
-class RandomClustering: public Clustering {
+class MeanShift: public Clustering {
 public:
 
   /// k is the number of desired clusters
-  RandomClustering(const int k);
+  MeanShift(const int k);
   /// Splits a point cloud into k clusters randomly
   std::vector<Cluster> operator()(const PointCloud& cloud) const;
 

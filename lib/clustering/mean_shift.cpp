@@ -5,17 +5,22 @@
 ///
 
 
-#include "random_clustering.h"
+#include "mean_shift.h"
 #include <stdlib.h>
+#include <time.h>
+#include <algorithm>
 namespace MouseTrack {
 
-RandomClustering::RandomClustering(int k) : _k(k) {
+MeanShift::MeanShift(int k) : _k(k) {
     //empty
 }
 
-std::vector<Cluster> RandomClustering::operator()(const PointCloud& cloud) const {
+std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 	std::vector<Cluster> clustering = std::vector<Cluster>(_k);
+
+  //Initialize RNG
+	srand(time(NULL));
 
 	//Assign random cluster to each point in cloud
 	for(PointIndex i=0; i<cloud.size(); i++) {
@@ -25,9 +30,14 @@ std::vector<Cluster> RandomClustering::operator()(const PointCloud& cloud) const
 	}
 
 	//get rid of empty clusters
-	for (int i=0; i<clustering.size(); i++) {
-		if (clustering[i].points().size() == 0) clustering.erase(clustering.begin() + i);
-	}
+	int nextInsert = 0;
+  for(int i = 0; i < clustering.size(); i++){
+    if(!clustering[i].points().empty()){
+      clustering[nextInsert] = clustering[i];
+      nextInsert++;
+    }
+  }
+	clustering.erase(clustering.begin() + nextInsert, clustering.end());
 
 	return clustering;
 }
