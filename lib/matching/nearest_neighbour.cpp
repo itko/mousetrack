@@ -1,4 +1,4 @@
-/* \file
+/** \file
  * nearest_neighbour.cpp
  *
  *  Created on: Mar 25, 2018

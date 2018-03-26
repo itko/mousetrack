@@ -1,4 +1,4 @@
-/* \file
+/** \file
  * cog.h
  *
  *  Created on: Mar 25, 2018

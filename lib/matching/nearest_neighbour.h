@@ -1,4 +1,4 @@
-/* \file
+/** \file
  * nearest_neighbour.h
  *
  *  Created on: Mar 25, 2018
