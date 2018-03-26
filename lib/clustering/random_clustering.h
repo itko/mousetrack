@@ -14,10 +14,11 @@ namespace MouseTrack {
 
 class RandomClustering: public Clustering {
 public:
-    RandomClustering(const int k);
 
-    ///Splits a point cloud into k clusters randomly
-    std::vector<Cluster> operator()(const PointCloud& cloud) const;
+  /// k is the number of desired clusters
+  RandomClustering(const int k);
+  /// Splits a point cloud into k clusters randomly
+  std::vector<Cluster> operator()(const PointCloud& cloud) const;
 
 private:
     const int _k;
