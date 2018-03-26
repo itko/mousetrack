@@ -21,9 +21,6 @@ addons:
    - libpng12-dev
 
 before_install:
- - sudo add-apt-repository -y ppa:nschloe/boost-nightly
- - sudo apt update -qq
- - apt search boost
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; if ! [[ `brew ls --versions boost` ]]; then brew install boost; fi; fi
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then if ! [[ `brew ls --versions gcc` ]]; then brew install gcc; fi; fi
  - gcc --version
