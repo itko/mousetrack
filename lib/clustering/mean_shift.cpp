@@ -70,7 +70,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 		}
 
 		if (clusters.size() != curr.size())
-			BOOST_LOG_TRIVIAL(warning) << "Cluster count does not equal mode count. (" << clusters.size() << " != " << curr.size();
+			BOOST_LOG_TRIVIAL(warning) << "Cluster count does not equal mode count. (" << clusters.size() << " != " << curr.size() << ")";
 
 		// Check convergence
 		if (prev.size() == curr.size()) {
