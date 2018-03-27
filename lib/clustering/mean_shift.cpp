@@ -20,23 +20,29 @@ MeanShift::MeanShift(double window_size) : _window_size(window_size) {
 std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 	BOOST_LOG_TRIVIAL(trace) << "MeanShift algorithm started";
 	// Covert point cloud to Eigen vectors
-	std::vector<Eigen::VectorXd> points;
+	std::vector<Eigen::VectorXd> points(cloud.size());
 	for (int i=0; i<cloud.size(); i++) {
-		points.push_back(cloud[i].eigenVec());
+		points[i] = cloud[i].eigenVec();
 	}
+
 
 	// Initialize Clusters. Initially, every point has its own cluster.
 	std::vector<Cluster> clusters(cloud.size());
 	for (PointIndex i; i<cloud.size(); i++) clusters[i].points().push_back(i);
 
 	// Initialize some stuff used in the MeanShift loop
-	std::vector<Eigen::VectorXd> prev(points.size());
-	std::vector<Eigen::VectorXd> curr = points;
+	std::vector<Eigen::VectorXd> prev = points;
+	std::vector<Eigen::VectorXd> curr(points.size());
 	bool has_converged = false;
+  int iterations = 0; //for logging
 
 	// The MeanShift loop
 	while (!has_converged) {
-
+		iterations++;
+		if (iterations > MAX_ITERATIONS) {
+			BOOST_LOG_TRIVIAL(error) << "MeanShift: max number of iterations exceeded without convergence";
+			break;
+		}
 		// perform 1 iteration on each mode
 		for (int i=0; i<prev.size(); i++) {
 			curr[i] = iterate_mode(prev[i], prev);
@@ -46,13 +52,15 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 		// For every mode..
 		for (int i=0; i<curr.size(); i++) {
 			// Check modes we haven't already executed the (i)-loop for
-			for (int j=i+1; i<curr.size(); j++) {
+			for (int j=i+1; j<curr.size(); j++) {
 				Eigen::VectorXd diff = curr[i] - curr[j];
+
 				if (diff.norm() < MERGE_THRESHOLD) {
 					// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
 					for (PointIndex k : clusters[j].points()) {
 						clusters[i].points().push_back(k);
 					}
+					BOOST_LOG_TRIVIAL(trace) << "Merging cluster " << j << " into cluster " << i << ", distance " << diff.norm();
 					clusters.erase(clusters.begin() + j);
 					curr.erase(curr.begin() + j);
 
@@ -66,7 +74,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 		// Check convergence
 		if (prev.size() == curr.size()) {
-			double total_movement;
+			double total_movement = 0;
 			for (int i=0; i < curr.size(); i++) {
 				total_movement += (curr[i]-prev[i]).norm();
 			}
@@ -74,7 +82,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 		}
 		prev = curr;
 	}
-	BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << curr.size();
+	BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << curr.size() << " #Iterations: " << iterations;
 
 
 	return clusters;
@@ -97,12 +105,13 @@ Eigen::VectorXd MeanShift::iterate_mode(const Eigen::VectorXd mode, const std::v
 	double normfact = 0;
 	//Rest of COG
 	Eigen::VectorXd cog = Eigen::VectorXd::Zero(mode.size());
-	for(const Eigen::VectorXd x : state) {
-		double temp = apply_gaussian_kernel(x,mode);
+	for(int i; i<state.size(); i++) {
+		double temp = apply_gaussian_kernel(state[i],mode);
 		normfact += temp;
-		cog += temp * x;
+		cog += temp * state[i];
 	}
-	return cog * (1.0/normfact);
+	cog = cog * (1.0/normfact);
+	return cog;
 }
 
 } //MouseTrack

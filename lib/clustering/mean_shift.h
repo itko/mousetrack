@@ -26,7 +26,10 @@ private:
   const double MERGE_THRESHOLD = 0.0001;
 
   // Convergence is decided if modes haven't moved more than this in total
-  const double CONVERGENCE_THRESHOLD = 0.01;
+  const double CONVERGENCE_THRESHOLD = 0.1;
+
+  // If algorithm hasn't converged after this amount of iterations, we abort.
+  const int MAX_ITERATIONS = 100;
 
   // window size parameter for mean shift algorithm
   double _window_size;
