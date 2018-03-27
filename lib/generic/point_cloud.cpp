@@ -70,7 +70,7 @@ const ColorChannel& PointCloud::Point::intensity() const {
 }
 
 Eigen::MatrixXd PointCloud::Point::eigenVec() const {
-  return Eigen::Vector4D(x(),y(),z(),intensity());
+  return Eigen::Vector4d(x(),y(),z(),intensity());
 }
 
 
@@ -97,7 +97,7 @@ const ColorChannel& PointCloud::ConstantPoint::intensity() const {
 }
 
 Eigen::MatrixXd PointCloud::ConstantPoint::eigenVec() const {
-  return Eigen::Vector4D(x(),y(),z(),intensity());
+  return Eigen::Vector4d(x(),y(),z(),intensity());
 }
 
 
