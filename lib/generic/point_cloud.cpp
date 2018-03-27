@@ -69,6 +69,10 @@ const ColorChannel& PointCloud::Point::intensity() const {
     return _cloud._color[_index];
 }
 
+Eigen::MatrixXd PointCloud::Point::eigenVec() const {
+  return Eigen::Vector4D(x(),y(),z(),intensity());
+}
+
 
 // ConstantPoint implementation
 
@@ -91,6 +95,11 @@ const Coordinate& PointCloud::ConstantPoint::z() const {
 const ColorChannel& PointCloud::ConstantPoint::intensity() const {
     return _cloud._color[_index];
 }
+
+Eigen::MatrixXd PointCloud::ConstantPoint::eigenVec() const {
+  return Eigen::Vector4D(x(),y(),z(),intensity());
+}
+
 
 
 } // MouseTrack

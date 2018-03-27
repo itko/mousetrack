@@ -83,6 +83,9 @@ public:
 
         /// Read access to color intensity.
         const ColorChannel& intensity() const;
+
+				/// Convert to dx1 Eigen Matrix
+				Eigen::MatrixXd eigenVec() const;
     };
 
     /// Make space to accomodate n points.
