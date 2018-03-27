@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <Eigen/Core>
 
 namespace MouseTrack {
 
