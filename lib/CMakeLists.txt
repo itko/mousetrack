@@ -9,7 +9,10 @@ set(source_files
         generic/point_cloud.cpp
         generic/trajectory.cpp
         generic/vec_addition.cpp
-        )
+        generic/center.cpp
+        descripting/cog.cpp
+	      matching/nearest_neighbour.cpp
+	  )
 
 # list here your testing files (*.test.cc) of your module
 set(test_files
