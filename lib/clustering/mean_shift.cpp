@@ -35,7 +35,4 @@ double MeanShift::apply_gaussian_kernel(const Eigen::MatrixXd point, const Eigen
 	return exp(-d/(2*_window_size));
 }
 
-void MeanShift::iterate() {
-	//TODO
-}
 } //MouseTrack

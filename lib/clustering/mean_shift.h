@@ -22,6 +22,9 @@ public:
   std::vector<Cluster> operator()(const PointCloud& cloud) const;
 
 private:
+  // when two peaks are closer than this, they are merged.
+  const double MERGE_THRESHOLD = 0.0001;
+
   // window size parameter for mean shift algorithm
   double _window_size;
 
@@ -31,8 +34,6 @@ private:
   // Returns a weight in [0,1] for point by applying a gaussian kernel with variance window_size and mean mean
   double apply_gaussian_kernel(const Eigen::MatrixXd point, const Eigen::MatrixXd mean) const;
 
-  // Performs one iteration of the mean shift algorithm
-  void iterate();
 };
 
 }
