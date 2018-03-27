@@ -25,6 +25,9 @@ private:
   // when two peaks are closer than this, they are merged.
   const double MERGE_THRESHOLD = 0.0001;
 
+  // Convergence is decided if modes haven't moved more than this in total
+  const double CONVERGENCE_THRESHOLD = 0.01;
+
   // window size parameter for mean shift algorithm
   double _window_size;
 
@@ -32,8 +35,10 @@ private:
   PointCloud means;
 
   // Returns a weight in [0,1] for point by applying a gaussian kernel with variance window_size and mean mean
-  double apply_gaussian_kernel(const Eigen::MatrixXd point, const Eigen::MatrixXd mean) const;
+  double apply_gaussian_kernel(const Eigen::VectorXd point, const Eigen::VectorXd mean) const;
 
+  // Performs one iteration of the mean shift algorithm for a single mode
+  Eigen::VectorXd iterate_mode(const Eigen::VectorXd mode, const std::vector<Eigen::VectorXd>& state) const;
 };
 
 }
