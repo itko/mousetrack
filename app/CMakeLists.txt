@@ -3,10 +3,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here all source files appart from main
 set(source_files
+        cli_controller.cpp
+        cli_options.cpp
         controller.cpp
         matlab_reader.cpp
         pipeline.cpp
-        )
+        pipeline_observer.cpp
+        pipeline_factory.cpp
+        pipeline_timer.cpp
+	)
 
 # list here all source files related with the gui
 set(gui_source_files
@@ -27,6 +32,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package( Boost COMPONENTS
     system
     filesystem
+    program_options
     log
     unit_test_framework
     REQUIRED )
@@ -57,6 +63,7 @@ target_link_libraries(libmousetrackAll
     libmousetrack
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_LOG_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
 )

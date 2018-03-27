@@ -82,6 +82,8 @@ public:
         const ColorChannel& intensity() const;
     };
 
+    PointCloud();
+
     /// Make space to accomodate n points.
 	void resize(size_t n);
 
