@@ -3,6 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here your source files (*.cpp) of your module
 set(source_files
+		clustering/mean_shift.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
         generic/disparity_map.cpp
@@ -19,6 +20,7 @@ set(test_files
         test_root.cc
         generic/point_cloud.test.cc
         generic/vec_addition.test.cc
+		clustering/mean_shift.test.cc
         )
 
 add_library(libmousetrack ${source_files})

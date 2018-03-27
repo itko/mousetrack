@@ -15,6 +15,9 @@ namespace MouseTrack {
 /// The corresponding point cloud is not linked in this data structure.
 class Cluster {
 public:
+    /// Construct empty cluster object
+    Cluster();
+
     /// Construct a new cluster with a list of indices.
     Cluster(const std::vector<PointIndex>& points);
 
