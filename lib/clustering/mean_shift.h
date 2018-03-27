@@ -28,8 +28,8 @@ private:
   // contains the means of all the mean shift clusters
   PointCloud means;
 
-  // Returns a weight in [0,1] for point w/ index "idx" in "cloud" by applying a gaussian kernel with variance window_size and mean mean
-  double apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& idx, const Eigen::MatrixXd mean) const;
+  // Returns a weight in [0,1] for point by applying a gaussian kernel with variance window_size and mean mean
+  double apply_gaussian_kernel(const Eigen::MatrixXd point, const Eigen::MatrixXd mean) const;
 
   // Performs one iteration of the mean shift algorithm
   void iterate();
