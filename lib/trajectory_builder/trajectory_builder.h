@@ -5,16 +5,16 @@
 
 #pragma once
 
-#include "generic/cluster_chain.h"
-#include "generic/trajectory.h"
+#include "generic/cluster.h"
+#include "generic/cluster_descriptor.h"
 
 namespace MouseTrack {
 
 
 class TrajectoryBuilder {
 public:
-    /// Creates a path in 3d space (trajectory) from a list of clusters and cluster descriptors (a cluster chain)
-    virtual Trajectory operator()(const ClusterChain& chain) const = 0;
+    /// Creates a new control point for a trajectory from a cluster and its descriptor
+    virtual Eigen::Vector3d operator()(const std::shared_ptr<const ClusterDescriptor> descriptor, const Cluster& cluster) const = 0;
 };
 
 
