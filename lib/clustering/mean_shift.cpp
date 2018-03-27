@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <Eigen/Core>
 namespace MouseTrack {
 
 MeanShift::MeanShift(int k) : _k(k) {
@@ -42,17 +43,16 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 	return clustering;
 }
 
-double MeanShift::euclidean_distance_squared(const Point& x, const Point& y) {
-	return 	(x.x() - y.x())*(x.x() - y.x()) +
-					(x.y() - y.y())*(x.y() - y.y()) +
-					(x.z() - y.z())*(x.z() - y.z()) +
-					(x.intensity() - y.intensity())*(x.intensity() - y.intensity());
+double MeanShift::apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& point, const PointIndex& mean) {
+	const GaussianKernel kernel = {means[mean], _window_size};
+
+	// Euclidean distance squared btw. mean of kernel and point of interest
+	const double d = euclidean_distance_squared(means[mean], cloud[point]);
+	return exp(-d/(2*_window_size));
 }
 
-double MeanShift::apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& point, const GaussianKernel& kernel) {
-	// Euclidean distance squared btw. mean of kernel and point of interest
-	const double d = euclidean_distance_squared(kernel.mean, cloud[point]);
-	return exp(-d/(2*kernel.variance));
+Eigen::Vector4d MeanShift::create_vector(const PointCloud& cloud, const PointIndex& index) {
+	return Eigen::Vector4d()
 }
 
 } //MouseTrack

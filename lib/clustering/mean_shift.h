@@ -21,20 +21,19 @@ public:
   std::vector<Cluster> operator()(const PointCloud& cloud) const;
 
 private:
+  const int _k;
 
+  // window size parameter for mean shift algorithm
+  const double window_size;
 
-  // computes squared euclidean distance ||x-y||. x and y are 4D (x,y,z,intensity)
-  double euclidean_distance_squared(const Point& x, const Point& y);
+  // contains the means of all the mean shift clusters
+  PointCloud means;
 
-  /// Returns a weight in [0,1] for point "point" in "cloud" by applying gaussian kernel "kernel"
-  double apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& point, const GaussianKernel& kernel);
+  // Returns a weight in [0,1] for point w/ index "point" in "cloud" by applying a gaussian kernel with variance window_size and mean mean
+  double apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& point, const Eigen::Vector4d mean);
 
-};
-
-/// Defines a 4D gaussian kernel with mean and variance (variance is equal in each direction)
-struct GaussianKernel {
-  Point mean;
-  double variance;
+  // Performs one iteration of the mean shift algorithm
+  void iterate();
 };
 
 }
