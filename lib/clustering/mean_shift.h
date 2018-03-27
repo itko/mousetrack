@@ -21,15 +21,20 @@ public:
   std::vector<Cluster> operator()(const PointCloud& cloud) const;
 
 private:
-  /// Defines a 4D gaussian kernel with mean and variance (variance is equal in each direction)
-  struct GaussianKernel {
-    Point mean;
-    double variance;
-  };
-  
+
+
+  // computes squared euclidean distance ||x-y||. x and y are 4D (x,y,z,intensity)
+  double euclidean_distance_squared(const Point& x, const Point& y);
+
+  /// Returns a weight in [0,1] for point "point" in "cloud" by applying gaussian kernel "kernel"
   double apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& point, const GaussianKernel& kernel);
 
 };
 
+/// Defines a 4D gaussian kernel with mean and variance (variance is equal in each direction)
+struct GaussianKernel {
+  Point mean;
+  double variance;
+};
 
 }
