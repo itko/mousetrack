@@ -18,16 +18,23 @@ MeanShift::MeanShift(double window_size) : _window_size(window_size) {
 }
 
 std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
+	BOOST_LOG_TRIVIAL(trace) << "MeanShift algorithm started";
 	// Covert point cloud to Eigen vectors
 	std::vector<Eigen::VectorXd> points;
 	for (int i=0; i<cloud.size(); i++) {
 		points.push_back(cloud[i].eigenVec());
 	}
 
+	// Initialize Clusters. Initially, every point has its own cluster.
+	std::vector<Cluster> clusters(cloud.size());
+	for (PointIndex i; i<cloud.size(); i++) clusters[i].points().push_back(i);
+
+	// Initialize some stuff used in the MeanShift loop
 	std::vector<Eigen::VectorXd> prev(points.size());
 	std::vector<Eigen::VectorXd> curr = points;
 	bool has_converged = false;
 
+	// The MeanShift loop
 	while (!has_converged) {
 
 		// perform 1 iteration on each mode
@@ -42,11 +49,20 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 			for (int j=i+1; i<curr.size(); j++) {
 				Eigen::VectorXd diff = curr[i] - curr[j];
 				if (diff.norm() < MERGE_THRESHOLD) {
+					// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
+					for (PointIndex k : clusters[j].points()) {
+						clusters[i].points().push_back(k);
+					}
+					clusters.erase(clusters.begin() + j);
 					curr.erase(curr.begin() + j);
+
 					break;
 				}
 			}
 		}
+
+		if (clusters.size() != curr.size())
+			BOOST_LOG_TRIVIAL(warning) << "Cluster count does not equal mode count. (" << clusters.size() << " != " << curr.size();
 
 		// Check convergence
 		if (prev.size() == curr.size()) {
@@ -60,9 +76,8 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 	}
 	BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << curr.size();
 
-	// Build clusters
-	std::vector<Cluster> clustering = std::vector<Cluster>();
-	return clustering;
+
+	return clusters;
 }
 
 double MeanShift::apply_gaussian_kernel(const Eigen::VectorXd point, const Eigen::VectorXd mean) const {
