@@ -61,7 +61,7 @@ public:
         const ColorChannel& intensity() const;
 
 				/// Convert to dx1 Eigen Matrix
-				Eigen::MatrixXd eigenVec() const;
+				Eigen::VectorXd eigenVec() const;
     };
 
     /// Exactly the same as `Point` but it only provides read-only access to the data.
@@ -86,7 +86,7 @@ public:
         const ColorChannel& intensity() const;
 
 				/// Convert to dx1 Eigen Matrix
-				Eigen::MatrixXd eigenVec() const;
+				Eigen::VectorXd eigenVec() const;
     };
 
     /// Make space to accomodate n points.
