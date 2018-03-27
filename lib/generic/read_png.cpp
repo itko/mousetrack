@@ -6,6 +6,7 @@
 #include "read_png.h"
 
 #include <png.h>
+#include <boost/log/trivial.hpp>
 
 namespace MouseTrack {
 
@@ -74,10 +75,10 @@ Eigen::MatrixXi read_png(const std::string& path) {
         fclose(fp);
         throw "Palette pngs are not supported";
     case PNG_COLOR_TYPE_RGB:
-        // TODO: Log: we ignore GB
+        BOOST_LOG_TRIVIAL(info) << "Color PNG not supported, only reading R channel";
         break;
     case PNG_COLOR_TYPE_RGBA:
-        // TODO: Log: we ignore GBA
+        BOOST_LOG_TRIVIAL(info) << "Color PNG not supported, only reading R channel";
         break;
     }
 

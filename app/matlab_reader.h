@@ -95,6 +95,7 @@ private:
         std::set<fs::path> camchainPath;
     };
 
+    /// Stores the absolute path to the root directory of data we want to read.
     fs::path _root;
 
     /// Set by constructor, true if there exist properly formed data
@@ -130,6 +131,7 @@ private:
     /// number of symlinks to evaluate (0: don't follow symlinks, 1: evaluate one link, etc.)
     int _followSymlinkDepth = 1000;
 
+    /// Assumes an existing `_root` directory. It scans the directory and collects all filenames that might interest us.
     void preflight();
 
     /// Read normalized dispairty map for frame f and stream s
@@ -155,12 +157,6 @@ private:
 
     /// Reads a csv file into one matrix
     Eigen::MatrixXd readMatrix(const fs::path& file) const;
-
-    /// constructs a filename according to the expected pattern
-    std::string createFilename(const std::string& base, StreamNumber s, FrameNumber f, const std::string& suffix) const;
-
-    /// as the other createFilename but without stream index
-    std::string createFilename(const std::string& base, FrameNumber f, const std::string& suffix) const;
 
     /// If there are multiple files mapping to the same key, this method tries to work out the best match
     fs::path chooseCandidate(const std::set<fs::path>& candidates) const;

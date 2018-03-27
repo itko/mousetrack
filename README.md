@@ -127,3 +127,11 @@ BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
 
     Example: A safety check in a financial application trading stocks failed, million of dollars could be lost.
 
+## Testing
+
+To run tests, call `./run_tests.sh` from within the build directory (your build directory should be located at the project root).
+This will set up the necessary environment (creating a mock file system, etc.) and run all test binaries.
+If everything succeeds, it will return an error code of 0.
+
+To add new tests, create a new file with the suffix `.test.cc` and add it to its corresponding `CMakeLists.txt` (either in `app/` or `lib/`).
+For the exact skeleton and available Macros, see an existing unit test or the [Boost.Test](http://www.boost.org/doc/libs/1_66_0/libs/test/doc/html/boost_test/testing_tools.html) documentation.

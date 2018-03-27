@@ -65,22 +65,22 @@ struct IndexAggregateF {
 // base file names for bag files
 const std::string NORMALIZED_DISPARITY_KEY{"depth_normalized"};
 const std::string RAW_DISPARITY_KEY{"depth"};
-const std::string FRAME_PARAMETERS_KEY("params");
-const std::string REFERENCE_PICTURE_KEY("pic");
-const std::string ROTATION_CORRECTION_KEY("params_R");
-const std::string CAMERA_CHAIN_KEY("params_camchain");
+const std::string FRAME_PARAMETERS_KEY{"params"};
+const std::string REFERENCE_PICTURE_KEY{"pic"};
+const std::string ROTATION_CORRECTION_KEY{"params_R"};
+const std::string CAMERA_CHAIN_KEY{"params_camchain"};
 
 const std::set<std::string> EXPECTED_CHANNELS {NORMALIZED_DISPARITY_KEY, RAW_DISPARITY_KEY, FRAME_PARAMETERS_KEY, REFERENCE_PICTURE_KEY};
 const std::set<std::string> EXPECTED_FILES {ROTATION_CORRECTION_KEY, CAMERA_CHAIN_KEY};
 
 MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_directory)), _valid(false) {
     if(!fs::exists(_root)){
-        std::stringstream ss;
-        ss << "MatlabReader: path for root directory \"" << root_directory.string() << "\" does not exist.";
-        throw ss.str();
+        BOOST_LOG_TRIVIAL(info) << "Path for root directory " << root_directory.string() << "does not exist (absolute: " << _root << ")";
+        throw "Root directory not found.";
     }
     if(!fs::is_directory(_root)){
-        throw "MatlabReader: path for root directory is not a directory.";
+        BOOST_LOG_TRIVIAL(info) << "Path for root directory does not point to a directory: " << _root;
+        throw "Root path not a directory.";
     }
 
     preflight();
@@ -108,12 +108,12 @@ void MatlabReader::preflight() {
         int evaluatedSymlinks = 0;
         while(evaluatedSymlinks < _followSymlinkDepth && fs::is_symlink(path)){
             path = fs::read_symlink(path);
-            BOOST_LOG_TRIVIAL(trace) << "Followed symbolic link to: " << path.string();
+            BOOST_LOG_TRIVIAL(info) << "Followed symbolic link to: " << path.string();
             evaluatedSymlinks += 1;
         }
         if(!fs::is_regular_file(path)){
             // add original path to ignore list
-            BOOST_LOG_TRIVIAL(trace) << "Ignored non regular file: " << p.path().string();
+            BOOST_LOG_TRIVIAL(info) << "Ignored non regular file: " << p.path().string();
             _ignoredPaths.push_back(p.path());
             continue;
         }
@@ -166,7 +166,7 @@ void MatlabReader::preflight() {
             a.addStream(stream);
             a.addFrame(frame);
         } else {
-            BOOST_LOG_TRIVIAL(trace) << "Ignoring path " << p.path().string() << ", does not match any expected file name.";
+            BOOST_LOG_TRIVIAL(info) << "Ignoring path " << p.path().string() << ", does not match any expected file name.";
             _ignoredPaths.push_back(p.path());
             continue;
         }
@@ -195,8 +195,6 @@ void MatlabReader::preflight() {
         firstFrame = std::min(firstFrame, kv.second.firstFrame);
         lastFrame = std::max(lastFrame, kv.second.lastFrame);
     }
-
-    // TODO: check file formats
 
     _valid = firstStream <= lastStream && firstFrame <= lastFrame;
 
@@ -253,9 +251,9 @@ std::vector<Frame> MatlabReader::frames(FrameNumber f) const {
     for(int s = beginStream(); s < endStream(); s += 1){
         auto& frame = frames[s-beginStream()];
         // read stream dependent files
-        frame.normalizedDepth = normalizedDisparityMap(s, f);
-        frame.rawDepth = rawDisparityMap(s, f);
-        frame.leftPicture = picture(s, f);
+        frame.normalizedDisparityMap = normalizedDisparityMap(s, f);
+        frame.rawDisparityMap = rawDisparityMap(s, f);
+        frame.referencePicture = picture(s, f);
         // fread frame-only dependent files
         frame.focallength = params(s-1, 0);
         frame.baseline = params(s-1, 1);
@@ -263,8 +261,8 @@ std::vector<Frame> MatlabReader::frames(FrameNumber f) const {
         frame.ccy = params(s-1, 3);
         // read cached data
         frame.rotationCorrection = rotationCorrections()[s-1];
-        frame.camChainRotationDepth = camchain()[2*(s-1)];
-        frame.camChainRotationPicture = camchain()[2*(s-1)+1];
+        frame.camChainPicture = camchain()[2*(s-1)];
+        frame.camChainDisparity = camchain()[2*(s-1)+1];
     }
     return frames;
 }
@@ -366,11 +364,13 @@ std::vector<Eigen::Matrix4d> MatlabReader::readCamchain() const {
 std::vector<Eigen::Matrix4d> MatlabReader::read4x4MatrixList(const fs::path& file) const {
     const auto fileContent = read_csv(file.string());
     // matlab reshapes matrices colum wise: [1 2; 3 4] -> reshape -> [1 3 2 4]
+    const int rows = 4;
+    const int cols = 4;
     std::vector<Eigen::Matrix4d> result(fileContent.size());
     for(size_t mat = 0; mat < fileContent.size(); mat += 1){
-        for(size_t j = 0; j < 4; j += 1){
-            for(size_t i = 0; i < 4; i += 1){
-                double entry = std::stod(fileContent[mat][j*4 + i]);
+        for(size_t j = 0; j < rows; j += 1){
+            for(size_t i = 0; i < cols; i += 1){
+                double entry = std::stod(fileContent[mat][j*cols + i]);
                 result[mat](i,j) = entry;
             }
         }
@@ -398,8 +398,6 @@ Eigen::MatrixXd MatlabReader::readMatrix(const fs::path& file) const {
     return result;
 }
 
-// helpers
-
 fs::path MatlabReader::chooseCandidate(const std::set<fs::path>& candidates) const {
     fs::path p;
     for(const fs::path& c : candidates){
@@ -417,23 +415,6 @@ fs::path MatlabReader::chooseCandidate(const std::set<fs::path>& candidates) con
         return c;
     }
     throw "no path found.";
-}
-
-std::string MatlabReader::createFilename(const std::string& base, StreamNumber s, FrameNumber f, const std::string& suffix) const {
-    std::stringstream ss;
-    ss << base;
-    ss << "_f_" << f;
-    ss << "_s_" << s;
-    ss << "." << suffix;
-    return ss.str();
-}
-
-std::string MatlabReader::createFilename(const std::string& base, FrameNumber f, const std::string& suffix) const {
-    std::stringstream ss;
-    ss << base;
-    ss << "_f_" << f;
-    ss << "." << suffix;
-    return ss.str();
 }
 
 // ElementKey

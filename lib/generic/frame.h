@@ -14,16 +14,16 @@ namespace MouseTrack {
 
 /// Holds all information related to a single frame of a stream
 struct Frame {
-    DisparityMap normalizedDepth;
-    DisparityMap rawDepth;
-    Picture leftPicture;
+    DisparityMap normalizedDisparityMap;
+    DisparityMap rawDisparityMap;
+    Picture referencePicture;
     Precision focallength;
     Precision baseline;
     Precision ccx;
     Precision ccy;
     Eigen::Matrix4d rotationCorrection;
-    Eigen::Matrix4d camChainRotationDepth;
-    Eigen::Matrix4d camChainRotationPicture;
+    Eigen::Matrix4d camChainPicture;
+    Eigen::Matrix4d camChainDisparity;
 };
 
 
