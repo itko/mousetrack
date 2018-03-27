@@ -21,7 +21,15 @@ public:
   std::vector<Cluster> operator()(const PointCloud& cloud) const;
 
 private:
-    const int _k;
+  /// Defines a 4D gaussian kernel with mean and variance (variance is equal in each direction)
+  struct GaussianKernel {
+    Point mean;
+    double variance;
+  };
+  
+  double apply_gaussian_kernel(const PointCloud& cloud, const PointIndex& point, const GaussianKernel& kernel);
+
 };
+
 
 }
