@@ -62,6 +62,17 @@ struct IndexAggregateF {
     }
 };
 
+// base file names for bag files
+const std::string NORMALIZED_DISPARITY_KEY{"depth_normalized"};
+const std::string RAW_DISPARITY_KEY{"depth"};
+const std::string FRAME_PARAMETERS_KEY("params");
+const std::string REFERENCE_PICTURE_KEY("pic");
+const std::string ROTATION_CORRECTION_KEY("params_R");
+const std::string CAMERA_CHAIN_KEY("params_camchain");
+
+const std::set<std::string> EXPECTED_CHANNELS {NORMALIZED_DISPARITY_KEY, RAW_DISPARITY_KEY, FRAME_PARAMETERS_KEY, REFERENCE_PICTURE_KEY};
+const std::set<std::string> EXPECTED_FILES {ROTATION_CORRECTION_KEY, CAMERA_CHAIN_KEY};
+
 MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_directory)), _valid(false) {
     if(!fs::exists(_root)){
         std::stringstream ss;
@@ -71,8 +82,10 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
     if(!fs::is_directory(_root)){
         throw "MatlabReader: path for root directory is not a directory.";
     }
-    std::set<std::string> expectedChannels {"depth_normalized", "depth", "params", "pic"};
-    std::set<std::string> expectedFiles {"params_R.csv", "params_camchain.csv"};
+
+    preflight();
+}
+void MatlabReader::preflight() {
 
     /// We want to work out the index range for streams and frames.
     /// For this we iterate over each file, applying a regular
@@ -107,15 +120,14 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
         // we have now two different paths:
         // p.path(): the representation we should use to recognize
         // path: path to the actual file, might be called anything, but this is the thing we want to store
-        std::string filename{p.path().filename().string()};
-        auto exp = expectedFiles.find(filename);
-        if(exp != expectedFiles.end()){
-            if(*exp == "params_R.csv"){
+        auto exp = EXPECTED_FILES.find(p.path().stem().string());
+        if(exp != EXPECTED_FILES.end()){
+            if(*exp == ROTATION_CORRECTION_KEY){
                 BOOST_LOG_TRIVIAL(trace) << "Found rotations: " << p.path().string() << " at " << path.string();
-                _setUpParams.rotationCorrectionsPath.insert(path);
-            } else if (*exp == "params_camchain.csv") {
+                _files.rotationCorrectionsPath.insert(path);
+            } else if (*exp == CAMERA_CHAIN_KEY) {
                 BOOST_LOG_TRIVIAL(trace) << "Found camchain: " << p.path().string() << " at " << path.string();
-                _setUpParams.camchainPath.insert(path);
+                _files.camchainPath.insert(path);
             } else {
                 // log: found internal inconsistency,
                 BOOST_LOG_TRIVIAL(warning) << "Found internal inconsistency: expected file has no storage location in members: " << p.path().string() << " File ignored.";
@@ -129,10 +141,12 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
         std::string channel;
         int stream, frame;
 
+        std::string filename{p.path().filename().string()};
         std::regex_match(filename.c_str(), cm, nameShape);
         std::string suffix = p.path().extension().string();
 
         if(!cm[2].matched){
+            BOOST_LOG_TRIVIAL(trace) << "Matched frame: " << p.path().string() << " at " << path.string() << ": " << cm[1] << ", " << cm[2] << ", " << cm[3];
             channel = cm[1];
             // internal key, not usable from outside, since we only allow non-negative integers
             stream = -1;
@@ -142,6 +156,7 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
             a.addSuffix(suffix);
             a.addFrame(frame);
         } else if (cm[1].matched) {
+            BOOST_LOG_TRIVIAL(trace) << "Matched stream and frame: " << p.path().string() << " at " << path.string() << ": " << cm[1] << ", " << cm[2] << ", " << cm[3];
             channel = cm[1];
             stream = std::stoi(cm[2]);
             frame = std::stoi(cm[3]);
@@ -156,14 +171,14 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
             continue;
         }
         BOOST_LOG_TRIVIAL(trace) << "Adding frame file " << path.string() << " from " << p.path().string();
-        _frameFiles[ElementKey(stream, frame, channel)].insert(path);
+        _files.frames[ElementKey(stream, frame, channel)].insert(path);
     }
     StreamNumber firstStream = std::numeric_limits<StreamNumber>::max();
     StreamNumber lastStream = -1;
     FrameNumber firstFrame = std::numeric_limits<StreamNumber>::max();
     FrameNumber lastFrame = -1;
     for(const auto& kv : aggSF){
-        if(expectedChannels.find(kv.first) == expectedChannels.end()){
+        if(EXPECTED_CHANNELS.find(kv.first) == EXPECTED_CHANNELS.end()){
             _ignoredChannels.push_back(kv.first);
             continue;
         }
@@ -173,7 +188,13 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
         lastFrame = std::max(lastFrame, kv.second.lastFrame);
     }
 
-    // TODO: check aggF
+    for(const auto& kv : aggF){
+        if(EXPECTED_CHANNELS.find(kv.first) == EXPECTED_CHANNELS.end()){
+            _ignoredChannels.push_back(kv.first);
+        }
+        firstFrame = std::min(firstFrame, kv.second.firstFrame);
+        lastFrame = std::max(lastFrame, kv.second.lastFrame);
+    }
 
     // TODO: check file formats
 
@@ -192,8 +213,8 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
         _endFrame = lastFrame + 1;
     }
 
-    _setUpParams.rotationCorrections = readRotationCorrections();
-    _setUpParams.camchain = readCamchain();
+    _cache.rotationCorrections = readRotationCorrections();
+    _cache.camchain = readCamchain();
 }
 
 
@@ -225,61 +246,62 @@ const std::vector<std::string>& MatlabReader::ignoredChannels() const {
     return _ignoredChannels;
 }
 
-Frame MatlabReader::frame(StreamNumber s, FrameNumber f) const {
-    Frame frame;
-    frame.normalizedDepth = normalizedDisparityMap(s, f);
-    frame.rawDepth = rawDisparityMap(s, f);
-    frame.leftPicture = picture(s, f);
+std::vector<Frame> MatlabReader::frames(FrameNumber f) const {
+    unsigned int count = endStream() - beginStream();
+    std::vector<Frame> frames{count};
     Eigen::MatrixXd params = channelParameters(f);
-    frame.focallength = params(s-1, 0);
-    frame.baseline = params(s-1, 1);
-    frame.ccx = params(s-1, 2);
-    frame.ccy = params(s-1, 3);
-    frame.rotationCorrection = rotationCorrections()[s-1];
-    frame.camChainRotationDepth = camchain()[2*(s-1)];
-    frame.camChainRotationPicture = camchain()[2*(s-1)+1];
-    return frame;
+    for(int s = beginStream(); s < endStream(); s += 1){
+        auto& frame = frames[s-beginStream()];
+        // read stream dependent files
+        frame.normalizedDepth = normalizedDisparityMap(s, f);
+        frame.rawDepth = rawDisparityMap(s, f);
+        frame.leftPicture = picture(s, f);
+        // fread frame-only dependent files
+        frame.focallength = params(s-1, 0);
+        frame.baseline = params(s-1, 1);
+        frame.ccx = params(s-1, 2);
+        frame.ccy = params(s-1, 3);
+        // read cached data
+        frame.rotationCorrection = rotationCorrections()[s-1];
+        frame.camChainRotationDepth = camchain()[2*(s-1)];
+        frame.camChainRotationPicture = camchain()[2*(s-1)+1];
+    }
+    return frames;
 }
 
 /// This layer decides, if a file needs to be touched, or if there's a cached version
 
 DisparityMap MatlabReader::normalizedDisparityMap(StreamNumber s, FrameNumber f) const {
-    // read "depth_normalized_f_%_s_%.png
     return readNormalizedDisparityMap(s, f);
 }
 
 DisparityMap MatlabReader::rawDisparityMap(StreamNumber s, FrameNumber f) const {
-    // read "depth_f_%_s_%.png"
     return readRawDisparityMap(s, f);
 }
 
 Eigen::MatrixXd MatlabReader::channelParameters(FrameNumber f) const {
-    // "params_f_%.csv"
     return readChannelParameters(f);
 }
 
 Eigen::MatrixXd MatlabReader::picture(StreamNumber s, FrameNumber f) const {
-    // "pic_f_%_s.png"
     return readPicture(s, f);
 }
 
 std::vector<Eigen::Matrix4d> MatlabReader::rotationCorrections() const {
-    // read "params_R.csv"
-    return _setUpParams.rotationCorrections;
+    return _cache.rotationCorrections;
 }
 
 std::vector<Eigen::Matrix4d> MatlabReader::camchain() const {
-    // read "params_camchain.csv"
-    return _setUpParams.camchain;
+    return _cache.camchain;
 }
 
 /// This layer touches files
 
 
-/// Read normalized depth map for frame f and stream s
+/// Read normalized disparity map for frame f and stream s
 DisparityMap MatlabReader::readNormalizedDisparityMap(StreamNumber s, FrameNumber f) const {
-    const auto candidatesPtr = _frameFiles.find(ElementKey(s, f, "depth_normalized"));
-    if(candidatesPtr == _frameFiles.end()){
+    const auto candidatesPtr = _files.frames.find(ElementKey(s, f, NORMALIZED_DISPARITY_KEY));
+    if(candidatesPtr == _files.frames.end()){
         throw "No file found.";
     }
     fs::path p = chooseCandidate(candidatesPtr->second);
@@ -289,10 +311,10 @@ DisparityMap MatlabReader::readNormalizedDisparityMap(StreamNumber s, FrameNumbe
     return result;
 }
 
-/// Read depth map as stored in bag file for frame f and stream s
+/// Read disparity map as stored in bag file for frame f and stream s
 DisparityMap MatlabReader::readRawDisparityMap(StreamNumber s, FrameNumber f) const {
-    const auto candidatesPtr = _frameFiles.find(ElementKey(s, f, "depth"));
-    if(candidatesPtr == _frameFiles.end()){
+    const auto candidatesPtr = _files.frames.find(ElementKey(s, f, RAW_DISPARITY_KEY));
+    if(candidatesPtr == _files.frames.end()){
         throw "No file found.";
     }
     fs::path p = chooseCandidate(candidatesPtr->second);
@@ -304,8 +326,8 @@ DisparityMap MatlabReader::readRawDisparityMap(StreamNumber s, FrameNumber f) co
 
 /// read channel parameters (focallength, baseline, ccx, ccy)
 Eigen::MatrixXd MatlabReader::readChannelParameters(FrameNumber f) const {
-    const auto candidatesPtr =_frameFiles.find(ElementKey(-1, f, "params"));
-    if(candidatesPtr == _frameFiles.end()){
+    const auto candidatesPtr = _files.frames.find(ElementKey(-1, f, FRAME_PARAMETERS_KEY));
+    if(candidatesPtr == _files.frames.end()){
         throw "No file found.";
     }
     fs::path p = chooseCandidate(candidatesPtr->second);
@@ -315,8 +337,8 @@ Eigen::MatrixXd MatlabReader::readChannelParameters(FrameNumber f) const {
 
 /// read left camera picture for frame f and stream s
 Picture MatlabReader::readPicture(StreamNumber s, FrameNumber f) const {
-    const auto candidatesPtr = _frameFiles.find(ElementKey(s, f, "pic"));
-    if(candidatesPtr == _frameFiles.end()){
+    const auto candidatesPtr = _files.frames.find(ElementKey(s, f, REFERENCE_PICTURE_KEY));
+    if(candidatesPtr == _files.frames.end()){
         throw "No file found.";
     }
     fs::path p = chooseCandidate(candidatesPtr->second);
@@ -326,7 +348,7 @@ Picture MatlabReader::readPicture(StreamNumber s, FrameNumber f) const {
 
 /// Read rotation corrections for cameras
 std::vector<Eigen::Matrix4d> MatlabReader::readRotationCorrections() const {
-    const auto& candidates = _setUpParams.rotationCorrectionsPath;
+    const auto& candidates = _files.rotationCorrectionsPath;
     fs::path p = chooseCandidate(candidates);
     BOOST_LOG_TRIVIAL(trace) << "readRotationCorrections: " << p.string();
     return read4x4MatrixList(p);
@@ -334,7 +356,7 @@ std::vector<Eigen::Matrix4d> MatlabReader::readRotationCorrections() const {
 
 /// Read the camera chain (8 rotation matrices that define how the cameras are positioned to each other)
 std::vector<Eigen::Matrix4d> MatlabReader::readCamchain() const {
-    const auto& candidates = _setUpParams.camchainPath;
+    const auto& candidates = _files.camchainPath;
     fs::path p = chooseCandidate(candidates);
     BOOST_LOG_TRIVIAL(trace) << "readCamchain: " << p.string();
     return read4x4MatrixList(p);
@@ -382,6 +404,7 @@ fs::path MatlabReader::chooseCandidate(const std::set<fs::path>& candidates) con
     fs::path p;
     for(const fs::path& c : candidates){
         // last chance, to choose something that exists
+        // this check could be improved by taking file endings into account and favoring more efficient versions
         if(c.empty()){
             continue;
         }
@@ -393,7 +416,6 @@ fs::path MatlabReader::chooseCandidate(const std::set<fs::path>& candidates) con
         }
         return c;
     }
-    // TODO: log
     throw "no path found.";
 }
 
@@ -424,10 +446,6 @@ bool MatlabReader::ElementKey::operator<(const MatlabReader::ElementKey& other) 
         return frame < other.frame;
     }
     return stream < other.stream;
-}
-
-bool MatlabReader::ElementKey::operator==(const MatlabReader::ElementKey& other) const {
-    return stream == other.stream && frame == other.frame && channel == other.channel;
 }
 
 

@@ -27,6 +27,7 @@ namespace fs = boost::filesystem;
 /// Convention for methods: always first stream, then frame number.
 class MatlabReader {
 public:
+    /// This is the constructor you should use, give it the root to the bag file directory
     MatlabReader(fs::path root_directory);
 
     /// true if constructor decided, the file system is formatted properly, false otherwise
@@ -51,10 +52,10 @@ public:
     /// for a sequence of stream images, but has an unknown base name).
     const std::vector<std::string>& ignoredChannels() const;
 
-    /// Fetch normalized depth map for frame f and stream s
+    /// Fetch normalized disparity map for frame f and stream s
     DisparityMap normalizedDisparityMap(StreamNumber s, FrameNumber f) const;
 
-    /// Fetch depth map as stored in bag file for frame f and stream s
+    /// Fetch disparity map as stored in bag file for frame f and stream s
     DisparityMap rawDisparityMap(StreamNumber s, FrameNumber f) const;
 
     /// Fetch channel parameters (focallength, baseline, ccx, ccy)
@@ -69,15 +70,15 @@ public:
     /// Fetch the camera chain (8 rotation matrices that define how the cameras are positioned to each other)
     std::vector<Eigen::Matrix4d> camchain() const;
 
-    /// Fetch all data belonging to frame f of stream s
-    Frame frame(StreamNumber s, FrameNumber f) const;
+    /// Fetch all data belonging to frame f of and all streams
+    std::vector<Frame> frames(FrameNumber f) const;
 private:
-    struct StaticParameters {
-        std::set<fs::path> rotationCorrectionsPath;
+    /// Collect cached values in an organized way
+    struct ConstParameters {
         std::vector<Eigen::Matrix4d> rotationCorrections;
-        std::set<fs::path> camchainPath;
         std::vector<Eigen::Matrix4d> camchain;
     };
+    /// Merge the three relevant components into one key for std::set
     struct ElementKey {
         ElementKey(StreamNumber s, FrameNumber f, std::string c) : stream(s), frame(f), channel(c) {
             // empty
@@ -86,29 +87,58 @@ private:
         FrameNumber frame;
         std::string channel;
         bool operator<(const ElementKey& other) const;
-        bool operator==(const ElementKey& other) const;
+    };
+    /// Collect data relevant paths in an organized way
+    struct FilePaths {
+        std::map<ElementKey, std::set<fs::path>> frames;
+        std::set<fs::path> rotationCorrectionsPath;
+        std::set<fs::path> camchainPath;
     };
 
     fs::path _root;
+
+    /// Set by constructor, true if there exist properly formed data
+    /// false, if the constructor couldn't make sense of the given directory
     bool _valid;
+
+    /// Holds first index for which a stream in the file system exists
     StreamNumber _beginStream;
+
+    /// already holds C++ semantics of pointing to the first non existing entry at the end
     StreamNumber _endStream;
+
+    /// Stores first index for which a frame in the filesyste exists
     FrameNumber _beginFrame;
+
+    /// already holds C++ semantics of pointing to the first non existing entry at the end
     FrameNumber _endFrame;
+
+    /// The preflight might decide to ignore paths/files it didn't expect (we don't care about
+    /// additional files in the directory). Those entries are listed here.
     std::vector<fs::path> _ignoredPaths;
+
+    /// Sometimes a file might look like a valid frame file (it has a pattern of <channelName>_s_%d_f_%d.<suffix>)
+    /// But the channel name is not expected. This could be an incident or be a hit, that there's a version
+    /// mismatch between MatlabReader and the matlab extraction script.
     std::vector<std::string> _ignoredChannels;
-    std::map<ElementKey, std::set<fs::path>> _frameFiles;
-    StaticParameters _setUpParams;
+
+    /// We collect expected paths here
+    FilePaths _files;
+
+    /// Some files are expected to be accessed many times, we cache them here
+    ConstParameters _cache;
     /// number of symlinks to evaluate (0: don't follow symlinks, 1: evaluate one link, etc.)
     int _followSymlinkDepth = 1000;
 
-    /// Read normalized depth map for frame f and stream s
+    void preflight();
+
+    /// Read normalized dispairty map for frame f and stream s
     DisparityMap readNormalizedDisparityMap(StreamNumber s, FrameNumber f) const;
 
-    /// Read depth map as stored in bag file for frame f and stream s
+    /// Read disparity map as stored in bag file for frame f and stream s
     DisparityMap readRawDisparityMap(StreamNumber s, FrameNumber f) const;
 
-    /// read channel parameters (focallength, baseline, ccx, ccy)
+    /// read channel parameters: each row is a tuple of (focallength, baseline, ccx, ccy)
     Eigen::MatrixXd readChannelParameters(FrameNumber f) const;
 
     /// read left camera picture for frame f and stream s
