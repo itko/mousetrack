@@ -7,7 +7,7 @@
 
 #include "generic/types.h"
 #include "generic/disparity_map.h"
-#include "generic/frame.h"
+#include "generic/frame_window.h"
 #include <set>
 #include <map>
 #include <Eigen/Core>
@@ -70,8 +70,8 @@ public:
     /// Fetch the camera chain (8 rotation matrices that define how the cameras are positioned to each other)
     std::vector<Eigen::Matrix4d> camchain() const;
 
-    /// Fetch all data belonging to frame f of and all streams
-    std::vector<Frame> frames(FrameNumber f) const;
+    /// Fetch all data belonging to frame f of all streams
+    FrameWindow frameWindow(FrameNumber f) const;
 private:
     /// Collect cached values in an organized way
     struct ConstParameters {

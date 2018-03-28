@@ -244,7 +244,7 @@ const std::vector<std::string>& MatlabReader::ignoredChannels() const {
     return _ignoredChannels;
 }
 
-std::vector<Frame> MatlabReader::frames(FrameNumber f) const {
+FrameWindow MatlabReader::frameWindow(FrameNumber f) const {
     unsigned int count = endStream() - beginStream();
     std::vector<Frame> frames{count};
     Eigen::MatrixXd params = channelParameters(f);
@@ -264,7 +264,9 @@ std::vector<Frame> MatlabReader::frames(FrameNumber f) const {
         frame.camChainPicture = camchain()[2*(s-1)];
         frame.camChainDisparity = camchain()[2*(s-1)+1];
     }
-    return frames;
+    FrameWindow window;
+    window.frames() = std::move(frames);
+    return window;
 }
 
 /// This layer decides, if a file needs to be touched, or if there's a cached version

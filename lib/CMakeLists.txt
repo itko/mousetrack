@@ -9,6 +9,7 @@ set(source_files
         generic/disparity_map.cpp
         generic/explode.cpp
         generic/frame.cpp
+        generic/frame_window.cpp
         generic/point_cloud.cpp
         generic/read_csv.cpp
         generic/read_png.cpp

@@ -66,7 +66,8 @@ BOOST_AUTO_TEST_CASE( matlab_reader_average_success_case_frames ) {
     BOOST_CHECK(reader.ignoredChannels().empty());
 
     for(int f = reader.beginFrame()+1; f < reader.endFrame(); f += 1) {
-        auto frames = reader.frames(f);
+        const auto window = reader.frameWindow(f);
+        const auto& frames = window.frames();
         for(int s = 0; s < reader.endStream() - reader.beginStream(); s += 1){
             auto& frame = frames[s];
 
