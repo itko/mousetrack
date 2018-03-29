@@ -13,7 +13,7 @@ namespace MouseTrack {
 Picture read_png_normalized(const std::string& path){
     auto mat = read_png(path);
     Picture result = mat.cast<double>();
-    result /= 256.0;
+    result /= 255.0;
     return result;
 }
 
