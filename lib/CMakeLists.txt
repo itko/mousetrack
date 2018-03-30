@@ -7,7 +7,12 @@ set(source_files
         generic/cluster.cpp
         generic/cluster_chain.cpp
         generic/disparity_map.cpp
+        generic/explode.cpp
+        generic/frame.cpp
+        generic/frame_window.cpp
         generic/point_cloud.cpp
+        generic/read_csv.cpp
+        generic/read_png.cpp
         generic/trajectory.cpp
         generic/vec_addition.cpp
         generic/center.cpp
@@ -18,7 +23,10 @@ set(source_files
 # list here your testing files (*.test.cc) of your module
 set(test_files
         test_root.cc
+        generic/explode.test.cc
         generic/point_cloud.test.cc
+        generic/read_csv.test.cc
+        generic/read_png.test.cc
         generic/vec_addition.test.cc
 		clustering/mean_shift.test.cc
         )
@@ -40,9 +48,13 @@ find_package( OpenCV REQUIRED )
 find_package( Eigen3 REQUIRED )
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+find_package( PNG REQUIRED )
+add_definitions(${PNG_DEFINITIONS})
+include_directories(${PNG_INCLUDE_DIRS})
 
 target_link_libraries(libmousetrack
     ${OpenCV_LIBS}
+    ${PNG_LIBRARIES}
     ${Boost_LOG_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     )

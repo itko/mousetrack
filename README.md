@@ -8,17 +8,31 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev
 ```
 
 - CMake: `$ sudo apt install cmake`
 - Boost.Test: `$ sudo apt install libboost-all-dev`
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
 - Eigen: `$ sudo apt install libeigen3-dev`
+- We need to read PNG files: `$ sudo apt install libpng16-dev`
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
 - Atlas: `$ sudo apt-get install libatlas-base-dev gfortran`
+
+### Version requirements
+
+This list is not complete, but might help you to finding possible problems when compiling for the first time.
+Feel free to add or adjust entries on your own experience.
+
+- g++ 4.9 or larger: we need C++11 with regex fully implemented, g++ 4.8 or bellow won't work
+- gcc 5.4 is known to work
+- clang 3.8 is known to work
+- libpng 1.2 and 1.6 are known to work
+- boost 1.56 and 1.58 are known to work
+- OpenCV 3.3 is known to work
+- Eigen 2.91 is known to work
 
 ## Build project
 
@@ -112,3 +126,12 @@ BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
     This is an error with fatal consequences, it might cost a lot of money/lives/cute kittens if ignored.
 
     Example: A safety check in a financial application trading stocks failed, million of dollars could be lost.
+
+## Testing
+
+To run tests, call `./run_tests.sh` from within the build directory (your build directory should be located at the project root).
+This will set up the necessary environment (creating a mock file system, etc.) and run all test binaries.
+If everything succeeds, it will return an error code of 0.
+
+To add new tests, create a new file with the suffix `.test.cc` and add it to its corresponding `CMakeLists.txt` (either in `app/` or `lib/`).
+For the exact skeleton and available Macros, see an existing unit test or the [Boost.Test](http://www.boost.org/doc/libs/1_66_0/libs/test/doc/html/boost_test/testing_tools.html) documentation.

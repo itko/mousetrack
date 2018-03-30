@@ -1,27 +1,26 @@
 language: cpp
 sudo: true
 
-os:
-- linux
-#- osx
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+            - libboost-all-dev
+            - libopencv-dev
+            - libeigen3-dev
+            - libpng12-dev
+            - g++-4.9 # support for regex
+        env: 
+          - MATRIX_EVAL="export CC=gcc-4.9 && export CXX=g++-4.9
 
-
-compiler: 
-#- clang++
-#- gcc
-- g++
-
-addons:
- apt:
-  sources:
-  - boost-latest
-  packages:
-   - cmake
-   - libboost-all-dev
-   - libopencv-dev
-   - libeigen3-dev
 
 before_install:
+ - eval "${MATRIX_EVAL}" # Does not work for the moment
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; if ! [[ `brew ls --versions boost` ]]; then brew install boost; fi; fi
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then if ! [[ `brew ls --versions gcc` ]]; then brew install gcc; fi; fi
  - gcc --version
@@ -29,10 +28,11 @@ before_install:
  - clang --version
  - clang++ --version
 
+
 script:
 - mkdir -p build
 - cd build
-- cmake -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_VERBOSE_MAKEFILE=ON ..
+- CC=gcc-4.9 CXX=g++-4.9 cmake -DCMAKE_VERBOSE_MAKEFILE=ON ..
 - make
-- ./lib/tests
-  #- ./app/mousetrack
+- ../run_tests.sh
+- ./app/mousetrack
