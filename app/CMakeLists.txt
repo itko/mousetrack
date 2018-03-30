@@ -8,7 +8,7 @@ set(source_files
         pipeline.cpp
         )
 
-# list here all source files relating with the gui
+# list here all source files related with the gui
 set(gui_source_files
         qt_controller.cpp
         )
@@ -47,7 +47,6 @@ else(ENABLE_GUI)
     set(gui_source_files "")
 endif(ENABLE_GUI)
 
-# Use the Widgets module from Qt 5.
 
 # compile everything into a library and then link into the target executable (tests, main, etc.)
 # this should increase compilation speed
