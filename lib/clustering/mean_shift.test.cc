@@ -1,5 +1,5 @@
 /// \file
-/// Maintainer: Felice Serena
+/// Maintainer: Luzian Hug
 ///
 ///
 
