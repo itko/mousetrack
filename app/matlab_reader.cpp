@@ -85,6 +85,7 @@ MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_di
 
     preflight();
 }
+
 void MatlabReader::preflight() {
 
     /// We want to work out the index range for streams and frames.
@@ -145,12 +146,18 @@ void MatlabReader::preflight() {
         std::regex_match(filename.c_str(), cm, nameShape);
         std::string suffix = p.path().extension().string();
 
-        if(!cm[2].matched){
+        if(cm[1].matched && !cm[2].matched){
             BOOST_LOG_TRIVIAL(trace) << "Matched frame: " << p.path().string() << " at " << path.string() << ": " << cm[1] << ", " << cm[2] << ", " << cm[3];
             channel = cm[1];
             // internal key, not usable from outside, since we only allow non-negative integers
             stream = -1;
-            frame = std::stoi(cm[3]);
+            try {
+                frame = std::stoi(cm[3]);
+            } catch (std::invalid_argument e){
+                BOOST_LOG_TRIVIAL(info) << "Ignoring path " << p.path().string() << ", does not match file name pattern.";
+                _ignoredPaths.push_back(p.path());
+                continue;
+            }
 
             auto& a = aggF[channel];
             a.addSuffix(suffix);
@@ -158,9 +165,14 @@ void MatlabReader::preflight() {
         } else if (cm[1].matched) {
             BOOST_LOG_TRIVIAL(trace) << "Matched stream and frame: " << p.path().string() << " at " << path.string() << ": " << cm[1] << ", " << cm[2] << ", " << cm[3];
             channel = cm[1];
-            stream = std::stoi(cm[2]);
-            frame = std::stoi(cm[3]);
-
+            try {
+                stream = std::stoi(cm[2]);
+                frame = std::stoi(cm[3]);
+            } catch (std::invalid_argument e) {
+                BOOST_LOG_TRIVIAL(info) << "Ignoring path " << p.path().string() << ", does not match file name pattern.";
+                _ignoredPaths.push_back(p.path());
+                continue;
+            }
             auto& a = aggSF[channel];
             a.addSuffix(suffix);
             a.addStream(stream);
@@ -236,6 +248,14 @@ FrameNumber MatlabReader::endFrame() const {
     return _endFrame;
 }
 
+void MatlabReader::setBeginFrame(FrameNumber f) {
+    _beginFrame = f;
+}
+
+void MatlabReader::setEndFrame(FrameNumber f) {
+    _endFrame = f;
+}
+
 const std::vector<fs::path>& MatlabReader::ignoredPaths() const {
     return _ignoredPaths;
 }
@@ -267,6 +287,10 @@ FrameWindow MatlabReader::frameWindow(FrameNumber f) const {
     FrameWindow window;
     window.frames() = std::move(frames);
     return window;
+}
+
+FrameWindow MatlabReader::operator()(FrameNumber f) {
+    return frameWindow(f);
 }
 
 /// This layer decides, if a file needs to be touched, or if there's a cached version
