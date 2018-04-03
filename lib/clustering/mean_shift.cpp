@@ -28,7 +28,10 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 	// Initialize Clusters. Initially, every point has its own cluster.
 	std::vector<Cluster> clusters(cloud.size());
-	for (PointIndex i; i<cloud.size(); i++) clusters[i].points().push_back(i);
+	for (PointIndex i=0; i<cloud.size(); i++) {
+		 clusters[i].points().push_back(i);
+
+	}
 
 	// Initialize some stuff used in the MeanShift loop
 	std::vector<Eigen::VectorXd> prev = points;
@@ -57,10 +60,12 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 				if (diff.norm() < MERGE_THRESHOLD) {
 					// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
-					for (PointIndex k : clusters[j].points()) {
-						clusters[i].points().push_back(k);
+					//for (PointIndex k : clusters[j].points()) {
+
+					for (int k=0; k < clusters[j].points().size(); k++) {
+						clusters[i].points().push_back(clusters[j].points()[k]);
 					}
-					BOOST_LOG_TRIVIAL(trace) << "Merging cluster " << j << " into cluster " << i << ", distance " << diff.norm();
+					//BOOST_LOG_TRIVIAL(debug) << "Merging cluster " << j << " into cluster " << i << ", distance " << diff.norm();
 					clusters.erase(clusters.begin() + j);
 					curr.erase(curr.begin() + j);
 
