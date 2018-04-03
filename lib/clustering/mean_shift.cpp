@@ -6,8 +6,6 @@
 
 
 #include "mean_shift.h"
-#include <stdlib.h>
-#include <math.h>
 #include <boost/log/trivial.hpp>
 #include <Eigen/Dense>
 
