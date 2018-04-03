@@ -58,8 +58,6 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 				if (diff.norm() < MERGE_THRESHOLD) {
 					// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
-					//for (PointIndex k : clusters[j].points()) {
-
 					for (int k=0; k < clusters[j].points().size(); k++) {
 						clusters[i].points().push_back(clusters[j].points()[k]);
 					}
