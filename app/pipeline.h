@@ -16,6 +16,12 @@ namespace MouseTrack {
 /// - It knows how to acquire new frames
 /// - It knows how to push the frames through the pipeline steps
 /// - It informs other objects about (inbetween-)results via an observer pattern (PipelineObserver)
+///
+/// The pipeline runs one or multiple worker threads to process the frame stream concurrently.
+/// Start the processing with `start()`. If you want to terminate the pipeline early, call `stop()`,
+/// a signal will be sent to the pipeline, it should stop as soon as possible.
+/// Always call `join` before terminating, it will make sure that all worker threads terminated and delivered their data.
+/// Also see `std::thread` for further information on threads.
 class Pipeline {
 public:
     /// Default constructor, create empty pipeline
