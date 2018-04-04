@@ -16,7 +16,7 @@ std::vector<long> NearestNeighbour::operator()(const std::vector<std::shared_ptr
 		// In this case we are only really concerned with the last cluster. Get the frame.
 		FrameNumber lastFrameNumber = chains[i].descriptors().rbegin()->first;
 		// Get the cluster for that frame.
-		std::shared_ptr<const ClusterDescriptor> lastDescriptor = chains[i].descriptors()[lastFrameNumber];
+		std::shared_ptr<const ClusterDescriptor> lastDescriptor = chains[i].descriptors().find(lastFrameNumber)->second;
 		// Go through each descriptor
 		for (size_t j = 0; j<descriptors.size(); j++) {
 			// Compare the descriptor to the cluster
