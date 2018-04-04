@@ -39,17 +39,17 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
         const auto& f = frames[i];
         const auto& disp = f.normalizedDisparityMap.zMap();
         // convert each pixel
-        for(int y = frame_border - 1; y < disp.rows() - frame_border; y += 1){
-            for(int x = frame_border - 1; x < disp.cols() - frame_border; x += 1){
+        for(int y = _frame_border - 1; y < disp.rows() - _frame_border; y += 1){
+            for(int x = _frame_border - 1; x < disp.cols() - _frame_border; x += 1){
                 double disparity = disp(y,x);
-                if(disparity < min_disparity){
+                if(disparity < _min_disparity){
                     // just skip those points
                     continue;
                 }
                 const double invDisparity = 1.0/disparity;
                 auto p = cloud[next_insert];
-                p.x() = (x + xshift - f.ccx)*f.baseline*invDisparity;
-                p.y() = (y + yshift - f.ccy)*f.baseline*invDisparity;
+                p.x() = (x + _xshift - f.ccx)*f.baseline*invDisparity;
+                p.y() = (y + _yshift - f.ccy)*f.baseline*invDisparity;
                 p.z() = f.focallength*f.baseline*invDisparity;
                 // this is probably nothing else than the inverse of r*T applied to p
                 // one might be able to optimize this by calculating a vecor of inverses
@@ -66,6 +66,46 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
     }
     cloud.resize(next_insert); // shrink to actual number of points
     return cloud;
+}
+
+
+double& DisparityRegistration::minDisparity() {
+    return _min_disparity;
+}
+
+/// Lowest disparity value we accept (we remove points at infinity)
+const double& DisparityRegistration::minDisparity() const {
+    return _min_disparity;
+}
+
+/// Set X shift to correct disparity map position
+int& DisparityRegistration::correctingXShift() {
+    return _xshift;
+}
+
+/// Read X shift to correct disparity map position
+const int& DisparityRegistration::correctingXShift() const {
+    return _xshift;
+}
+
+/// Set Y shift to correct disparity map position
+int& DisparityRegistration::correctingYShift() {
+    return _yshift;
+}
+
+/// Read Y shift to correct disparity map position
+const int& DisparityRegistration::correctingYShift() const {
+    return _yshift;
+}
+
+/// Ignores boder of n pixels around disparity map
+int& DisparityRegistration::frameBoder() {
+    return _frame_border;
+}
+
+/// Ignores boder of n pixels around disparity map
+const int& DisparityRegistration::frameBorder() const {
+    return _frame_border;
 }
 
 } // MouseTrack
