@@ -8,5 +8,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# options
+option(ENABLE_GUI "Build with GUI" ON)
+
+
 add_subdirectory(lib)
 add_subdirectory(app)

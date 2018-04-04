@@ -3,7 +3,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here all source files appart from main
 set(source_files
+        controller.cpp
         matlab_reader.cpp
+        pipeline.cpp
+        )
+
+# list here all source files related with the gui
+set(gui_source_files
+        qt_controller.cpp
         )
 
 # list here your testing files (*.test.cc) of your module
@@ -26,6 +33,21 @@ find_package( Boost COMPONENTS
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
+if(ENABLE_GUI)
+  find_package(Qt5Core)
+  
+  # Find the QtWidgets library
+  find_package(Qt5Widgets)
+  set(GUI_LIBRARIES
+    Qt5::Widgets
+    )
+  add_definitions(-DENABLE_GUI)
+else(ENABLE_GUI)
+    # reset gui sources
+    set(gui_source_files "")
+endif(ENABLE_GUI)
+
+
 # compile everything into a library and then link into the target executable (tests, main, etc.)
 # this should increase compilation speed
 add_library(libmousetrackAll ${source_files})
@@ -39,13 +61,23 @@ target_link_libraries(libmousetrackAll
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
+
 # create the mousetrack executable
-add_executable(mousetrack main.cpp)
-target_link_libraries(mousetrack libmousetrackAll)
+add_executable(mousetrack main.cpp ${gui_source_files})
+target_link_libraries(mousetrack
+    libmousetrackAll
+    ${GUI_LIBRARIES}
+    )
 
 # create unit test executable
 add_executable(appTests ${test_files})
 target_link_libraries(appTests
     libmousetrackAll
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-)
+    )
+
+
+# create a target for the headers, we don't actually need the result
+# but this way, IDE's also show header files in their project overviews
+file(GLOB_RECURSE appHeader_files "*.h")
+add_custom_target(appHeaders SOURCES ${appHeader_files})
