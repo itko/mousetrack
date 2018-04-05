@@ -17,9 +17,9 @@ MeanShift::MeanShift(double window_size) : _window_size(window_size) {
 
 std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 	BOOST_LOG_TRIVIAL(trace) << "MeanShift algorithm started";
-	// Covert point cloud to Eigen vectors
+	// Convert point cloud to Eigen vectors
 	std::vector<Eigen::VectorXd> points(cloud.size());
-	for (int i=0; i<cloud.size(); i++) {
+	for (PointIndex i=0; i<cloud.size(); i++) {
 		points[i] = cloud[i].eigenVec();
 	}
 
@@ -32,67 +32,54 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 	}
 
 	// Initialize some stuff used in the MeanShift loop
-	std::vector<Eigen::VectorXd> prev = points;
-	std::vector<Eigen::VectorXd> curr(points.size());
-	bool has_converged = false;
-  int iterations = 0; //for logging
+	Eigen::VectorXd prevCenter;
+	std::vector<Eigen::VectorXd> currCenters = points;
 
-	// The MeanShift loop
-	while (!has_converged) {
-		iterations++;
-		if (iterations > MAX_ITERATIONS) {
-			BOOST_LOG_TRIVIAL(error) << "MeanShift: max number of iterations exceeded without convergence";
-			break;
-		}
-		// perform 1 iteration on each mode
-		for (int i=0; i<prev.size(); i++) {
-			curr[i] = iterate_mode(prev[i], prev);
-		}
+	// For each point...
+	for(PointIndex i = 0; i < clusters.size(); i++) {
+		prevCenter = points[i];
+		int iterations = 0; //for logging and abort condition
 
-		// Merge step
-		// For every mode..
-		for (int i=0; i<curr.size(); i++) {
-			// Check modes we haven't already executed the (i)-loop for
-			for (int j=i+1; j<curr.size(); j++) {
-				Eigen::VectorXd diff = curr[i] - curr[j];
+		// ... iterate until convergence
+		do  {
+			iterations++;
+			// perform one iteration of mean shift
+			prevCenter = currCenters[i];
+			currCenters[i] = iterate_mode(currCenters[i], points);
 
-				if (diff.norm() < MERGE_THRESHOLD) {
-					// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
-					for (int k=0; k < clusters[j].points().size(); k++) {
-						clusters[i].points().push_back(clusters[j].points()[k]);
-					}
-					//BOOST_LOG_TRIVIAL(debug) << "Merging cluster " << j << " into cluster " << i << ", distance " << diff.norm();
-					clusters.erase(clusters.begin() + j);
-					curr.erase(curr.begin() + j);
-
-					break;
-				}
+			if (iterations > _max_iterations) {
+				BOOST_LOG_TRIVIAL(warning) << "Max number of iterations for point " << i << " reached - continuing without convergence for this point";
 			}
-		}
+		} while ((prevCenter - currCenters[i]).norm() > _convergence_threshold);
 
-		if (clusters.size() != curr.size())
-			BOOST_LOG_TRIVIAL(warning) << "Cluster count does not equal mode count. (" << clusters.size() << " != " << curr.size() << ")";
-
-		// Check convergence
-		if (prev.size() == curr.size()) {
-			double total_movement = 0;
-			for (int i=0; i < curr.size(); i++) {
-				total_movement += (curr[i]-prev[i]).norm();
-			}
-			if (total_movement <= CONVERGENCE_THRESHOLD) has_converged = true;
-		}
-		prev = curr;
 	}
-	BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << curr.size() << " #Iterations: " << iterations;
 
+	// Merge step
+	// For every mode..
+	for (int i=0; i<currCenters.size(); i++) {
+		// Check modes we haven't already executed the (i)-loop for
+		for (int j=i+1; j < currCenters.size(); j++) {
+			Eigen::VectorXd diff = currCenters[i] - currCenters[j];
+			if (diff.norm() < _merge_threshold) {
+				// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
+				clusters[i].points().insert(clusters[i].points().begin(), clusters[j].points().begin(), clusters[j].points().end());
+				clusters.erase(clusters.begin() + j);
+				currCenters.erase(currCenters.begin() + j);
+				// We need to decrement i here because there might be another cluster that wants to merge with i.
+				i--;
+				break;
+			}
+		}
+	}
 
+	BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << clusters.size();
 	return clusters;
 }
 
-double MeanShift::apply_gaussian_kernel(const Eigen::VectorXd point, const Eigen::VectorXd mean) const {
+double MeanShift::gaussian_weight(const Eigen::VectorXd point, const Eigen::VectorXd mean) const {
 
-	// check if dimensions match
-	if (mean.size() != point.size()) BOOST_LOG_TRIVIAL(error) << "Vector dimensions don't match";
+	// assert if dimensions match
+	assert(mean.size() == point.size());
 
 	// Euclidean distance squared btw. mean of kernel and point of interest
 	const double d = (mean-point).squaredNorm();
@@ -101,18 +88,41 @@ double MeanShift::apply_gaussian_kernel(const Eigen::VectorXd point, const Eigen
 	return exp(-d/(2*_window_size));
 }
 
-Eigen::VectorXd MeanShift::iterate_mode(const Eigen::VectorXd mode, const std::vector<Eigen::VectorXd>& state) const {
+Eigen::VectorXd MeanShift::iterate_mode(const Eigen::VectorXd mode, const std::vector<Eigen::VectorXd>& fixedPoints) const {
 	//COG Normalization Factor
 	double normfact = 0;
 	//Rest of COG
 	Eigen::VectorXd cog = Eigen::VectorXd::Zero(mode.size());
-	for(int i; i<state.size(); i++) {
-		double temp = apply_gaussian_kernel(state[i],mode);
+	for(int i; i<fixedPoints.size(); i++) {
+		double temp = gaussian_weight(fixedPoints[i],mode);
 		normfact += temp;
-		cog += temp * state[i];
+		cog += temp * fixedPoints[i];
 	}
 	cog = cog * (1.0/normfact);
 	return cog;
+}
+
+
+void MeanShift::setMaxIterations(int max_iterations) {
+	_max_iterations = max_iterations;
+}
+
+int MeanShift::getMaxIterations() const {
+	return _max_iterations;
+}
+
+void MeanShift::setMergeThreshold(double merge_threshold){
+	_merge_threshold = merge_threshold;
+}
+double MeanShift::getMergeThreshold() const {
+	return _merge_threshold;
+}
+
+void MeanShift::setConvergenceThreshold(double convergence_threshold) {
+	_convergence_threshold = convergence_threshold;
+}
+double MeanShift::getConvergenceThreshold() const {
+	return _convergence_threshold;
 }
 
 } //MouseTrack
