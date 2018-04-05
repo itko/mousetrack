@@ -15,6 +15,7 @@ class NearestNeighbour : public Matching {
 
 public:
   virtual ~NearestNeighbour() {}
+
   /// Given a list of cluster chains, we find the best matching to append the
   /// given list of descriptors. descriptors: a list of descriptors from a new
   /// frame chains: a list of cluster chains to which we want to appeand one
