@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <Eigen/Core>
 
 namespace MouseTrack {
 
@@ -25,7 +26,7 @@ class PointCloud {
 public:
 	/// The Point class is a collection of accessors allowing to manipulate the values inside the PointCloud in an intuitive way.
 	class Point {
-		// Design note: I tend to keep the hierarchy flat, 
+		// Design note: I tend to keep the hierarchy flat,
 		// this way we can implement it by storing a reference to the PointCloud
 		// and an index, and nothing more.
         friend class PointCloud;
@@ -58,6 +59,9 @@ public:
 
         /// Read access to color intensity.
         const ColorChannel& intensity() const;
+
+				/// Convert to dx1 Eigen Matrix
+				Eigen::VectorXd eigenVec() const;
     };
 
     /// Exactly the same as `Point` but it only provides read-only access to the data.
@@ -80,6 +84,9 @@ public:
 
         /// Read access to color intensity.
         const ColorChannel& intensity() const;
+
+				/// Convert to dx1 Eigen Matrix
+				Eigen::VectorXd eigenVec() const;
     };
 
     /// Make space to accomodate n points.
