@@ -5,11 +5,20 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QLabel>
+#include <memory>
+#include <vector>
+#include "Eigen/Core"
+
+#include "generic/frame_window.h"
+#include "generic/point_cloud.h"
+#include "generic/cluster.h"
+#include "generic/cluster_descriptor.h"
+#include <boost/log/trivial.hpp>
 
 namespace MouseTrack {
 
-class CameraViewWidget : public QWidget {
+class CameraViewWidget : public QLabel {
 public:
   CameraViewWidget();
   ~CameraViewWidget();

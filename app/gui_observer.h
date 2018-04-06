@@ -6,13 +6,13 @@
 #pragma once
 
 #include "pipeline_observer.h"
-
+#include "camera_view_widget.h"
 
 namespace MouseTrack {
 
 class GUIObserver: public PipelineObserver {
 public:
-    GUIObserver(QWidget* widget);
+    GUIObserver(CameraViewWidget* widget);
 
     void pipelineStarted();
 

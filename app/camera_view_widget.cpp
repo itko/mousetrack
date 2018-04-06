@@ -4,6 +4,8 @@
 ///
 
 #include "camera_view_widget.h"
+#include <QPixmap>
+#include <QImage>
 
 namespace MouseTrack {
 
@@ -15,7 +17,20 @@ namespace MouseTrack {
       //empty
   }
   void  CameraViewWidget::update() {
-      //TODO
+      Frame frame0 = _window->frames()[0];
+      Picture pic = frame0.referencePicture;
+      QImage* image = new QImage(pic.cols(),pic.rows(),QImage::Format_Grayscale8);
+      for(int x=0; x < pic.cols(); x++ ) {
+          for(int y=0; y < pic.rows(); y++) {
+              double value = pic(y,x);
+              BOOST_LOG_TRIVIAL(debug) << value;
+              image->setPixel(x,y,(int) value);
+          }
+      }
+      QPixmap pixmap = QPixmap::fromImage(*image);
+      this->setPixmap(pixmap);
+
+
   }
 
   void CameraViewWidget::setFrameWindow(std::shared_ptr<const FrameWindow> window) {

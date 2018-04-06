@@ -16,6 +16,8 @@ set(source_files
 # list here all source files related with the gui
 set(gui_source_files
         qt_controller.cpp
+        camera_view_widget.cpp
+        gui_observer.cpp
         )
 
 # list here your testing files (*.test.cc) of your module
@@ -41,7 +43,7 @@ ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
 if(ENABLE_GUI)
   find_package(Qt5Core)
-  
+
   # Find the QtWidgets library
   find_package(Qt5Widgets)
   set(GUI_LIBRARIES

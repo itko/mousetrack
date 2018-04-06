@@ -2,17 +2,14 @@
 /// Maintainer: Luzian Hug
 ///
 
-
-#pragma once
-
-#include "pipeline_observer.h"
+#include "gui_observer.h"
 
 
 namespace MouseTrack {
 
 
 
-    GUIObserver::GUIObserver(QWidget* widget) : _widget(widget) {
+    GUIObserver::GUIObserver(CameraViewWidget* widget) : _widget(widget) {
       //empty
     }
 
@@ -69,6 +66,5 @@ namespace MouseTrack {
       _widget->setControlPoints(controlPoints);
     }
 
-};
 
 } // MouseTrack
