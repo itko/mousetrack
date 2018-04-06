@@ -10,6 +10,10 @@
 
 namespace MouseTrack {
 
+Center::Center(Coordinate x, Coordinate y, Coordinate z)
+    : _x(x), _y(y), _z(z) {}
+Center::~Center() {}
+
 const Coordinate &Center::x() const { return this->_x; }
 
 const Coordinate &Center::y() const { return this->_y; }

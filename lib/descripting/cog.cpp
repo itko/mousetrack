@@ -17,7 +17,7 @@ std::unique_ptr<ClusterDescriptor> CenterOfGravity::operator()(
   Coordinate sumX = 0, sumY = 0, sumZ = 0;
   size_t numPoints = cluster.points().size();
   // Go through each point in the cluster
-  for (PointIndex i = 0; i < cluster.points().size(); i++) {
+  for (PointIndex i : cluster.points()) {
     // Get the sum of all coordinates along x, y ,z
     sumX += cloud[i].x();
     sumY += cloud[i].y();

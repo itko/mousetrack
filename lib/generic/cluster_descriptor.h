@@ -11,7 +11,7 @@ namespace MouseTrack {
 /// descriptor.
 class ClusterDescriptor {
 public:
-  virtual ~ClusterDescriptor(){};
+  virtual ~ClusterDescriptor();
   /// Returns a distance/norm `n` between `this` and `other`.
   /// It should be small for two instances that are "similar" to each other,
   /// and large for two instances that are very different.

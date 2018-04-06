@@ -5,6 +5,6 @@
  *      Author: itto
  */
 
-#include <boost/test/unit_test.hpp>
 #include "Eigen/Dense"
 #include "cog.h"
+#include <boost/test/unit_test.hpp>

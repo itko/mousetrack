@@ -13,9 +13,9 @@
 namespace MouseTrack {
 
 class Center : public ClusterDescriptor {
-public:
-  Center(Coordinate x, Coordinate y, Coordinate z) : _x(0), _y(0), _z(0) {}
-  ~Center() {}
+ public:
+  Center(Coordinate x, Coordinate y, Coordinate z);
+  ~Center();
   /// Returns a distance/norm `n` between `this` and `other`.
   /// It should be small for two instances that are "similar" to each other,
   /// and large for two instances that are very different.
@@ -27,10 +27,10 @@ public:
   const Coordinate &y() const;
   const Coordinate &z() const;
 
-private:
+ private:
   Coordinate _x;
   Coordinate _y;
   Coordinate _z;
 };
 
-} // namespace MouseTrack
+}  // namespace MouseTrack
