@@ -27,7 +27,7 @@ const std::vector<PointIndex>& Cluster::points() const {
     return _points;
 }
 
-Eigen::VectorXd Cluster::center_of_gravity(PointCloud& cloud) {
+Eigen::VectorXd Cluster::center_of_gravity(const PointCloud& cloud) const {
   Eigen::Vector4d cog (0,0,0,0);
   for(size_t i = 0; i < points().size(); i++) {
     cog += cloud[points()[i]].eigenVec();

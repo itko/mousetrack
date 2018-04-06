@@ -7,6 +7,8 @@
 
 #include "generic/cluster.h"
 #include "generic/cluster_descriptor.h"
+#include "Eigen/Core"
+#include <memory>
 
 namespace MouseTrack {
 
