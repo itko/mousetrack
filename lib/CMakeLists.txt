@@ -18,6 +18,7 @@ set(source_files
         generic/center.cpp
         descripting/cog.cpp
 	      matching/nearest_neighbour.cpp
+				trajectory_builder/trajectory_builder.cpp
 	  )
 
 # list here your testing files (*.test.cc) of your module
