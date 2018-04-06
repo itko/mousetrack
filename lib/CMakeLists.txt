@@ -3,7 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here your source files (*.cpp) of your module
 set(source_files
-		clustering/mean_shift.cpp
+        clustering/mean_shift.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
         generic/disparity_map.cpp
@@ -17,9 +17,10 @@ set(source_files
         generic/vec_addition.cpp
         generic/center.cpp
         descripting/cog.cpp
-	      matching/nearest_neighbour.cpp
-				trajectory_builder/trajectory_builder.cpp
-	  )
+        matching/nearest_neighbour.cpp
+        registration/disparity_registration.cpp
+        trajectory_builder/trajectory_builder.cpp
+        )
 
 # list here your testing files (*.test.cc) of your module
 set(test_files

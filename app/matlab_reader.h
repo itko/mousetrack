@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include "generic/types.h"
-#include "generic/disparity_map.h"
-#include "generic/frame_window.h"
+#include "reader/reader.h"
 #include <set>
 #include <map>
 #include <Eigen/Core>
@@ -25,13 +23,13 @@ namespace fs = boost::filesystem;
 /// access to the data via its methods.
 ///
 /// Convention for methods: always first stream, then frame number.
-class MatlabReader {
+class MatlabReader : public Reader {
 public:
     /// This is the constructor you should use, give it the root to the bag file directory
     MatlabReader(fs::path root_directory);
 
     /// true if constructor decided, the file system is formatted properly, false otherwise
-    bool valid() const;
+    virtual bool valid() const;
 
     /// Index of first existing stream
     StreamNumber beginStream() const;
@@ -40,10 +38,16 @@ public:
     StreamNumber endStream() const;
 
     /// index of first existing frame
-    FrameNumber beginFrame() const;
+    virtual FrameNumber beginFrame() const;
 
     /// Index of first non existing frame at the end
-    FrameNumber endFrame() const;
+    virtual FrameNumber endFrame() const;
+
+    /// Increase lower bound of frame range.
+    void setBeginFrame(FrameNumber f);
+
+    /// Lower upper bound of frame range.
+    void setEndFrame(FrameNumber f);
 
     /// A list of all paths (files, directories, ...) that were skipped during the preflight
     const std::vector<fs::path>& ignoredPaths() const;
@@ -72,6 +76,9 @@ public:
 
     /// Fetch all data belonging to frame f of all streams
     FrameWindow frameWindow(FrameNumber f) const;
+
+    /// Implement interface
+    virtual FrameWindow operator()(FrameNumber f);
 private:
     /// Collect cached values in an organized way
     struct ConstParameters {
