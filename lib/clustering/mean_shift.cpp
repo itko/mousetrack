@@ -37,7 +37,6 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 	// For each point...
 	for(PointIndex i = 0; i < clusters.size(); i++) {
-		prevCenter = points[i];
 		int iterations = 0; //for logging and abort condition
 
 		// ... iterate until convergence
