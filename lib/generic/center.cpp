@@ -26,4 +26,4 @@ double Center::compare(const ClusterDescriptor *other) const {
   return n;
 };
 
-} // namespace MouseTrack
+}  // namespace MouseTrack
