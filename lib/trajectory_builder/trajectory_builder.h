@@ -14,7 +14,7 @@ namespace MouseTrack {
 class TrajectoryBuilder {
 public:
     /// Creates a new control point for a trajectory from a cluster and its descriptor
-    virtual Eigen::Vector3d operator()(const std::shared_ptr<const ClusterDescriptor> descriptor, const Cluster& cluster) const = 0;
+    virtual Eigen::Vector3d operator()(const std::shared_ptr<const ClusterDescriptor> descriptor, const Cluster& cluster, const PointCloud& cloud) const = 0;
 };
 
 
