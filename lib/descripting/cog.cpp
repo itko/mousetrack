@@ -10,10 +10,12 @@
 
 namespace MouseTrack {
 
+CenterOfGravity::~CenterOfGravity(){};
+
 /// Takes a cluster and its referencing PointCloud and creates a cluster
 /// descriptor
-std::unique_ptr<ClusterDescriptor> CenterOfGravity::operator()(
-    const Cluster &cluster, const PointCloud &cloud) const {
+std::unique_ptr<ClusterDescriptor> CenterOfGravity::
+operator()(const Cluster &cluster, const PointCloud &cloud) const {
   Coordinate sumX = 0, sumY = 0, sumZ = 0;
   size_t numPoints = cluster.points().size();
   // Go through each point in the cluster
@@ -29,4 +31,4 @@ std::unique_ptr<ClusterDescriptor> CenterOfGravity::operator()(
   return descriptor;
 };
 
-}  // namespace MouseTrack
+} // namespace MouseTrack

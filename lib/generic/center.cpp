@@ -12,6 +12,7 @@ namespace MouseTrack {
 
 Center::Center(Coordinate x, Coordinate y, Coordinate z)
     : _x(x), _y(y), _z(z) {}
+
 Center::~Center() {}
 
 const Coordinate &Center::x() const { return this->_x; }
@@ -30,4 +31,4 @@ double Center::compare(const ClusterDescriptor *other) const {
   return n;
 };
 
-}  // namespace MouseTrack
+} // namespace MouseTrack

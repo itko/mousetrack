@@ -14,7 +14,7 @@ namespace MouseTrack {
 class NearestNeighbour : public Matching {
 
 public:
-  virtual ~NearestNeighbour() {}
+  virtual ~NearestNeighbour();
 
   /// Given a list of cluster chains, we find the best matching to append the
   /// given list of descriptors. descriptors: a list of descriptors from a new

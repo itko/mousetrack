@@ -11,6 +11,8 @@
 
 namespace MouseTrack {
 
+NearestNeighbour::~NearestNeighbour() {}
+
 std::vector<long> NearestNeighbour::operator()(
     const std::vector<std::shared_ptr<const ClusterDescriptor>> &descriptors,
     const std::vector<ClusterChain> &chains) {
