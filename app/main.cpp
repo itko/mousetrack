@@ -78,10 +78,10 @@ int main (int argc, char *argv[]) {
             return -1;
         }
         controller = std::unique_ptr<CliController>(new CliController());
-        PipelineFactory pipelineFactory;
         //controller->setPipeline(pipelineFactory.fromCliOptions(cli_options));
-        controller->pipeline() = std::move(pipelineFactory.fromCliOptions(cli_options));
     }
+    PipelineFactory pipelineFactory;
+    controller->pipeline() = std::move(pipelineFactory.fromCliOptions(cli_options));
 
     int errorCode = controller->main(argc, argv);
     std::cout << std::flush;
