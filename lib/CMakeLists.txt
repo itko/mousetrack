@@ -19,7 +19,7 @@ set(source_files
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
         registration/disparity_registration.cpp
-        trajectory_builder/trajectory_builder.cpp
+        trajectory_builder/cog_trajectory_builder.cpp
         )
 
 # list here your testing files (*.test.cc) of your module
@@ -31,6 +31,7 @@ set(test_files
         generic/read_png.test.cc
         generic/vec_addition.test.cc
 		clustering/mean_shift.test.cc
+    trajectory_builder/cog_trajectory_builder.test.cc
         )
 
 add_library(libmousetrack ${source_files})
