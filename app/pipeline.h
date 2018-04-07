@@ -5,9 +5,17 @@
 
 #pragma once
 
-
-/// Note: This class is mostly mocked, an improved interface and implementation comes later.
-
+#include "pipeline_observer.h"
+#include "reader/reader.h"
+#include "registration/registration.h"
+#include "clustering/clustering.h"
+#include "descripting/descripting.h"
+#include "matching/matching.h"
+#include "trajectory_builder/trajectory_builder.h"
+#include <set>
+#include <thread>
+#include <atomic>
+#include <mutex>
 
 namespace MouseTrack {
 
@@ -27,8 +35,23 @@ public:
     /// Default constructor, create empty pipeline
     Pipeline();
 
+    /// The first module pointer with a nullptr defines the end of the pipeline.
+    Pipeline(
+        std::unique_ptr<Reader> reader,
+        std::unique_ptr<Registration> registration,
+        std::unique_ptr<Clustering> clustering,
+        std::unique_ptr<Descripting> descripting,
+        std::unique_ptr<Matching> matching,
+        std::unique_ptr<TrajectoryBuilder> trajectoryBuilder);
+
+    /// Copy move constructor
+    Pipeline(MouseTrack::Pipeline&&);
+
     /// Default destructor
-    ~Pipeline();
+    ~Pipeline() noexcept(true);
+
+    /// Move assignment operator
+    Pipeline& operator=(Pipeline&&);
 
     /// Start processing
     void start();
@@ -48,6 +71,70 @@ public:
     /// but they might be called while `join()` is executed.
     void join();
 
+    /// Don't expect the observes to be called in a particular order.
+    void addObserver(PipelineObserver* observer);
+
+    void removeObserver(PipelineObserver* observer);
+
+private:
+    mutable std::mutex _observer_mutex;
+    std::set<PipelineObserver*> _observers;
+
+    /// main worker thread, coordinates work distribution and communicates with observer
+    std::thread _controller;
+
+    /// true as long as the controller is allowed to run
+    /// setting it to false is a signal to stop
+    std::atomic_bool _controller_should_run;
+
+    /// true if the controller thread is running
+    std::atomic_bool _controller_running;
+
+    /// We joined the controller thread
+    std::atomic_bool _controller_terminated;
+
+    /// Access to start/stop of controller thread
+    mutable std::mutex _controller_mutex;
+
+    /// starting point for controller thread
+    void controllerStart();
+
+    /// coordinates pipeline for one frame
+    void processFrame(FrameIndex f);
+
+    template <typename Lambda>
+    void forallObservers(Lambda lambda) {
+        std::lock_guard<std::mutex> lock(_observer_mutex);
+        for(PipelineObserver* o : _observers){
+            lambda(o);
+        }
+    }
+
+    /// Helper for move operations: moves all relevant data members (not mutexes, not threads ...)
+    void moveMembersFrom(Pipeline& p);
+
+    /// Like `start()`, but does not lock thread
+    void _start();
+
+    /// Like `stop()`, but does not lock thread
+    void _stop();
+
+    /// Like `join()`, but does not lock thread
+    void _join();
+
+    // pipeline steps
+
+    std::unique_ptr<Reader> _reader;
+    std::unique_ptr<Registration> _registration;
+    std::unique_ptr<Clustering> _clustering;
+    std::unique_ptr<Descripting> _descripting;
+    std::unique_ptr<Matching> _matching;
+    std::unique_ptr<TrajectoryBuilder> _trajectoryBuilder;
+    std::vector<ClusterChain> _clusterChains;
+
+    void runPipeline();
+
+    bool terminateEarly();
 };
 
 } // MouseTrack

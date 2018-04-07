@@ -15,7 +15,7 @@ public:
     /// Called by main after creation
     virtual int main(int argc, char *argv[]) = 0;
 
-    /// Read-write accessor
+    /// Read-write accessor for pipeline controll
     Pipeline& pipeline();
 
     /// Read-only accessor

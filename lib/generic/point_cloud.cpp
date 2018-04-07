@@ -10,6 +10,10 @@ namespace MouseTrack {
 
 // PointCloud implementation
 
+PointCloud::PointCloud() {
+    // empty
+}
+
 void PointCloud::resize(size_t n) {
     _xs.resize(n);
     _ys.resize(n);
