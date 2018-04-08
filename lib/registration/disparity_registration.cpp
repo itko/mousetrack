@@ -63,7 +63,6 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
         }
     }
     cloud.resize(next_insert); // shrink to actual number of points
-    BOOST_LOG_TRIVIAL(debug) << "expoected points: " << expected_points << ", inserted points: " << next_insert;
     return cloud;
 }
 
