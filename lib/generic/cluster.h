@@ -8,6 +8,8 @@
 
 #include "types.h"
 #include <vector>
+#include "Eigen/Core"
+#include "point_cloud.h"
 
 namespace MouseTrack {
 
@@ -29,6 +31,10 @@ public:
 
     /// Read access to indices.
     const std::vector<PointIndex>& points() const;
+
+    /// Get center of gravity
+    Eigen::VectorXd center_of_gravity(const PointCloud& cloud) const;
+
 private:
     std::vector<PointIndex> _points;
 };
