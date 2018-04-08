@@ -16,6 +16,7 @@ set(source_files
         generic/trajectory.cpp
         generic/vec_addition.cpp
         generic/center.cpp
+        generic/write_point_cloud.cpp
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
         registration/disparity_registration.cpp

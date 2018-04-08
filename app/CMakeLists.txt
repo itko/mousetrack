@@ -11,6 +11,7 @@ set(source_files
         pipeline_observer.cpp
         pipeline_factory.cpp
         pipeline_timer.cpp
+        pipeline_writer.cpp
 	)
 
 # list here all source files related with the gui
@@ -67,7 +68,6 @@ target_link_libraries(libmousetrackAll
     ${Boost_LOG_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
 )
-
 
 # create the mousetrack executable
 add_executable(mousetrack main.cpp ${gui_source_files})

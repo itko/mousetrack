@@ -41,7 +41,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
         // convert each pixel
         for(int y = _frame_border - 1; y < disp.rows() - _frame_border; y += 1){
             for(int x = _frame_border - 1; x < disp.cols() - _frame_border; x += 1){
-                double disparity = disp(y,x);
+                double disparity = 255*disp(y,x); // disparity is returned between [0,1], but originally stored as [0,255]
                 if(disparity < _min_disparity){
                     // just skip those points
                     continue;

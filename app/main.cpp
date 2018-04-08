@@ -1,6 +1,8 @@
 #include "cli_options.h"
 #include "pipeline_factory.h"
 #include "cli_controller.h"
+#include "pipeline_timer.h"
+#include "pipeline_writer.h"
 
 #ifdef ENABLE_GUI
 #include "qt_controller.h"
@@ -83,7 +85,18 @@ int main (int argc, char *argv[]) {
     PipelineFactory pipelineFactory;
     controller->pipeline() = std::move(pipelineFactory.fromCliOptions(cli_options));
 
-    int errorCode = controller->main(argc, argv);
+    PipelineTimer timer;
+    if(cli_options.count("pipeline-timer")){
+        controller->pipeline().addObserver(&timer);
+    }
+
+    std::unique_ptr<PipelineWriter> writer;
+    if(cli_options.count("out-dir")){
+        writer = std::make_unique<PipelineWriter>(cli_options["out-dir"].as<std::string>());
+        controller->pipeline().addObserver(writer.get());
+    }
+
+    int errorCode = controller->main(argc, argv, cli_options);
     std::cout << std::flush;
     return errorCode;
 }

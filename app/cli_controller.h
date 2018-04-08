@@ -13,7 +13,7 @@ class CliController : public Controller {
 
 public:
 
-    virtual int main(int argc, char *argv[]);
+    virtual int main(int argc, char *argv[], op::variables_map& cli_options);
 
 };
 

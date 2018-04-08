@@ -5,15 +5,10 @@
 
 #include "cli_controller.h"
 #include "cli_options.h"
-#include "pipeline_timer.h"
 
 namespace MouseTrack {
 
-int CliController::main(int argc, char *argv[]){
-    PipelineTimer timer;
-
-    pipeline().addObserver(&timer);
-
+int CliController::main(int argc, char *argv[], op::variables_map& cli_options){
     // start pipeline
     pipeline().start();
 

@@ -5,15 +5,12 @@
 
 #pragma once
 
+#include "types.h"
 #include "reader/reader.h"
 #include <set>
 #include <map>
-#include <Eigen/Core>
-#include <boost/filesystem.hpp>
 
 namespace MouseTrack {
-
-namespace fs = boost::filesystem;
 
 
 /// The MatlabReader is a very specialized class, that reads preprocessed disparity maps and
