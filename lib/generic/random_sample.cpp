@@ -22,6 +22,7 @@ PointCloud random_sample(const PointCloud& cloud, const int size) {
 
     int current_size = 0;
     while (current_size < size) {
+        // Take a random point from cloud and append it to output
         int index = rand() % cloud.size();
         if (!already_used[index]) {
             output[current_size].x() = cloud[index].x();
