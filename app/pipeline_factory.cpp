@@ -9,6 +9,7 @@
 #include "clustering/mean_shift.h"
 #include "descripting/cog.h"
 #include "matching/nearest_neighbour.h"
+#include "trajectory_builder/cog_trajectory_builder.h"
 #include <boost/log/trivial.hpp>
 
 namespace MouseTrack {
@@ -32,7 +33,7 @@ Pipeline PipelineFactory::fromCliOptions(const op::variables_map& options) const
     std::unique_ptr<Clustering> clustering{new MeanShift(10)};
     std::unique_ptr<Descripting> descripting{new CenterOfGravity()};
     std::unique_ptr<Matching> matching{new NearestNeighbour()};
-    std::unique_ptr<TrajectoryBuilder> trajectoryBuilder;
+    std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{new CogTrajectoryBuilder()};
     return Pipeline(
                 std::move(reader),
                 std::move(registration),
