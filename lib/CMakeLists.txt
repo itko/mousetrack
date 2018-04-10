@@ -38,6 +38,8 @@ set(test_files
         clustering/mean_shift.test.cc
         spatial/brute_force.test.cc
         spatial/cube_iterator.test.cc
+        spatial/cubic_neighborhood.test.cc
+        spatial/uniform_grid.test.cc
         trajectory_builder/cog_trajectory_builder.test.cc
         )
 

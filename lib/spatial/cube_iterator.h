@@ -44,6 +44,10 @@ public:
         return _it;
     }
 
+    const CellCoordinate* operator->() const {
+        return &_it;
+    }
+
     CubeIterator& operator++(){
         _increment();
         return *this;
