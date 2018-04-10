@@ -33,8 +33,7 @@ indices.push_back(0);
 indices.push_back(1);
 MouseTrack::Cluster cluster(indices);
 
-MouseTrack::Center* center;
-std::shared_ptr<MouseTrack::ClusterDescriptor> cd (center);
+std::shared_ptr<MouseTrack::ClusterDescriptor> cd (new MouseTrack::Center(2,1,3));
 
 MouseTrack::CogTrajectoryBuilder tb;
 

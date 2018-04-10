@@ -30,13 +30,14 @@ set(source_files
 set(test_files
         test_root.cc
         generic/explode.test.cc
+        generic/random_sample.test.cc
         generic/point_cloud.test.cc
         generic/read_csv.test.cc
         generic/read_png.test.cc
         generic/vec_addition.test.cc
-		clustering/mean_shift.test.cc
-    trajectory_builder/cog_trajectory_builder.test.cc
-        generic/random_sample.test.cc
+        clustering/mean_shift.test.cc
+        spatial/cube_iterator.test.cc
+        trajectory_builder/cog_trajectory_builder.test.cc
         )
 
 add_library(libmousetrack ${source_files})
