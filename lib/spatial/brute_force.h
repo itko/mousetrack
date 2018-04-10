@@ -15,7 +15,7 @@ namespace MouseTrack {
 /// Expects points to be Eigen col vectors of size Dim x 1
 /// The point list is a Dim x #Points eigen matrix
 
-template <int _Dim, typename _Precision>
+template <typename _Precision, int _Dim>
 class BruteForce : public SpatialOracle<Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic, Eigen::RowMajor + Eigen::AutoAlign>, Eigen::Matrix<_Precision, _Dim, 1>, _Precision> {
 public:
     typedef Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic, Eigen::RowMajor + Eigen::AutoAlign> PointList;
@@ -57,16 +57,16 @@ public:
 
 // some convenient typedefs
 
-typedef BruteForce<1, double> BruteForce1d;
-typedef BruteForce<2, double> BruteForce2d;
-typedef BruteForce<3, double> BruteForce3d;
-typedef BruteForce<4, double> BruteForce4d;
-typedef BruteForce<5, double> BruteForce5d;
+typedef BruteForce<double, 1> BruteForce1d;
+typedef BruteForce<double, 2> BruteForce2d;
+typedef BruteForce<double, 3> BruteForce3d;
+typedef BruteForce<double, 4> BruteForce4d;
+typedef BruteForce<double, 5> BruteForce5d;
 
-typedef BruteForce<1, float> BruteForce1f;
-typedef BruteForce<2, float> BruteForce2f;
-typedef BruteForce<3, float> BruteForce3f;
-typedef BruteForce<4, float> BruteForce4f;
-typedef BruteForce<5, float> BruteForce5f;
+typedef BruteForce<float, 1> BruteForce1f;
+typedef BruteForce<float, 2> BruteForce2f;
+typedef BruteForce<float, 3> BruteForce3f;
+typedef BruteForce<float, 4> BruteForce4f;
+typedef BruteForce<float, 5> BruteForce5f;
 
 } // MouseTrack
