@@ -3,6 +3,7 @@
 ///
 
 #pragma once
+
 #include "generic/types.h"
 #include <Eigen/Core>
 
@@ -13,20 +14,20 @@ namespace MouseTrack {
 /// to perform spatial queries.
 ///
 /// `PointList`: data type to communicate a batch of points.
-/// Needs to provide:
-/// - `operator[]` to access points
-/// - `size()` returns number of available points
-/// - `resize(size_t n)` fills range `[0,n)` with points for valid access.
 ///
-/// `Point` needs to provide an `operator[size_t]` accessor to it's underlying values,
-/// valid for the range `[0, Dim)`
-///
-/// `Dim`: number of dimensions of `Point`
+/// `Point`: representation of points
 ///
 /// `Precision`: desired numerical precision (double, float)
-template <typename PointList, typename Point, typename Precision>
+template <typename _PointList, typename _Point, typename _Precision>
 class SpatialOracle {
 public:
+    /// Make available to instance
+    typedef _PointList PointList;
+    /// Make available to instance
+    typedef _Point Point;
+    /// Make available to instance
+    typedef _Precision Precision;
+
     /// Set points you want to perform queries on.
     virtual void compute(const PointList& points) = 0;
 
