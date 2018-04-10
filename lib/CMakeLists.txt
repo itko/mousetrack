@@ -36,6 +36,7 @@ set(test_files
         generic/read_png.test.cc
         generic/vec_addition.test.cc
         clustering/mean_shift.test.cc
+        spatial/brute_force.test.cc
         spatial/cube_iterator.test.cc
         trajectory_builder/cog_trajectory_builder.test.cc
         )
