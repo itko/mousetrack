@@ -1,193 +1,228 @@
+/// \file
+/// Maintainer: Felice Serena
+///
 
+#pragma once
 
-/// A neighborhood tries to describe a set of grid cells that have roughly the same distance
-/// to a central reference cell
-/// Ideally, a neighborhood would correspond to all cells with distance [r,R] to the reference cell
-/// (for a [r,R] as tight as possible) (they would bild one cube thick shells of a sphere)
-/// Since this seems quite involved mathematically, we go with a rougher implementation, where we use
-/// hollow-cube shaped layers of thickness one cube
-class Neighborhood {
-    const int layer;
-    const double minDist;
-    const double maxDist;
-    std::vector<Eigen::Vector3i> coordinates;
+#include "cubic_neighborhood.h"
+#include "spatial_oracle.h"
+#include <Eigen/Core>
+#include <iostream>
+
+namespace std {
+
+template <typename Scalar, int Rows, int Cols>
+class hash<Eigen::Matrix<Scalar, Rows, Cols>> {
 public:
-    Neighborhood(int l) : layer(l),
-    minDist(.5 + (l-1)), maxDist(sqrt(.5*.5*.5 + 3*l*l)) {
-        std::vector<Eigen::Vector3i>& n = coordinates;
-        if(l == 0){
-            n.push_back(Eigen::Vector3i(0,0,0));
-            return;
-        }
-        // x-planes of cube
-        for(int y = -l; y <= l; y += 1){
-            for(int z = -l; z <= l; z += 1){
-                n.push_back(Eigen::Vector3i(l, y, z));
-                n.push_back(Eigen::Vector3i(-l, y, z));
+    size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& mat) const {
+        // based on: http://de.cppreference.com/w/cpp/utility/hash/operator()
+        size_t result = 2166136261;
+        for(int i = 0; i < mat.rows(); ++i){
+            for(int j = 0; j < mat.cols(); ++j){
+                result += j*86845 ^ i*123421 ^ std::hash<Scalar>()(mat(i,j)) ^ (result * 16777619);
             }
         }
-        // y-planes
-        for(int x = -l+1; x < l; x += 1){
-            for(int z = -l; z <= l; z += 1){
-                n.push_back(Eigen::Vector3i(x,l,z));
-                n.push_back(Eigen::Vector3i(x,-l,z));
-            }
-        }
-        // z-planes
-        for(int x = -l+1; x < l; x += 1){
-            for(int y = -l+1; y < l; y += 1){
-                n.push_back(Eigen::Vector3i(x,y,l));
-                n.push_back(Eigen::Vector3i(x,y,-l));
-            }
-        }
-        int w = 2*l+1; // cube width
-        assert(n.size() == w*w*w - (w-2)*(w-2)*(w-2));
-    }
-    const std::vector<Eigen::Vector3i>& coords() const {
-        return coordinates;
-    }
-    // minimal point distance from center cell measured in cell counts
-    double min() const {
-        return minDist;
-    }
-    // maximal point distance from center cell measured in cell counts
-    double max() const {
-        return maxDist;
+        return result;
     }
 };
 
 
-class UniformGrid : public SpatialOracle {
+} // std
+
+namespace MouseTrack {
+
+using namespace SpatialImpl;
+
+
+/// Creates a grid and stores the indices of the corresponding points in each cell.
+/// Each grid cell is cube shaped, but does not have unit width.
+///
+///
+/// Note: this is a decent method for low dimensions,
+/// But the number of cells grows exponentially in the number of dimensions, so
+/// take care with higher dimensions.
+template <typename _Precision, int _Dim>
+class UniformGrid : public SpatialOracle<Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic, Eigen::RowMajor + Eigen::AutoAlign>, Eigen::Matrix<_Precision, _Dim, 1>, _Precision> {
+public:
+    typedef Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic, Eigen::RowMajor + Eigen::AutoAlign> PointList;
+    typedef Eigen::Matrix<_Precision, _Dim, 1> Point;
+    typedef _Precision Precision;
 private:
-    const Eigen::MatrixXd& Ps;
-    Eigen::RowVector3d bb_min;
-    Eigen::RowVector3d bb_max;
-    Eigen::RowVector3d bb_size;
-    const double cellWidth;
-    mutable std::vector<Neighborhood> neighborhoods;
-    Eigen::Vector3i dimCellCount;
-    // Improvements: replace three nested vectors with a 3D Eigen-Tensor
-    std::vector<std::vector<std::vector<std::vector<size_t>>>> gridIndex;
-    Eigen::Vector3i indexOfPosition(const Eigen::RowVector3d& p) const {
-        Eigen::Vector3i index;
-        for(size_t i = 0; i < 3; i += 1){
-            double diff = (p[i] - bb_min[i])/cellWidth;
-            double upper = dimCellCount[i] - 1.0;
-            index[i] = std::floor(std::min(std::max(0.0, diff), upper));
-        }
+    /// A word about coordiante systems, there are three:
+    ///
+    /// - Point uses a floating point coordinate system.
+    ///
+    /// - Bounding box grid: a grid from [0, resolution), it has
+    ///   discrete indexes and is aligned with the `bb_` coordinates.
+    ///
+    /// - Neighbor grid: relative indices in [-maxLayer, maxLayer] to
+    ///   walk the neighborhood in the bounding box grid.
+
+    /// type alias
+    typedef Eigen::Matrix<int, _Dim, 1> GridCellIndex;
+    typedef CellCoordinate<_Dim> Cell;
+    typedef CubicNeighborhood<_Dim> _Neighborhood;
+
+    /// Points over which we perform queries
+    PointList points;
+
+    /// Minimum point of bounding box
+    Point bb_min;
+
+    /// Maximum point of bounding box
+    Point bb_max;
+
+    /// size of bounding box
+    Point bb_size;
+
+    /// Width of a cell
+    Precision cellWidth;
+
+    _Neighborhood neighborhood;
+
+    GridCellIndex resolution;
+
+    /// largest dimension of grid
+    int maxDiameter;
+
+    std::unordered_map<Cell, std::vector<PointIndex>> grid;
+
+    Cell indexOfPosition(const Point& p) const {
+        auto normalized = ((p - bb_min)/cellWidth).array().floor();
+        Cell index = normalized.template cast<int>();
         return index;
     }
 
-    const Neighborhood& neighborhood(size_t layer) const {
-        if(layer < neighborhoods.size()){
-            return neighborhoods[layer];
-        }
-        for(size_t i = neighborhoods.size(); i <= layer; i += 1){
-            // create neighborhood of layer i
-            neighborhoods.push_back(Neighborhood(i));
-        }
-        return neighborhoods[layer];
-    }
-    size_t maxLayer() const {
-        return dimCellCount.maxCoeff();
-    }
-    bool in_bb(const Eigen::Vector3i cell) const {
-        for(size_t i = 0; i < 3; i += 1){
-            if(cell[i] < 0 || dimCellCount[i] <= cell[i]){
+    bool in_bb(const Cell& cell) const {
+        for(int d = 0; d < _Dim; d += 1){
+            if(cell[d] < 0 || resolution[d] <= cell[d]){
                 return false;
             }
         }
         return true;
-        //auto tmp = dimCellCount - cell;
-        //return 0 <= cell.minCoeff() && tmp.minCoeff() >= 1;
     }
-public:
-    UniformGrid(const Eigen::MatrixXd& srcData) :
-            Ps(srcData),
-            bb_min(srcData.colwise().minCoeff()),
-            bb_max(srcData.colwise().maxCoeff()),
-            bb_size(bb_max - bb_min),
-            cellWidth(bb_size.minCoeff()/40.0) // Improvement option: get better heuristic
-    {
+
+    /// recache data
+    void _compute(){
+        bb_min = points.rowwise().minCoeff();
+        bb_max = points.rowwise().maxCoeff();
+        bb_size = bb_max - bb_min;
+
+        // add some buffer for rounding errors
         bb_min -= bb_size * .1;
         bb_max += bb_size * .1;
-        for(size_t i = 0; i < 3; i += 1){
-            dimCellCount[i] = std::ceil(bb_size[i]/cellWidth);
+
+        bb_size = bb_max - bb_min;
+
+        for(int d = 0; d < _Dim; d += 1){
+            resolution[d] = std::ceil(bb_size[d]/cellWidth);
         }
 
+        maxDiameter = resolution.array().maxCoeff();
+
         // create grid
-        gridIndex.resize(dimCellCount[0]);
-        for(auto& x : gridIndex){
-            x.resize(dimCellCount[1]);
-            for(auto& y : x){
-                y.resize(dimCellCount[2]);
-            }
-        }
+        grid.erase(grid.begin(), grid.end());
+
         // fill grid with indices
-        for(size_t i = 0; i < Ps.rows(); i += 1){
-            auto j = indexOfPosition(Ps.row(i));
-            gridIndex[j[0]][j[1]][j[2]].push_back(i);
+        for(int i = 0; i < points.cols(); i += 1){
+            auto j = indexOfPosition(points.col(i));
+            grid[j].push_back(i);
+        }
+        std::cout << "grid size: " << grid.size() << std::endl;
+        for(auto g : grid){
+            std::cout << std::endl << g.first << ": " << g.second.size();
+            std::cout << ": ";
+            for(auto p : g.second){
+                std::cout << p << ", ";
+            }
+            std::cout << std::endl;
         }
     }
+public:
+    /// Create a grid with a cell size of `cellWidth` and support
+    /// for range queries of up to `maxR`.
+    UniformGrid(Precision maxR, Precision cellWidth) : cellWidth(cellWidth) {
+        assert(cellWidth > 0);
+        neighborhood = _Neighborhood(std::ceil(maxR/cellWidth)+1);
+    }
+
+    /// Create new grid and insert points
+    virtual void compute(const PointList& srcData) {
+        points = srcData;
+        _compute();
+    }
+
+    /// Create new grid and insert points
+    virtual void compute(PointList&& points) {
+        points = std::move(points);
+        _compute();
+    };
+
     /// finds the nearest neighbor for a given point p
-    virtual size_t find_closest(const Eigen::RowVector3d& p) const {
+    virtual PointIndex find_closest(const Point& p) const {
         // idea: we define hollow cubes around the cell containing p, called layers
         // we search the layers from the inside to the outside
         // if we have a closest candidate, we stop as soon as our active layer's closest point is above our candidate
         auto zeroCell = indexOfPosition(p);
-        size_t minIndex = -1;
-        double minDist = std::numeric_limits<double>::infinity(); // squared norm between p and closest candidate
-        size_t maxL = maxLayer(); // there's no point to look outside of the BB
-        for(size_t l = 0; l < maxL; l += 1){
-            const Neighborhood& n = neighborhood(l);
-            double nDist = (n.min() - 1)*cellWidth;
-            double cDist = std::sqrt(minDist);
-            if(cDist < nDist){
-                // the closest point in the layer is furhter away than our candidate
-                // (we need to subtract 1 to account for points p sitting in the corner of the zeroCell
+        PointIndex minIndex = -1;
+        double minDist = std::numeric_limits<Precision>::infinity(); // squared norm between p and closest candidate
+        // We only loop up to the largest bounding box dimension (assumes cube shells)
+        for(int l = 0; l < maxDiameter; l += 1){
+            const auto& layer = neighborhood[l];
+            double layerDist = layer.min()*cellWidth;
+            if(minDist < layerDist*layerDist){
+                // the closest point in the layer is further away than our best candidate
                 // we can stop
                 break;
             }
-            for(size_t i = 0; i < n.coords().size(); i += 1){
-                auto cell = zeroCell + n.coords()[i];
+            for(int i = 0; i < layer.size(); i += 1){
+                auto cell = zeroCell + layer[i];
                 // skip, if outside of bounding box
                 if(!in_bb(cell)){
                     continue;
                 }
                 // we are inside the bounding box and have to check against all verts in the cell
-                const auto& candidates = gridIndex[cell[0]][cell[1]][cell[2]];
-                for(size_t c : candidates){
-                    double dist = (Ps.row(c) - p).squaredNorm();
+                const auto candidates = grid.find(cell);
+                if(candidates == grid.end()){
+                    // no points stored in this cell
+                    continue;
+                }
+                for(int cIndex : candidates->second){
+                    double dist = (points.col(cIndex) - p).squaredNorm();
                     if(dist < minDist){
                         minDist = dist;
-                        minIndex = c;
+                        minIndex = cIndex;
                     }
                 }
             }
         }
         return minIndex;
     }
-    virtual std::vector<size_t> find_in_range(const Eigen::RowVector3d& p, const double h) const {
-        std::vector<size_t> range;
+    virtual std::vector<PointIndex> find_in_range(const Point& p, const Precision r) const {
+        std::vector<PointIndex> range;
         auto zeroCell = indexOfPosition(p);
-        size_t maxL = maxLayer();
-        const double h2 = h*h;
-        for(size_t l = 0; l < maxL; l += 1){
-            const Neighborhood& n = neighborhood(l);
-            if(h < (n.min()-1)*cellWidth){
+        int maxL = maxDiameter;
+        const double r2 = r*r;
+        for(int l = 0; l < maxL; l += 1){
+            const auto& layer = neighborhood[l];
+            if(r < layer.min()*cellWidth){
                 break;
             }
-            for(size_t i = 0; i < n.coords().size(); i += 1){
-                auto cell = zeroCell + n.coords()[i];
+            for(int i = 0; i < layer.size(); i += 1){
+                Cell cell = zeroCell + layer[i];
                 // skip, if outside of bounding box
                 if(!in_bb(cell)){
                     continue;
                 }
                 // we are inside the bounding box and have to check against all verts in the cell
-                const auto& candidates = gridIndex[cell[0]][cell[1]][cell[2]];
-                for(size_t c : candidates){
-                    double dist = (Ps.row(c) - p).squaredNorm();
-                    if(dist <= h2){
+                const auto candidates = grid.find(cell);
+                if(candidates == grid.end()){
+                    // no points stored in this cell
+                    continue;
+                }
+                for(PointIndex c : candidates->second){
+                    double dist = (points.col(c) - p).squaredNorm();
+                    if(dist <= r2){
                         range.push_back(c);
                     }
                 }
@@ -197,3 +232,19 @@ public:
         return range;
     }
 };
+
+
+typedef UniformGrid<double, 1> UniformGrid1d;
+typedef UniformGrid<double, 2> UniformGrid2d;
+typedef UniformGrid<double, 3> UniformGrid3d;
+typedef UniformGrid<double, 4> UniformGrid4d;
+typedef UniformGrid<double, 5> UniformGrid5d;
+
+typedef UniformGrid<float, 1> UniformGrid1f;
+typedef UniformGrid<float, 2> UniformGrid2f;
+typedef UniformGrid<float, 3> UniformGrid3f;
+typedef UniformGrid<float, 4> UniformGrid4f;
+typedef UniformGrid<float, 5> UniformGrid5f;
+
+
+} // MouseTrack

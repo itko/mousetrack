@@ -29,11 +29,8 @@ class CubicNeighborhoodLayer;
 template <int _Dim>
 class CubicNeighborhood {
     std::vector<CubicNeighborhoodLayer<_Dim>> _layers;
-public:
-    /// maxLayer: index of outtest layer you intend to access
-    /// 0th layer: only the central cube is generated
-    /// 1st layer: coordinates for which the largest component magnitude is equal 1
-    CubicNeighborhood(const int maxLayer) {
+    void _createLayersUpTo(const int maxLayer){
+        assert(maxLayer >= 0);
         CubeIterator<_Dim, CellCoordinate<_Dim>> iter(2*maxLayer+1);
         CubeIterator<_Dim, CellCoordinate<_Dim>> end;
         /// move cube from [0,2*maxLayer] to [-maxLayer, maxLayer]
@@ -43,13 +40,25 @@ public:
         for(; iter != end; ++iter){
             auto centered = *iter+toCenter;
             int highestDimension = centered.array().abs().maxCoeff();
-            auto i = *iter;
+            assert(highestDimension <= maxLayer);
+            assert(0 <= highestDimension);
             layerCells[highestDimension].push_back(centered);
         }
+
         _layers.resize(maxLayer+1);
         for(int i = 0; i < maxLayer+1; i += 1){
             _layers[i] = CubicNeighborhoodLayer<_Dim>(std::move(layerCells[i]));
         }
+    }
+public:
+    /// maxLayer: index of outtest layer you intend to access
+    /// 0th layer: only the central cube is generated
+    /// 1st layer: coordinates for which the largest component magnitude is equal 1
+    CubicNeighborhood(int maxLayer) {
+        _createLayersUpTo(maxLayer);
+    }
+    CubicNeighborhood() {
+        _createLayersUpTo(0);
     }
     int size() const {
         return _layers.size();

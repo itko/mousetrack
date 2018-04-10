@@ -40,7 +40,7 @@ public:
 
     /// Give an index-list of all points within distance `r` around `p`
     /// The indexes are returned in random order.
-    virtual std::vector<PointIndex> find_in_range(const Point& p, const Precision r) const = 0;
+    virtual std::vector<PointIndex> find_in_range(const Point& p, Precision r) const = 0;
 };
 
 } // MouseTrack
