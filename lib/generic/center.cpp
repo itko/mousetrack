@@ -6,14 +6,29 @@
  */
 
 #include "center.h"
+#include <cmath>
 
 namespace MouseTrack {
 
-double Center::compare(const ClusterDescriptor* other) const {
-	return 0;
+Center::Center(Coordinate x, Coordinate y, Coordinate z)
+    : _x(x), _y(y), _z(z) {}
+
+Center::~Center() {}
+
+const Coordinate &Center::x() const { return this->_x; }
+
+const Coordinate &Center::y() const { return this->_y; }
+
+const Coordinate &Center::z() const { return this->_z; }
+
+double Center::compare(const ClusterDescriptor *other) const {
+  const Center *otherCenter = dynamic_cast<const Center *>(other);
+  // Get Euclidean distance
+  double err = pow((this->_x - otherCenter->x()), 2) +
+               pow((this->_y - otherCenter->y()), 2) +
+               pow((this->_z - otherCenter->z()), 2);
+  double n = sqrt(err);
+  return n;
 };
 
-
-} // MouseTrack
-
-
+} // namespace MouseTrack
