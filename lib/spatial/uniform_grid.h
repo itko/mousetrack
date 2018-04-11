@@ -7,7 +7,6 @@
 #include "cubic_neighborhood.h"
 #include "spatial_oracle.h"
 #include <Eigen/Core>
-#include <iostream>
 
 namespace std {
 
@@ -104,6 +103,9 @@ private:
 
     /// recache data
     void _compute(){
+        if(points.size() == 0){
+            return;
+        }
         bb_min = points.rowwise().minCoeff();
         bb_max = points.rowwise().maxCoeff();
         bb_size = bb_max - bb_min;
@@ -127,15 +129,6 @@ private:
         for(int i = 0; i < points.cols(); i += 1){
             auto j = indexOfPosition(points.col(i));
             grid[j].push_back(i);
-        }
-        std::cout << "grid size: " << grid.size() << std::endl;
-        for(auto g : grid){
-            std::cout << std::endl << g.first << ": " << g.second.size();
-            std::cout << ": ";
-            for(auto p : g.second){
-                std::cout << p << ", ";
-            }
-            std::cout << std::endl;
         }
     }
 public:
@@ -167,7 +160,7 @@ public:
         PointIndex minIndex = -1;
         double minDist = std::numeric_limits<Precision>::infinity(); // squared norm between p and closest candidate
         // We only loop up to the largest bounding box dimension (assumes cube shells)
-        for(int l = 0; l < maxDiameter; l += 1){
+        for(int l = 0; l < neighborhood.size(); l += 1){
             const auto& layer = neighborhood[l];
             double layerDist = layer.min()*cellWidth;
             if(minDist < layerDist*layerDist){
@@ -201,9 +194,8 @@ public:
     virtual std::vector<PointIndex> find_in_range(const Point& p, const Precision r) const {
         std::vector<PointIndex> range;
         auto zeroCell = indexOfPosition(p);
-        int maxL = maxDiameter;
         const double r2 = r*r;
-        for(int l = 0; l < maxL; l += 1){
+        for(int l = 0; l <= neighborhood.size(); l += 1){
             const auto& layer = neighborhood[l];
             if(r < layer.min()*cellWidth){
                 break;
@@ -221,7 +213,8 @@ public:
                     continue;
                 }
                 for(PointIndex c : candidates->second){
-                    double dist = (points.col(c) - p).squaredNorm();
+                    auto& v = points.col(c);
+                    double dist = (v - p).squaredNorm();
                     if(dist <= r2){
                         range.push_back(c);
                     }
