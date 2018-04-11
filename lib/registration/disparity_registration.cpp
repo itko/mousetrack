@@ -62,24 +62,12 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
             }
         }
     }
-    double minX = std::numeric_limits<double>::max();
-    double minY = std::numeric_limits<double>::max();
-    double minZ = std::numeric_limits<double>::max();
-    double maxX = std::numeric_limits<double>::min();
-    double maxY = std::numeric_limits<double>::min();
-    double maxZ = std::numeric_limits<double>::min();
-    for(PointIndex i = 0; i < cloud.size(); i += 1){
-        const auto& p = cloud[i];
-        minX = std::min(minX, p.x());
-        minY = std::min(minY, p.y());
-        minZ = std::min(minZ, p.z());
-
-        maxX = std::max(maxX, p.x());
-        maxY = std::max(maxY, p.y());
-        maxZ = std::max(maxZ, p.z());
-    }
     cloud.resize(next_insert); // shrink to actual number of points
-    BOOST_LOG_TRIVIAL(debug) << "Found point cloud with " << cloud.size() << " points, xyz-min: [" << minX << ", " << minY << ", " << minZ << "] xyz-max: [" << maxX << maxY << maxZ << "]" << std::flush;
+
+    auto min = cloud.min();
+    auto max = cloud.max();
+
+    BOOST_LOG_TRIVIAL(debug) << "Found point cloud with " << cloud.size() << " points, xyz-min: [" << min[0] << ", " << min[1] << ", " << min[2] << "], xyz-max: [" << max[0] << ", " << max[1] << ", " << max[2] << "]" << std::flush;
     return cloud;
 }
 

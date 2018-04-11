@@ -40,6 +40,15 @@ void PipelineObserver::newRawPointCloud     (FrameIndex f, std::shared_ptr<const
     // empty
 }
 
+void PipelineObserver::startPointCloudFiltering(FrameIndex f) {
+    // empty
+}
+
+void PipelineObserver::newFilteredPointCloud(FrameIndex f, std::shared_ptr<const PointCloud> cloud) {
+    // empty
+}
+
+
 void PipelineObserver::startClustering      (FrameIndex f) {
     // empty
 }

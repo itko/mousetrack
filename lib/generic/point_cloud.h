@@ -13,7 +13,6 @@
 
 namespace MouseTrack {
 
-
 /// A point cloud holds a list of 3D points. Each point can have additional attributes like color intensity.
 class PointCloud {
 	// Design note: In general, one has to decide betwen two basic concepts:
@@ -129,6 +128,12 @@ public:
 
     /// Read-only access to i-th point.
     const ConstantPoint operator[](size_t i) const;
+
+    /// min corner of bounding box
+    const Eigen::Vector3d min() const;
+
+    /// max corner of bounding box
+    const Eigen::Vector3d max() const;
 private:
     std::vector<Coordinate> _xs;
     std::vector<Coordinate> _ys;

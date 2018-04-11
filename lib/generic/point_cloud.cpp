@@ -35,6 +35,35 @@ const PointCloud::ConstantPoint PointCloud::operator[](size_t i) const {
     return PointCloud::ConstantPoint(*this, i);
 }
 
+const Eigen::Vector3d PointCloud::min() const {
+    double minX = std::numeric_limits<double>::max();
+    double minY = std::numeric_limits<double>::max();
+    double minZ = std::numeric_limits<double>::max();
+
+    for(PointIndex i = 0; i < size(); i += 1){
+        const auto& p = (*this)[i];
+        minX = std::min(minX, p.x());
+        minY = std::min(minY, p.y());
+        minZ = std::min(minZ, p.z());
+    }
+    return Eigen::Vector3d(minX, minY, minZ);
+}
+
+/// max corner of bounding box
+const Eigen::Vector3d PointCloud::max() const {
+    double maxX = std::numeric_limits<double>::min();
+    double maxY = std::numeric_limits<double>::min();
+    double maxZ = std::numeric_limits<double>::min();
+
+    for(PointIndex i = 0; i < size(); i += 1){
+        const auto& p = (*this)[i];
+        maxX = std::max(maxX, p.x());
+        maxY = std::max(maxY, p.y());
+        maxZ = std::max(maxZ, p.z());
+    }
+    return Eigen::Vector3d(maxX, maxY, maxZ);
+}
+
 
 // Point implementation
 

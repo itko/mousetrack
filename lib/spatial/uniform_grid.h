@@ -135,9 +135,6 @@ private:
             auto& vec = grid[j];
             vec.push_back(i);
         }
-        for(auto c : grid){
-            BOOST_LOG_TRIVIAL(trace) << "Uniform grid: key: " << c.first << ", elements: " << c.second.size();
-        }
     }
 public:
     /// Create a grid with a cell size of `cellWidth` and support

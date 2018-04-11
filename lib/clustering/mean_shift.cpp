@@ -60,7 +60,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 
 	// For each point...
 	for(PointIndex i = 0; i < clusters.size(); i++) {
-		int iterations = 0; //for logging and abort condition
+        int iterations = 0; //for logging and abort condition
 
 		// ... iterate until convergence
 		do  {
@@ -85,7 +85,10 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 				BOOST_LOG_TRIVIAL(warning) << "Max number of iterations for point " << i << " reached - continuing without convergence for this point";
 			}
 		} while ((prevCenter - currCenters[i]).norm() > _convergence_threshold);
-	}
+        if(i % 1024 == 0) {
+            BOOST_LOG_TRIVIAL(trace) << "converged i " << i << " after " << iterations << " iterations";
+        }
+    }
 
 	// Merge step
 	// For every mode..
@@ -105,7 +108,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 		}
 	}
 
-	BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << clusters.size();
+    BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << clusters.size() << std::flush;
 	return clusters;
 }
 

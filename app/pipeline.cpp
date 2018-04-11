@@ -19,6 +19,7 @@ Pipeline::Pipeline() :
 Pipeline::Pipeline(
     std::unique_ptr<Reader> reader,
     std::unique_ptr<Registration> registration,
+    std::unique_ptr<PointCloudFiltering> filtering,
     std::unique_ptr<Clustering> clustering,
     std::unique_ptr<Descripting> descripting,
     std::unique_ptr<Matching> matching,
@@ -28,6 +29,7 @@ Pipeline::Pipeline(
     _controller_terminated(true),
     _reader(std::move(reader)),
     _registration(std::move(registration)),
+    _cloudFiltering(std::move(filtering)),
     _clustering(std::move(clustering)),
     _descripting(std::move(descripting)),
     _matching(std::move(matching)),
@@ -45,6 +47,7 @@ void Pipeline::moveMembersFrom(Pipeline& p) {
     _observers = std::move(p._observers);
     _reader = std::move(p._reader);
     _registration = std::move(p._registration);
+    _cloudFiltering = std::move(p._cloudFiltering);
     _clustering = std::move(p._clustering);
     _descripting = std::move(p._descripting);
     _matching = std::move(p._matching);
@@ -216,12 +219,27 @@ void Pipeline::processFrame(FrameIndex f) {
     forallObservers( [=](PipelineObserver* o){o->startRegistration(f);} );
     std::unique_ptr<PointCloud> rawPointCloudPtr(new PointCloud());
     (*rawPointCloudPtr) = (*_registration)(*window);
-    std::shared_ptr<const PointCloud> rawPointCloud{std::move(rawPointCloudPtr)};
-    forallObservers( [=](PipelineObserver* o){o->newRawPointCloud(f, rawPointCloud);} );
+    std::shared_ptr<const PointCloud> pointCloud{std::move(rawPointCloudPtr)};
+    forallObservers( [=](PipelineObserver* o){o->newRawPointCloud(f, pointCloud);} );
 
     if(terminateEarly()){
         forallObservers( [=](PipelineObserver* o){o->frameEnd(f);} );
         return;
+    }
+
+    // optional: filter point cloud
+    if(_cloudFiltering != nullptr) {
+        forallObservers( [=](PipelineObserver* o){o->startPointCloudFiltering(f);} );
+        std::unique_ptr<PointCloud> filteredPointCloudPtr(new PointCloud());
+        (*filteredPointCloudPtr) = (*_cloudFiltering)(*pointCloud);
+        // replace raw point cloud
+        pointCloud = std::shared_ptr<const PointCloud>{std::move(filteredPointCloudPtr)};
+        forallObservers( [=](PipelineObserver* o){o->newFilteredPointCloud(f, pointCloud);} );
+
+        if(terminateEarly()){
+            forallObservers( [=](PipelineObserver* o){o->frameEnd(f);} );
+            return;
+        }
     }
 
     // cluster the point cloud
@@ -232,7 +250,7 @@ void Pipeline::processFrame(FrameIndex f) {
     }
     forallObservers( [=](PipelineObserver* o){o->startClustering(f);} );
     std::unique_ptr<std::vector<Cluster>> clustersPtr(new std::vector<Cluster>());
-    (*clustersPtr) = (*_clustering)(*rawPointCloud);
+    (*clustersPtr) = (*_clustering)(*pointCloud);
     std::shared_ptr<const std::vector<Cluster>> clusters(std::move(clustersPtr));
     forallObservers( [=](PipelineObserver* o){o->newClusters(f, clusters);} );
 
@@ -248,10 +266,12 @@ void Pipeline::processFrame(FrameIndex f) {
         forallObservers( [=](PipelineObserver* o){o->frameEnd(f);} );
         return;
     }
+
+    BOOST_LOG_TRIVIAL(trace) << "Descripting clusters of frame: " << f;
     forallObservers( [=](PipelineObserver* o){o->startDescripting(f);} );
     std::unique_ptr<std::vector<std::shared_ptr<const ClusterDescriptor>>> descriptorsPtr(new std::vector<std::shared_ptr<const ClusterDescriptor>>());
     for(const Cluster& cluster : *clusters){
-        std::shared_ptr<ClusterDescriptor> descriptor = (*_descripting)(cluster, *rawPointCloud);
+        std::shared_ptr<ClusterDescriptor> descriptor = (*_descripting)(cluster, *pointCloud);
         descriptorsPtr->push_back(descriptor);
     }
     std::shared_ptr<const std::vector<std::shared_ptr<const ClusterDescriptor>>> descriptors(std::move(descriptorsPtr));
@@ -311,7 +331,7 @@ void Pipeline::processFrame(FrameIndex f) {
         const auto descriptorIter = chain.descriptors().find(f);
         const Cluster& cluster = *(clusterIter->second);
         const std::shared_ptr<const ClusterDescriptor> descriptor = (descriptorIter->second);
-        controlPointsPtr->push_back((*_trajectoryBuilder)(descriptor, cluster, *rawPointCloud));
+        controlPointsPtr->push_back((*_trajectoryBuilder)(descriptor, cluster, *pointCloud));
     }
 
     std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints{std::move(controlPointsPtr)};

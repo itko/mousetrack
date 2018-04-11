@@ -14,6 +14,8 @@ namespace MouseTrack {
 PipelineWriter::PipelineWriter(fs::path targetDir) :
     _outputDir(fs::absolute(targetDir)),
     _rawPointCloudPath("raw_point_cloud_<frameNumber>.ply"),
+    _filteredPointCloudPath("filtered_point_cloud_<frameNumber>.ply"),
+    _clusteredPointCloudPath("clustered_point_cloud_<frameNumber>.ply"),
     _clustersPath("clusters_<frameNumber>.csv"),
     _descriptorsPath("descriptors_<frameNumber>.csv"),
     _matchesPath("matches_<frameNumber>.csv"),
@@ -30,7 +32,16 @@ PipelineWriter::PipelineWriter(fs::path targetDir) :
 }
 
 void PipelineWriter::newRawPointCloud     (FrameIndex f, std::shared_ptr<const PointCloud> cloud){
+    _clouds[f] = cloud;
     fs::path path = _outputDir / insertFrame(_rawPointCloudPath, f);
+    write_point_cloud(path.string(), *cloud);
+}
+
+void PipelineWriter::newFilteredPointCloud(FrameIndex f, std::shared_ptr<const PointCloud> cloud) {
+    // overwrite rawPointCloud
+    _clouds[f] = cloud;
+
+    fs::path path = _outputDir / insertFrame(_filteredPointCloudPath, f);
     write_point_cloud(path.string(), *cloud);
 }
 
@@ -42,9 +53,25 @@ void PipelineWriter::newClusters          (FrameIndex f, std::shared_ptr<const s
     }
     fs::path path = _outputDir / insertFrame(_clustersPath, f);
     write_csv(path.string(), tmp);
+
+    // write clustered point cloud
+    PointCloud cloud = *_clouds[f];
+    float normalize = 1.0/clusters->size();
+    for(size_t ci = 0; ci < clusters->size(); ++ci){
+        const auto& cluster = (*clusters)[ci];
+        for(auto i : cluster.points()){
+            cloud[i].r(ci*normalize);
+            cloud[i].g(0);
+            cloud[i].b(1);
+        }
+    }
+    fs::path cloudPath = _outputDir / insertFrame(_clusteredPointCloudPath, f);
+    write_point_cloud(cloudPath.string(), cloud);
+    // remove point cloud, we don't need it anylonger
+    _clouds.erase(f);
 }
 
-void PipelineWriter::newDescriptors       (FrameIndex f, std::shared_ptr<const std::vector<std::shared_ptr<const ClusterDescriptor>>> descriptors){
+void PipelineWriter::newDescriptors       (FrameIndex, std::shared_ptr<const std::vector<std::shared_ptr<const ClusterDescriptor>>>){
     // empty
 }
 

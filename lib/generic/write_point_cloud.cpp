@@ -24,8 +24,10 @@ void write_point_cloud(const std::string& path, const PointCloud& cloud) {
     out << "end_header\n";
     for(size_t i = 0; i < cloud.size(); i += 1){
         const auto p = cloud[i];
-        int in = 255*p.intensity();
-        out << p.x() << " " << p.y() << " " << p.z() << " " << in << " " << in << " " << in <<  "\n";
+        out << p.x() << " " << p.y() << " " << p.z();
+        out << " " << (int)(255.0*p.r());
+        out << " " << (int)(255.0*p.g());
+        out << " " << (int)(255.0*p.b()) <<  "\n";
     }
     out.close();
 }
