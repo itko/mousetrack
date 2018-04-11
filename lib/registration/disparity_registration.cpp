@@ -6,6 +6,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <boost/log/trivial.hpp>
 
 namespace MouseTrack {
 
@@ -24,10 +25,10 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
     for(size_t i = 1; i < frames.size(); i += 1){
         Ts[i] = frames[i].camChainPicture*frames[i-1].camChainDisparity*Ts[i-1];
     }
-    std::vector<Eigen::ColPivHouseholderQR<Eigen::Matrix4d>> decompositions(frames.size());
+    std::vector<Eigen::Matrix4d> decompositions(frames.size());
     for(size_t i = 0; i < frames.size(); i += 1){
         Eigen::Matrix4d mat = frames[i].rotationCorrection * Ts[i];
-        decompositions[i] = mat.colPivHouseholderQr();
+        decompositions[i] = mat.inverse();
     }
 
     // Allocate point cloud enough large to capture all points
@@ -41,7 +42,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
         // convert each pixel
         for(int y = _frame_border - 1; y < disp.rows() - _frame_border; y += 1){
             for(int x = _frame_border - 1; x < disp.cols() - _frame_border; x += 1){
-                double disparity = disp(y,x);
+                double disparity = 255*disp(y,x); // disparity is returned between [0,1], but originally stored as [0,255]
                 if(disparity < _min_disparity){
                     // just skip those points
                     continue;
@@ -51,11 +52,8 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
                 p.x() = (x + _xshift - f.ccx)*f.baseline*invDisparity;
                 p.y() = (y + _yshift - f.ccy)*f.baseline*invDisparity;
                 p.z() = f.focallength*f.baseline*invDisparity;
-                // this is probably nothing else than the inverse of r*T applied to p
-                // one might be able to optimize this by calculating a vecor of inverses
-                // but ColPivHousholderQR does probably a similar thing under the hood
-                // TODO: for optimization phase: there might be more efficent solutions to this
-                Eigen::Vector4d tmp = decompositions[i].solve(Eigen::Vector4d(p.x(), p.y(), p.z(), 1.0));
+
+                Eigen::Vector4d tmp = decompositions[i] * Eigen::Vector4d(p.x(), p.y(), p.z(), 1.0);
                 p.x() = tmp[0];
                 p.y() = tmp[1];
                 p.z() = tmp[2];

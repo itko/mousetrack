@@ -11,7 +11,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # options
 option(ENABLE_GUI "Build with GUI" ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_subdirectory(lib)
 add_subdirectory(app)

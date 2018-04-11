@@ -1,3 +1,8 @@
+/// \file
+/// Maintainer: Felice Serena
+///
+///
+
 #include "pipeline_timer.h"
 #include <boost/log/trivial.hpp>
 
@@ -78,7 +83,7 @@ void PipelineTimer::stopTimer(FrameIndex f, const std::string& key){
     auto duration = std::chrono::system_clock::now() - start->second;
     _starts.erase(start);
     int d = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-    BOOST_LOG_TRIVIAL(debug) << "(" << f << ", " << key << "): " << d/1000.0 << " milliseconds";
+    BOOST_LOG_TRIVIAL(info) << "(" << f << ", " << key << "): " << d/1000.0 << " milliseconds";
 }
 
 } // MouseTrack
