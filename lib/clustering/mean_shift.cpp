@@ -33,11 +33,13 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
         points.col(i) = v;
     }
 
-    Eigen::VectorXd min = points.rowwise().minCoeff();
-    Eigen::VectorXd max = points.rowwise().maxCoeff();
-    Eigen::VectorXd bb_size = max - min;
-    points = (points.array().colwise())/bb_size.array();
-
+    bool normalize = false;
+    if(normalize){
+        Eigen::VectorXd min = points.rowwise().minCoeff();
+        Eigen::VectorXd max = points.rowwise().maxCoeff();
+        Eigen::VectorXd bb_size = max - min;
+        points = (points.array().colwise())/bb_size.array();
+    }
     for(PointIndex i = 0; i < cloud.size(); i += 1){
         auto v = points.col(i);
         currCenters.push_back(v);
@@ -53,7 +55,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 	// Initialize some stuff used in the MeanShift loop
 	Eigen::VectorXd prevCenter;
 
-    UniformGrid4d oracle(_window_size, _window_size);
+    UniformGrid4d oracle(2*_window_size, _window_size);
     oracle.compute(points);
 
 	// For each point...
@@ -65,7 +67,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 			iterations++;
 			// perform one iteration of mean shift
 			prevCenter = currCenters[i];
-            std::vector<PointIndex> locals = oracle.find_in_range(currCenters[i], _window_size);
+            std::vector<PointIndex> locals = oracle.find_in_range(currCenters[i], 2*_window_size);
             if(locals.empty()){
                 BOOST_LOG_TRIVIAL(warning) << "No points in neighborhood, falling back to brute force.";
                 //currCenters[i] = iterate_mode(currCenters[i], points);
@@ -83,7 +85,6 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 				BOOST_LOG_TRIVIAL(warning) << "Max number of iterations for point " << i << " reached - continuing without convergence for this point";
 			}
 		} while ((prevCenter - currCenters[i]).norm() > _convergence_threshold);
-        std::cout << "i: " << i << ", iterations: " << iterations << std::endl;
 	}
 
 	// Merge step

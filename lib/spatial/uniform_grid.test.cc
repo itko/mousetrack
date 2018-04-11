@@ -41,3 +41,25 @@ BOOST_AUTO_TEST_CASE( uniform_grid_4d ) {
 }
 
 
+BOOST_AUTO_TEST_CASE( uniform_grid_4d_two_close_points ) {
+    constexpr int Dim = 4;
+    typedef UniformGrid4d UG;
+    UG::PointList all(Dim, 2);
+    all.col(0) = Vector4d(0.0,0.0,0.0,0.0);
+    all.col(1) = Vector4d(0.1,0.1,0.1,0);
+
+    std::unique_ptr<SpatialOracle<UG::PointList, UG::Point, double>> oracle(new UG(1, 0.5));
+    oracle->compute(all);
+
+    std::set<PointIndex> expected;
+
+    // first test
+    expected.insert(0);
+    expected.insert(1);
+    auto result = oracle->find_in_range(Vector4d(0.0,0,0,0), 1);
+    std::set<PointIndex> received(result.begin(), result.end());
+
+    BOOST_CHECK_EQUAL(expected.size(), received.size());
+    BOOST_CHECK_MESSAGE(expected == received, "Expected and received set do not contain same elements." );
+}
+

@@ -7,6 +7,7 @@
 #include "cubic_neighborhood.h"
 #include "spatial_oracle.h"
 #include <Eigen/Core>
+#include <boost/log/trivial.hpp>
 
 namespace std {
 
@@ -18,7 +19,7 @@ public:
         size_t result = 2166136261;
         for(int i = 0; i < mat.rows(); ++i){
             for(int j = 0; j < mat.cols(); ++j){
-                result += j*86845 ^ i*123421 ^ std::hash<Scalar>()(mat(i,j)) ^ (result * 16777619);
+                result = j*86845 ^ i*123421 ^ std::hash<Scalar>()(mat(i,j)) ^ (result * 16777619);
             }
         }
         return result;
@@ -120,7 +121,7 @@ private:
         }
 
         for(int d = 0; d < bb_size.rows(); d += 1){
-            resolution[d] = std::ceil(bb_size[d]/cellWidth);
+            resolution[d] = std::max(1.0, std::ceil(bb_size[d]/cellWidth));
         }
 
         maxDiameter = resolution.array().maxCoeff();
@@ -131,7 +132,11 @@ private:
         // fill grid with indices
         for(int i = 0; i < points.cols(); i += 1){
             auto j = indexOfPosition(points.col(i));
-            grid[j].push_back(i);
+            auto& vec = grid[j];
+            vec.push_back(i);
+        }
+        for(auto c : grid){
+            BOOST_LOG_TRIVIAL(trace) << "Uniform grid: key: " << c.first << ", elements: " << c.second.size();
         }
     }
 public:
@@ -183,7 +188,7 @@ public:
                     // no points stored in this cell
                     continue;
                 }
-                for(int cIndex : candidates->second){
+                for(PointIndex cIndex : candidates->second){
                     double dist = (points.col(cIndex) - p).squaredNorm();
                     if(dist < minDist){
                         minDist = dist;
