@@ -71,13 +71,13 @@ BOOST_AUTO_TEST_CASE( two_closetogether_points ) {
 BOOST_AUTO_TEST_CASE( three_gaussian_clusters ) {
   std::default_random_engine gen;
 
-  std::normal_distribution<double> gauss0(0.0,0.1);
-  std::normal_distribution<double> gauss10(1.0,0.1);
+  std::normal_distribution<double> gauss0(0.0,1.0);
+  std::normal_distribution<double> gauss10(100.0,1.0);
 
   MouseTrack::PointCloud pc;
   pc.resize(300);
 
-  MouseTrack::MeanShift ms = MouseTrack::MeanShift(0.1);
+  MouseTrack::MeanShift ms = MouseTrack::MeanShift(2.0);
 
   for (int i = 0; i<300; i+=3) {
     pc[i].x() = gauss10(gen);
