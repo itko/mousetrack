@@ -9,6 +9,6 @@
 
 namespace MouseTrack {
 /// Returns a random sample of size "size" of points from a point cloud
-PointCloud random_sample(PointCloud& cloud, int size);
+PointCloud random_sample(const PointCloud& cloud, const int size);
 
 }

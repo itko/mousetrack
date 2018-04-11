@@ -16,6 +16,7 @@ set(source_files
         generic/trajectory.cpp
         generic/vec_addition.cpp
         generic/center.cpp
+        generic/random_sample.cpp
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
         registration/disparity_registration.cpp
@@ -32,6 +33,7 @@ set(test_files
         generic/vec_addition.test.cc
 		clustering/mean_shift.test.cc
     trajectory_builder/cog_trajectory_builder.test.cc
+        generic/random_sample.test.cc
         )
 
 add_library(libmousetrack ${source_files})
