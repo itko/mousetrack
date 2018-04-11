@@ -31,7 +31,7 @@ Pipeline PipelineFactory::fromCliOptions(const op::variables_map& options) const
         reader->setEndFrame(std::min(reader->endFrame(), options["last-frame"].as<int>() + 1));
     }
     std::unique_ptr<Registration> registration{new DisparityRegistration()};
-    std::unique_ptr<PointCloudFiltering> cloudFiltering{new SubSample(10*1000)};
+    std::unique_ptr<PointCloudFiltering> cloudFiltering{new SubSample(1*1000)};
     std::unique_ptr<Clustering> clustering{new MeanShift(0.05)};
     std::unique_ptr<Descripting> descripting{new CenterOfGravity()};
     std::unique_ptr<Matching> matching{new NearestNeighbour()};

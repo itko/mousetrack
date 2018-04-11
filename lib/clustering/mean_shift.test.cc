@@ -9,6 +9,7 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <stdlib.h>
 #include <random>
+#include <set>
 
 
 namespace utf = boost::unit_test;
@@ -104,4 +105,55 @@ BOOST_AUTO_TEST_CASE( three_gaussian_clusters ) {
   BOOST_CHECK_EQUAL(clusters[2].points().size(),100);
 
 
+}
+
+
+BOOST_AUTO_TEST_CASE( expected_clustering) {
+    MouseTrack::PointCloud pc;
+    pc.resize(10);
+    for(int i = 0; i < 10; i += 1){
+        pc[i].y() = 0;
+        pc[i].z() = 0;
+        pc[i].intensity(0);
+    }
+    pc[0].x() = 1.0;
+    pc[1].x() = 2.0;
+    pc[2].x() = 2.0;
+    pc[3].x() = 3.0;
+    pc[4].x() = 10.0;
+    pc[5].x() = 11.0;
+    pc[6].x() = 12.0;
+    pc[7].x() = 100.0;
+    pc[8].x() = 101.0;
+    pc[9].x() = 102.0;
+
+    std::vector<std::multiset<size_t>> expected{3};
+    // first cluster
+    expected[0].insert(0);
+    expected[0].insert(1);
+    expected[0].insert(2);
+    expected[0].insert(3);
+    // second cluster
+    expected[1].insert(4);
+    expected[1].insert(5);
+    expected[1].insert(6);
+    // third cluster
+    expected[2].insert(7);
+    expected[2].insert(8);
+    expected[2].insert(9);
+
+    MouseTrack::MeanShift ms = MouseTrack::MeanShift(1.0);
+
+    std::vector<MouseTrack::Cluster> clusters = ms(pc);
+
+    BOOST_CHECK_EQUAL(clusters.size(), 3);
+
+    std::vector<std::multiset<size_t>> received{3};
+    for(int i = 0; i < received.size(); ++i){
+        received[i].insert(clusters[i].points().begin(), clusters[i].points().end());
+    }
+
+    BOOST_CHECK(expected[0] == received[0]);
+    BOOST_CHECK(expected[1] == received[1]);
+    BOOST_CHECK(expected[2] == received[2]);
 }

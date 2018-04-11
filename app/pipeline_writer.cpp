@@ -56,10 +56,12 @@ void PipelineWriter::newClusters          (FrameIndex f, std::shared_ptr<const s
 
     // write clustered point cloud
     PointCloud cloud = *_clouds[f];
+    BOOST_LOG_TRIVIAL(trace) << "Writing point cloud with " << cloud.size() << " points.";
     float normalize = 1.0/clusters->size();
     for(size_t ci = 0; ci < clusters->size(); ++ci){
         const auto& cluster = (*clusters)[ci];
         for(auto i : cluster.points()){
+            assert(i < cloud.size());
             cloud[i].r(ci*normalize);
             cloud[i].g(0);
             cloud[i].b(1);
