@@ -20,19 +20,37 @@ class CubeIterator {
 
     /// length of one 2d-edge
     int _width;
+
+    /// Marks special case of end iterator
     bool _end = false;
+
+    int dimensions() const {
+        if(_Dim == -1){
+            return _it.size();
+        }
+        return _Dim;
+    }
+
+    void setZero(CellCoordinate& coord) const {
+        for(int d = 0; d < dimensions(); ++d){
+            coord[d] = 0;
+        }
+    }
 public:
     /// Default constructor creates an end-iterator, don't dereference it
     CubeIterator() : _end(true) {
-        _it.resize(_Dim);
+        // empty
     }
 
-    /// Create an iterator which points to 0
-    CubeIterator(int width) : _width(width) {
-        _it.resize(_Dim);
-        for(int d = 0; d < _Dim; ++d){
-            _it[d] = 0;
+    /// Create an iterator which points to 0.
+    /// Ignores `dims` if the number of dimensions is fixed by template
+    CubeIterator(int width, int dims = -1) : _width(width) {
+        if(_Dim == -1){
+            _it.resize(dims);
+        } else {
+            _it.resize(_Dim);
         }
+        setZero(_it);
     }
 
     /// create an iterator which points to `start`
@@ -69,7 +87,7 @@ public:
     }
 private:
     void _increment() {
-        for(int d = 0; d < _Dim; d += 1){
+        for(int d = 0; d < dimensions(); d += 1){
             _it[d] += 1;
             if(_it[d] < _width){
                 return;

@@ -93,7 +93,7 @@ private:
     }
 
     bool in_bb(const Cell& cell) const {
-        for(int d = 0; d < _Dim; d += 1){
+        for(int d = 0; d < cell.rows(); d += 1){
             if(cell[d] < 0 || resolution[d] <= cell[d]){
                 return false;
             }
@@ -115,8 +115,11 @@ private:
         bb_max += bb_size * .1;
 
         bb_size = bb_max - bb_min;
+        if(_Dim == -1){
+            resolution.resize(bb_size.rows());
+        }
 
-        for(int d = 0; d < _Dim; d += 1){
+        for(int d = 0; d < bb_size.rows(); d += 1){
             resolution[d] = std::ceil(bb_size[d]/cellWidth);
         }
 
@@ -134,9 +137,9 @@ private:
 public:
     /// Create a grid with a cell size of `cellWidth` and support
     /// for range queries of up to `maxR`.
-    UniformGrid(Precision maxR, Precision cellWidth) : cellWidth(cellWidth) {
+    UniformGrid(Precision maxR, Precision cellWidth, int dims = -1) : cellWidth(cellWidth) {
         assert(cellWidth > 0);
-        neighborhood = _Neighborhood(std::ceil(maxR/cellWidth)+1);
+        neighborhood = _Neighborhood(std::ceil(maxR/cellWidth)+1, dims);
     }
 
     /// Create new grid and insert points
@@ -227,12 +230,14 @@ public:
 };
 
 
+typedef UniformGrid<double, -1> UniformGridXd;
 typedef UniformGrid<double, 1> UniformGrid1d;
 typedef UniformGrid<double, 2> UniformGrid2d;
 typedef UniformGrid<double, 3> UniformGrid3d;
 typedef UniformGrid<double, 4> UniformGrid4d;
 typedef UniformGrid<double, 5> UniformGrid5d;
 
+typedef UniformGrid<float, -1> UniformGridXf;
 typedef UniformGrid<float, 1> UniformGrid1f;
 typedef UniformGrid<float, 2> UniformGrid2f;
 typedef UniformGrid<float, 3> UniformGrid3f;

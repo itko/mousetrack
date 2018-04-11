@@ -57,12 +57,14 @@ public:
 
 // some convenient typedefs
 
+typedef BruteForce<double, -1> BruteForceXd;
 typedef BruteForce<double, 1> BruteForce1d;
 typedef BruteForce<double, 2> BruteForce2d;
 typedef BruteForce<double, 3> BruteForce3d;
 typedef BruteForce<double, 4> BruteForce4d;
 typedef BruteForce<double, 5> BruteForce5d;
 
+typedef BruteForce<float, -1> BruteForceXf;
 typedef BruteForce<float, 1> BruteForce1f;
 typedef BruteForce<float, 2> BruteForce2f;
 typedef BruteForce<float, 3> BruteForce3f;

@@ -29,13 +29,16 @@ class CubicNeighborhoodLayer;
 template <int _Dim>
 class CubicNeighborhood {
     std::vector<CubicNeighborhoodLayer<_Dim>> _layers;
-    void _createLayersUpTo(const int maxLayer){
+    void _createLayersUpTo(const int maxLayer, const int dims){
         assert(maxLayer >= 0);
-        CubeIterator<_Dim, CellCoordinate<_Dim>> iter(2*maxLayer+1);
+        CubeIterator<_Dim, CellCoordinate<_Dim>> iter(2*maxLayer+1, dims);
         CubeIterator<_Dim, CellCoordinate<_Dim>> end;
         /// move cube from [0,2*maxLayer] to [-maxLayer, maxLayer]
         CellCoordinate<_Dim> toCenter;
-        toCenter.setConstant(_Dim, -maxLayer);
+        if(_Dim == -1){
+            toCenter.resize(dims);
+        }
+        toCenter.setConstant(dims, -maxLayer);
         std::vector<std::vector<CellCoordinate<_Dim>>> layerCells(maxLayer+1);
         for(; iter != end; ++iter){
             auto centered = *iter+toCenter;
@@ -54,11 +57,17 @@ public:
     /// maxLayer: index of outtest layer you intend to access
     /// 0th layer: only the central cube is generated
     /// 1st layer: coordinates for which the largest component magnitude is equal 1
-    CubicNeighborhood(int maxLayer) {
-        _createLayersUpTo(maxLayer);
+    ///
+    /// `dims`: number of dimensions, ignored if defined by template
+    CubicNeighborhood(int maxLayer, int dims = -1) {
+        constexpr int d = _Dim == -1 ? dims : _Dim;
+        if(_Dim == -1 && dims <= 0){
+            throw "CubicNeighborhood needs positive number of dimensions.";
+        }
+        _createLayersUpTo(maxLayer, d);
     }
     CubicNeighborhood() {
-        _createLayersUpTo(0);
+        _createLayersUpTo(0, _Dim);
     }
     int size() const {
         return _layers.size();
@@ -70,7 +79,6 @@ public:
 
 template <int _Dim>
 class CubicNeighborhoodLayer {
-    int layer;
     double minDist;
     double maxDist;
     /// holds a list of grid cells corresponding to the desired
@@ -81,11 +89,15 @@ public:
         // empty
     }
     /// Construct cells of layer `l`
-    CubicNeighborhoodLayer(std::vector<CellCoordinate<_Dim>>&& cells) {
+    CubicNeighborhoodLayer(std::vector<CellCoordinate<_Dim>>&& cells, int dims = -1) {
+        constexpr int dim = _Dim == -1 ? dims : _Dim;
+        if(_Dim == -1 && dims <= 0){
+            throw "Dynamic sized neighborhood layer needs positive number of dimension.";
+        }
         coordinates = std::move(cells);
-        layer = coordinates[0].array().abs().maxCoeff();
+        int layer = coordinates[0].array().abs().maxCoeff();
         minDist = std::max(0.0, .5 + layer - 1);
-        maxDist = std::sqrt(_Dim * std::pow(.5 + layer, 2));
+        maxDist = std::sqrt(dim * std::pow(.5 + layer, 2));
     }
     const CellCoordinate<_Dim> operator[](int i) const {
         return coordinates[i];
