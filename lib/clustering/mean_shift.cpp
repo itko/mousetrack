@@ -108,7 +108,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 		}
 	}
 
-    BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << clusters.size() << std::flush;
+    BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: " << clusters.size();
 	return clusters;
 }
 
