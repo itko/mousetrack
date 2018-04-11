@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE( mean_shift_single_point ) {
   pc[0].x() = 0;
   pc[0].y() = 3;
   pc[0].z() = 5;
-  pc[0].intensity() = 1;
+  pc[0].intensity(1);
 
   std::vector<MouseTrack::Cluster> clusters = ms(pc);
   BOOST_CHECK_EQUAL(clusters.size(),1);
@@ -41,11 +41,11 @@ BOOST_AUTO_TEST_CASE( two_faraway_points ) {
   pc[0].x() = 0;
   pc[0].y() = 0;
   pc[0].z() = 0;
-  pc[0].intensity() = 0;
+  pc[0].intensity(0);
   pc[1].x() = 100;
   pc[1].y() = 100;
   pc[1].z() = 100;
-  pc[1].intensity() = 1;
+  pc[1].intensity(1);
 
   std::vector<MouseTrack::Cluster> clusters = ms(pc);
   BOOST_CHECK_EQUAL(clusters.size(),2);
@@ -58,11 +58,11 @@ BOOST_AUTO_TEST_CASE( two_closetogether_points ) {
   pc[0].x() = 0;
   pc[0].y() = 0;
   pc[0].z() = 0;
-  pc[0].intensity() = 0;
+  pc[0].intensity(0);
   pc[1].x() = 0.1;
   pc[1].y() = 0.1;
   pc[1].z() = 0.1;
-  pc[1].intensity() = 0;
+  pc[1].intensity(0);
 
   std::vector<MouseTrack::Cluster> clusters = ms(pc);
   BOOST_CHECK_EQUAL(clusters.size(),1);
@@ -83,17 +83,17 @@ BOOST_AUTO_TEST_CASE( three_gaussian_clusters ) {
     pc[i].x() = gauss10(gen);
     pc[i].y() = gauss0(gen);
     pc[i].z() = gauss0(gen);
-    pc[i].intensity() = gauss0(gen);
+    pc[i].intensity(gauss0(gen));
 
     pc[i+1].x() = gauss0(gen);
     pc[i+1].y() = gauss10(gen);
     pc[i+1].z() = gauss0(gen);
-    pc[i+1].intensity() = gauss0(gen);
+    pc[i+1].intensity(gauss0(gen));
 
     pc[i+2].x() = gauss0(gen);
     pc[i+2].y() = gauss0(gen);
     pc[i+2].z() = gauss10(gen);
-    pc[i+2].intensity() = gauss0(gen);
+    pc[i+2].intensity(gauss0(gen));
   }
 
   std::vector<MouseTrack::Cluster> clusters = ms(pc);

@@ -57,7 +57,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
                 p.x() = tmp[0];
                 p.y() = tmp[1];
                 p.z() = tmp[2];
-                p.intensity() = f.referencePicture(y, x);
+                p.intensity(f.referencePicture(y, x));
                 next_insert += 1;
             }
         }

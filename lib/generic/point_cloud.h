@@ -54,14 +54,32 @@ public:
         /// Read access to z coordinate.
         const Coordinate& z() const;
 
-        /// Write access to color intensity.
-        ColorChannel& intensity();
+        /// Write access to color r.
+        const ColorChannel& r(const ColorChannel& _new);
+
+        /// Read access to color r.
+        const ColorChannel& r() const;
+
+        /// Write access to color g.
+        const ColorChannel& g(const ColorChannel& _new);
+
+        /// Read access to color g.
+        const ColorChannel& g() const;
+
+        /// Write access to color b.
+        const ColorChannel& b(const ColorChannel& _new);
+
+        /// Read access to color b.
+        const ColorChannel& b() const;
+
+        /// Write access
+        ColorChannel intensity(const ColorChannel& _new);
 
         /// Read access to color intensity.
-        const ColorChannel& intensity() const;
+        ColorChannel intensity() const;
 
-				/// Convert to dx1 Eigen Matrix
-				Eigen::VectorXd eigenVec() const;
+        /// Convert to dx1 Eigen Matrix
+        Eigen::VectorXd eigenVec() const;
     };
 
     /// Exactly the same as `Point` but it only provides read-only access to the data.
@@ -82,11 +100,20 @@ public:
         /// Read access to z coordinate.
         const Coordinate& z() const;
 
-        /// Read access to color intensity.
-        const ColorChannel& intensity() const;
+        /// Read access to color r.
+        const ColorChannel& r() const;
 
-				/// Convert to dx1 Eigen Matrix
-				Eigen::VectorXd eigenVec() const;
+        /// Read access to color g.
+        const ColorChannel& g() const;
+
+        /// Read access to color b.
+        const ColorChannel& b() const;
+
+        /// Read access to color intensity.
+        ColorChannel intensity() const;
+
+        /// Convert to dx1 Eigen Matrix
+        Eigen::VectorXd eigenVec() const;
     };
 
     PointCloud();
@@ -106,7 +133,9 @@ private:
     std::vector<Coordinate> _xs;
     std::vector<Coordinate> _ys;
     std::vector<Coordinate> _zs;
-    std::vector<ColorChannel> _color;
+    std::vector<ColorChannel> _r;
+    std::vector<ColorChannel> _g;
+    std::vector<ColorChannel> _b;
 };
 
 
