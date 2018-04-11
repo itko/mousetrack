@@ -6,6 +6,7 @@ set(source_files
         clustering/mean_shift.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
+        generic/cluster_descriptor.cpp
         generic/disparity_map.cpp
         generic/explode.cpp
         generic/frame.cpp
@@ -20,6 +21,7 @@ set(source_files
         generic/random_sample.cpp
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
+        matching/matching.cpp
         registration/disparity_registration.cpp
         trajectory_builder/cog_trajectory_builder.cpp
         )
