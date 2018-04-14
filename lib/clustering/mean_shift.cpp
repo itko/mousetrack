@@ -98,7 +98,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
 			Eigen::VectorXd diff = currCenters[i] - currCenters[j];
 			if (diff.norm() < _merge_threshold) {
 				// Merge clusters. Erase one of the modes corresponding to the clusters and append points belonging to j to cluser of i
-				clusters[i].points().push_back(j);
+                clusters[i].points().push_back(clusters[j].points()[0]);
 				clusters.erase(clusters.begin() + j);
 				currCenters.erase(currCenters.begin() + j);
 				// We need to decrement i here because there might be another cluster that wants to merge with i.

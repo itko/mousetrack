@@ -31,8 +31,10 @@ Pipeline PipelineFactory::fromCliOptions(const op::variables_map& options) const
         reader->setEndFrame(std::min(reader->endFrame(), options["last-frame"].as<int>() + 1));
     }
     std::unique_ptr<Registration> registration{new DisparityRegistration()};
-    std::unique_ptr<PointCloudFiltering> cloudFiltering{new SubSample(1*1000)};
-    std::unique_ptr<Clustering> clustering{new MeanShift(0.05)};
+    std::unique_ptr<PointCloudFiltering> cloudFiltering{new SubSample(options["subsample-to"].as<int>())};
+
+    std::unique_ptr<Clustering> clustering{getClustering(options)};
+
     std::unique_ptr<Descripting> descripting{new CenterOfGravity()};
     std::unique_ptr<Matching> matching{new NearestNeighbour()};
     std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{new CogTrajectoryBuilder()};
@@ -47,6 +49,13 @@ Pipeline PipelineFactory::fromCliOptions(const op::variables_map& options) const
             );
 }
 
+std::unique_ptr<Clustering> PipelineFactory::getClustering(const op::variables_map& options) const {
+    std::unique_ptr<MeanShift> clustering{new MeanShift(options["mean-shift-sigma"].as<double>())};
+    clustering->setMaxIterations(options["mean-shift-max-iterations"].as<int>());
+    clustering->setMergeThreshold(options["mean-shift-merge-threshold"].as<double>());
+    clustering->setConvergenceThreshold(options["mean-shift-convergence-threshold"].as<double>());
+    return clustering;
+}
 
 
 } // MouseTrack
