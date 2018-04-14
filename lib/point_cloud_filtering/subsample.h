@@ -14,6 +14,8 @@ public:
     SubSample(int desiredMaxPoints);
     virtual ~SubSample() = default;
     virtual PointCloud operator()(const PointCloud& inCloud) const;
+    void desiredMaxPoints(int _new);
+    int desiredMaxPoints() const;
 private:
     int _desiredMaxPoints = 10000;
 };

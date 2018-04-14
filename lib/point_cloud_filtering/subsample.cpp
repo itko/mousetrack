@@ -13,6 +13,14 @@ SubSample::SubSample(int desiredMaxPoints) : _desiredMaxPoints(desiredMaxPoints)
     // empty
 }
 
+void SubSample::desiredMaxPoints(int _new) {
+    _desiredMaxPoints = _new;
+}
+
+int SubSample::desiredMaxPoints() const {
+    return _desiredMaxPoints;
+}
+
 PointCloud SubSample::operator()(const PointCloud& inCloud) const {
     PointCloud cloud = random_sample(inCloud, _desiredMaxPoints);
     auto min = cloud.min();

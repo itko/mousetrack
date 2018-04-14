@@ -25,7 +25,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
         return std::vector<Cluster>();
     }
 
-    std::vector<Eigen::VectorXd> currCenters;
+    std::vector<Eigen::VectorXd> currCenters, pointsVec;
     UniformGrid4d::PointList points;
     points.resize(4, cloud.size());
     for(PointIndex i = 0; i < cloud.size(); i += 1){
@@ -43,13 +43,13 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
     for(PointIndex i = 0; i < cloud.size(); i += 1){
         auto v = points.col(i);
         currCenters.push_back(v);
+        pointsVec.push_back(v);
     }
 
 	// Initialize Clusters. Initially, every point has its own cluster.
 	std::vector<Cluster> clusters(cloud.size());
 	for (PointIndex i=0; i<cloud.size(); i++) {
 		 clusters[i].points().push_back(i);
-
 	}
 
 	// Initialize some stuff used in the MeanShift loop
@@ -70,7 +70,7 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud& cloud) const {
             std::vector<PointIndex> locals = oracle.find_in_range(currCenters[i], 2*_window_size);
             if(locals.empty()){
                 BOOST_LOG_TRIVIAL(warning) << "No points in neighborhood, falling back to brute force.";
-                //currCenters[i] = iterate_mode(currCenters[i], points);
+                currCenters[i] = iterate_mode(currCenters[i], pointsVec);
                 break;
             } else {
                 std::vector<Eigen::VectorXd> localPoints;

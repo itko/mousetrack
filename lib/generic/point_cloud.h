@@ -71,7 +71,7 @@ public:
         /// Read access to color b.
         const ColorChannel& b() const;
 
-        /// Write access
+        /// Write access: set `r = g = b = _new`
         ColorChannel intensity(const ColorChannel& _new);
 
         /// Read access to color intensity.
