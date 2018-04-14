@@ -14,6 +14,7 @@ typedef int FrameIndex;
 #include "generic/point_cloud.h"
 #include "generic/cluster.h"
 #include "generic/cluster_descriptor.h"
+#include "generic/cluster_chain.h"
 
 #include <Eigen/Core>
 
@@ -54,6 +55,9 @@ public:
 
     /// Pipeline finished all work.
     virtual void pipelineTerminated();
+
+    /// When the pipeline terminates, it delivers the complete cluster chain used internally.
+    virtual void newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains);
 
     /// Work on frame `frame` started, it is inside the pipeline.
     virtual void frameStart(FrameIndex frame);

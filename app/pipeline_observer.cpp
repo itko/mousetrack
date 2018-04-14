@@ -15,6 +15,9 @@ void PipelineObserver::pipelineTerminated() {
     // empty
 }
 
+void PipelineObserver::newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains) {
+
+}
 
 void PipelineObserver::frameStart(FrameIndex frame) {
     // empty

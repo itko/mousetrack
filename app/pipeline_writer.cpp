@@ -19,7 +19,8 @@ PipelineWriter::PipelineWriter(fs::path targetDir) :
     _clustersPath("clusters_<frameNumber>.csv"),
     _descriptorsPath("descriptors_<frameNumber>.csv"),
     _matchesPath("matches_<frameNumber>.csv"),
-    _controlPointsPath("controlPoints_<frameNumber>.csv")
+    _controlPointsPath("controlPoints_<frameNumber>.csv"),
+    _chainedPointCloudPath("chained_point_cloud_<frameNumber>.ply")
 {
     if(!fs::exists(_outputDir)){
         fs::create_directories(_outputDir);
@@ -46,6 +47,7 @@ void PipelineWriter::newFilteredPointCloud(FrameIndex f, std::shared_ptr<const P
 }
 
 void PipelineWriter::newClusters          (FrameIndex f, std::shared_ptr<const std::vector<Cluster>> clusters){
+    _clusters[f] = clusters;
     std::vector<std::vector<PointIndex>> tmp;
     tmp.reserve(clusters->size());
     for(const auto& c : *clusters){
@@ -64,21 +66,18 @@ void PipelineWriter::newClusters          (FrameIndex f, std::shared_ptr<const s
         }
         largeClusters.push_back(c);
     }
-    float normalize = 1.0/largeClusters.size();
     for(size_t ci = 0; ci < largeClusters.size(); ++ci){
         const auto& cluster = largeClusters[ci];
         for(auto i : cluster.points()){
             assert(i < cloud.size());
-            double col = ci*normalize;
-            cloud[i].r(col);
-            cloud[i].g(1.0-col);
-            cloud[i].b(0);
+            auto color = colorForCluster(ci, largeClusters.size());
+            cloud[i].r(color[0]);
+            cloud[i].g(color[1]);
+            cloud[i].b(color[2]);
         }
     }
     fs::path cloudPath = _outputDir / insertFrame(_clusteredPointCloudPath, f);
     write_point_cloud(cloudPath.string(), cloud);
-    // remove point cloud, we don't need it anylonger
-    _clouds.erase(f);
 }
 
 void PipelineWriter::newDescriptors       (FrameIndex, std::shared_ptr<const std::vector<std::shared_ptr<const ClusterDescriptor>>>){
@@ -110,6 +109,42 @@ std::string PipelineWriter::insertFrame(const std::string& templatePath, FrameIn
     return boost::replace_all_copy(templatePath, "<frameNumber>", std::to_string(f));
 }
 
+void PipelineWriter::newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains) {
+    for(auto cloudIt : _clouds){
+        FrameIndex f = cloudIt.first;
+        PointCloud cloud = *cloudIt.second;
+        for(size_t chainIndex = 0; chainIndex < chains->size(); ++chainIndex){
+            const ClusterChain& chain = (*chains)[chainIndex];
+            const auto clus = chain.clusters();
+            auto cluster = clus.find(f);
+            auto end = clus.end();
+            if(cluster == end){
+                continue;
+            }
+            const Cluster& clu = *(cluster->second);
+            for(auto i : clu.points()){
+                assert(i < cloud.size());
+                auto color = colorForCluster(chainIndex, chains->size());
+                cloud[i].r(color[0]);
+                cloud[i].g(color[1]);
+                cloud[i].b(color[2]);
+            }
+        }
+        fs::path cloudPath = _outputDir / insertFrame(_chainedPointCloudPath, f);
+        write_point_cloud(cloudPath.string(), cloud);
+    }
+
+}
+
+
+Eigen::Vector3d PipelineWriter::colorForCluster(int clusterIndex, int totalClusters) const {
+    double color = (double)clusterIndex / (double)totalClusters;
+    Eigen::Vector3d col;
+    col[0] = color;
+    col[1] = 1.0 - color;
+    col[2] = 0;
+    return col;
+}
 
 } // MouseTrack
 
