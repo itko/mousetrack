@@ -23,14 +23,16 @@ typedef int FrameIndex;
 namespace MouseTrack {
 
 /// Most methods are passed a shared pointer with the output of a pipeline step
-/// for a frame. Any thread can potentially call a method, it is your
-/// responsibility to enqueue any data in your run loop.
+/// for a frame.
+/// Any thread can potentially call a method, it is your responsibility to
+/// enqueue any data in your run loop.
 ///
 /// Expectations:
 ///
 /// - You should perform only minimal work in the method:
 ///   Usually you only want to copy the shared pointer and enqueue a job in your
-///   run loop to process it later. Copying a shared pointer is thread safe.
+///   run loop
+///   to process it later. Copying a shared pointer is thread safe.
 /// - You are not allowed to modify the data held by the shared pointer,
 ///   other threads might also be accessing it.
 ///
@@ -69,38 +71,27 @@ public:
 
   // see descriptions of the corresponding module interfaces
 
-  virtual void startFrameWindow(FrameIndex f);
-  virtual void newFrameWindow(FrameIndex f,
-                              std::shared_ptr<const FrameWindow> window);
+  // clang-format off
+    virtual void startFrameWindow     (FrameIndex f);
+    virtual void newFrameWindow       (FrameIndex f, std::shared_ptr<const FrameWindow> window);
 
-  virtual void startRegistration(FrameIndex f);
-  virtual void newRawPointCloud(FrameIndex f,
-                                std::shared_ptr<const PointCloud> cloud);
+    virtual void startRegistration    (FrameIndex f);
+    virtual void newRawPointCloud     (FrameIndex f, std::shared_ptr<const PointCloud> cloud);
 
-  virtual void startPointCloudFiltering(FrameIndex f);
-  virtual void newFilteredPointCloud(FrameIndex f,
-                                     std::shared_ptr<const PointCloud> cloud);
+    virtual void startPointCloudFiltering(FrameIndex f);
+    virtual void newFilteredPointCloud(FrameIndex f, std::shared_ptr<const PointCloud> cloud);
 
-  virtual void startClustering(FrameIndex f);
-  virtual void
-  newClusters(FrameIndex f,
-              std::shared_ptr<const std::vector<Cluster>> clusters);
+    virtual void startClustering      (FrameIndex f);
+    virtual void newClusters          (FrameIndex f, std::shared_ptr<const std::vector<Cluster>> clusters);
 
-  virtual void startDescripting(FrameIndex f);
-  virtual void newDescriptors(
-      FrameIndex f,
-      std::shared_ptr<
-          const std::vector<std::shared_ptr<const ClusterDescriptor>>>
-          descriptors);
+    virtual void startDescripting     (FrameIndex f);
+    virtual void newDescriptors       (FrameIndex f, std::shared_ptr<const std::vector<std::shared_ptr<const ClusterDescriptor>>> descriptors);
 
-  virtual void startMatching(FrameIndex f);
-  virtual void newMatches(FrameIndex f,
-                          std::shared_ptr<const std::vector<long>> matches);
+    virtual void startMatching        (FrameIndex f);
+    virtual void newMatches           (FrameIndex f, std::shared_ptr<const std::vector<long>> matches);
 
-  virtual void startControlPoints(FrameIndex f);
-  virtual void newControlPoints(
-      FrameIndex f,
-      std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints);
+    virtual void startControlPoints   (FrameIndex f);
+    virtual void newControlPoints     (FrameIndex f, std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints);
+  // clang-format on
 };
-
-} // namespace MouseTrack
+}
