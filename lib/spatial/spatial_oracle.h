@@ -21,28 +21,27 @@ namespace MouseTrack {
 template <typename _PointList, typename _Point, typename _Precision>
 class SpatialOracle {
 public:
-    /// Make available to client
-    typedef _PointList PointList;
-    /// Make available to client
-    typedef _Point Point;
-    /// Make available to client
-    typedef _Precision Precision;
+  /// Make available to client
+  typedef _PointList PointList;
+  /// Make available to client
+  typedef _Point Point;
+  /// Make available to client
+  typedef _Precision Precision;
 
-    /// Set points you want to perform queries on.
-    virtual void compute(const PointList& points) = 0;
+  /// Set points you want to perform queries on.
+  virtual void compute(const PointList &points) = 0;
 
-    /// Set points you want to perform queries on.
-    /// Move setter to consume points.
-    virtual void compute(PointList&& points) = 0;
+  /// Set points you want to perform queries on.
+  /// Move setter to consume points.
+  virtual void compute(PointList &&points) = 0;
 
-    /// Give index of nearest neighbor to `p`
-    virtual PointIndex find_closest(const Point& p) const = 0;
+  /// Give index of nearest neighbor to `p`
+  virtual PointIndex find_closest(const Point &p) const = 0;
 
-    /// Give an index-list of all points within distance `r` around `p`
-    /// The indexes are returned in random order.
-    virtual std::vector<PointIndex> find_in_range(const Point& p, Precision r) const = 0;
+  /// Give an index-list of all points within distance `r` around `p`
+  /// The indexes are returned in random order.
+  virtual std::vector<PointIndex> find_in_range(const Point &p,
+                                                Precision r) const = 0;
 };
 
-} // MouseTrack
-
-
+} // namespace MouseTrack

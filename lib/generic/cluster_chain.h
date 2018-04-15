@@ -11,7 +11,6 @@
 #include <map>
 #include <memory>
 
-
 namespace MouseTrack {
 
 /// Holds two maps of pointers to clusters and cluster descriptors
@@ -19,21 +18,23 @@ namespace MouseTrack {
 /// The key does not exist, if no cluster was found in a frame
 class ClusterChain {
 public:
-    /// Write access to all clusters.
-    std::map<FrameNumber, const Cluster*>& clusters();
+  /// Write access to all clusters.
+  std::map<FrameNumber, const Cluster *> &clusters();
 
-    /// Read access to all clusters.
-    const std::map<FrameNumber, const Cluster*>& clusters() const;
+  /// Read access to all clusters.
+  const std::map<FrameNumber, const Cluster *> &clusters() const;
 
-    /// Write access to all cluster descriptors.
-    std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>>& descriptors();
+  /// Write access to all cluster descriptors.
+  std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>> &
+  descriptors();
 
-    /// Read access to all cluster descriptors
-    const std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>>& descriptors() const;
+  /// Read access to all cluster descriptors
+  const std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>> &
+  descriptors() const;
+
 private:
-    std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>> _descriptors;
-    std::map<FrameNumber, const Cluster*> _clusters;
+  std::map<FrameNumber, std::shared_ptr<const ClusterDescriptor>> _descriptors;
+  std::map<FrameNumber, const Cluster *> _clusters;
 };
 
-} // MouseTrack
-
+} // namespace MouseTrack

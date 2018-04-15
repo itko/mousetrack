@@ -5,8 +5,8 @@
 #pragma once
 
 #include "spatial_oracle.h"
-#include <limits>
 #include <Eigen/Core>
+#include <limits>
 
 namespace MouseTrack {
 
@@ -16,43 +16,47 @@ namespace MouseTrack {
 /// The point list is a Dim x #Points eigen matrix
 
 template <typename _Precision, int _Dim>
-class BruteForce : public SpatialOracle<Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic, Eigen::RowMajor + Eigen::AutoAlign>, Eigen::Matrix<_Precision, _Dim, 1>, _Precision> {
+class BruteForce
+    : public SpatialOracle<Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic,
+                                         Eigen::RowMajor + Eigen::AutoAlign>,
+                           Eigen::Matrix<_Precision, _Dim, 1>, _Precision> {
 public:
-    typedef Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic, Eigen::RowMajor + Eigen::AutoAlign> PointList;
-    typedef Eigen::Matrix<_Precision, _Dim, 1> Point;
+  typedef Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic,
+                        Eigen::RowMajor + Eigen::AutoAlign>
+      PointList;
+  typedef Eigen::Matrix<_Precision, _Dim, 1> Point;
+
 private:
-    PointList _points;
+  PointList _points;
+
 public:
-    BruteForce(){
-        // empty
-    }
+  BruteForce() {
+    // empty
+  }
 
-    virtual void compute(const PointList& points) {
-        _points = points;
-    }
+  virtual void compute(const PointList &points) { _points = points; }
 
-    virtual void compute(PointList&& points) {
-        _points = std::move(points);
-    }
+  virtual void compute(PointList &&points) { _points = std::move(points); }
 
-    virtual PointIndex find_closest(const Point& p) const  {
-        PointIndex nearestP;
-        (_points.colwise() - p).colwise().squaredNorm().minCoeff(&nearestP);
-        return nearestP;
-    }
+  virtual PointIndex find_closest(const Point &p) const {
+    PointIndex nearestP;
+    (_points.colwise() - p).colwise().squaredNorm().minCoeff(&nearestP);
+    return nearestP;
+  }
 
-    virtual std::vector<PointIndex> find_in_range(const Point& p, const Precision r) const {
-        std::vector<PointIndex> in_range;
-        Precision r2 = r*r;
-        auto dists = (_points.colwise() - p).colwise().squaredNorm();
-        for(int i = 0; i < dists.cols(); i += 1){
-            double d = dists(0,i);
-            if(d < r2){
-                in_range.push_back(i);
-            }
-        }
-        return in_range;
+  virtual std::vector<PointIndex> find_in_range(const Point &p,
+                                                const Precision r) const {
+    std::vector<PointIndex> in_range;
+    Precision r2 = r * r;
+    auto dists = (_points.colwise() - p).colwise().squaredNorm();
+    for (int i = 0; i < dists.cols(); i += 1) {
+      double d = dists(0, i);
+      if (d < r2) {
+        in_range.push_back(i);
+      }
     }
+    return in_range;
+  }
 };
 
 // some convenient typedefs
@@ -71,4 +75,4 @@ typedef BruteForce<float, 3> BruteForce3f;
 typedef BruteForce<float, 4> BruteForce4f;
 typedef BruteForce<float, 5> BruteForce5f;
 
-} // MouseTrack
+} // namespace MouseTrack

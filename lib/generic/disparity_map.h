@@ -9,27 +9,26 @@
 
 namespace MouseTrack {
 
-
 /// Stores the perspective depth for each pixel in a matrix.
 class DisparityMap {
 public:
-    /// Create empty map.
-    DisparityMap();
+  /// Create empty map.
+  DisparityMap();
 
-    /// Copy input map.
-    DisparityMap(const Eigen::MatrixXd& map);
+  /// Copy input map.
+  DisparityMap(const Eigen::MatrixXd &map);
 
-    /// Consume input map
-    DisparityMap(const Eigen::MatrixXd&& map);
+  /// Consume input map
+  DisparityMap(const Eigen::MatrixXd &&map);
 
-    /// Access the depth map with the intention to modify.
-	Eigen::MatrixXd& zMap();
+  /// Access the depth map with the intention to modify.
+  Eigen::MatrixXd &zMap();
 
-    /// Access the depth map with the intention to only read.
-	const Eigen::MatrixXd& zMap() const;
+  /// Access the depth map with the intention to only read.
+  const Eigen::MatrixXd &zMap() const;
+
 private:
-    Eigen::MatrixXd _map;
+  Eigen::MatrixXd _map;
 };
 
-
-} // MouseTrack
+} // namespace MouseTrack

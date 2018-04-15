@@ -10,25 +10,24 @@
 
 namespace MouseTrack {
 
-int QtController::main(int argc, char *argv[], op::variables_map& cli_options){
+int QtController::main(int argc, char *argv[], op::variables_map &cli_options) {
 
-    // set up application
-    QApplication app (argc, argv);
+  // set up application
+  QApplication app(argc, argv);
 
-    // show a button in a window
-    QPushButton button ("Hello world !");
-    button.setToolTip("A tooltip");
-    button.show();
-    // start pipeline
-    pipeline().start();
+  // show a button in a window
+  QPushButton button("Hello world !");
+  button.setToolTip("A tooltip");
+  button.show();
+  // start pipeline
+  pipeline().start();
 
-    // start run loop
-    int returnCode = app.exec();
+  // start run loop
+  int returnCode = app.exec();
 
-    pipeline().join();
+  pipeline().join();
 
-    return returnCode;
+  return returnCode;
 }
 
-
-} // MouseTrack
+} // namespace MouseTrack

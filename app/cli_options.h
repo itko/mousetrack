@@ -11,4 +11,4 @@ namespace MouseTrack {
 
 op::options_description cli_options();
 
-} // MouseTrack
+} // namespace MouseTrack

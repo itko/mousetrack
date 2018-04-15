@@ -14,10 +14,11 @@
 namespace MouseTrack {
 
 class Descripting {
-	public:
-		/// Takes a cluster and its referencing PointCloud and creates a cluster descriptor
-        virtual std::unique_ptr<ClusterDescriptor> operator()(const Cluster& cluster, const PointCloud& cloud) const = 0;
+public:
+  /// Takes a cluster and its referencing PointCloud and creates a cluster
+  /// descriptor
+  virtual std::unique_ptr<ClusterDescriptor>
+  operator()(const Cluster &cluster, const PointCloud &cloud) const = 0;
 };
 
-
-} // MouseTrack
+} // namespace MouseTrack

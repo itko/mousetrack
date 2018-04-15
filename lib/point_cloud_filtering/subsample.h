@@ -10,14 +10,15 @@ namespace MouseTrack {
 
 class SubSample : public PointCloudFiltering {
 public:
-    SubSample() = default;
-    SubSample(int desiredMaxPoints);
-    virtual ~SubSample() = default;
-    virtual PointCloud operator()(const PointCloud& inCloud) const;
-    void desiredMaxPoints(int _new);
-    int desiredMaxPoints() const;
+  SubSample() = default;
+  SubSample(int desiredMaxPoints);
+  virtual ~SubSample() = default;
+  virtual PointCloud operator()(const PointCloud &inCloud) const;
+  void desiredMaxPoints(int _new);
+  int desiredMaxPoints() const;
+
 private:
-    int _desiredMaxPoints = 10000;
+  int _desiredMaxPoints = 10000;
 };
 
-} // MouseTrack
+} // namespace MouseTrack
