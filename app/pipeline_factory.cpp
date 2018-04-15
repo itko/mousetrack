@@ -6,6 +6,7 @@
 #include "matlab_reader.h"
 #include "pipeline_factory.h"
 #include "registration/disparity_registration.h"
+#include "point_cloud_filtering/subsample.h"
 #include "clustering/mean_shift.h"
 #include "descripting/cog.h"
 #include "matching/nearest_neighbour.h"
@@ -30,13 +31,17 @@ Pipeline PipelineFactory::fromCliOptions(const op::variables_map& options) const
         reader->setEndFrame(std::min(reader->endFrame(), options["last-frame"].as<int>() + 1));
     }
     std::unique_ptr<Registration> registration{new DisparityRegistration()};
-    std::unique_ptr<Clustering> clustering{new MeanShift(10)};
+    std::unique_ptr<PointCloudFiltering> cloudFiltering{new SubSample(options["subsample-to"].as<int>())};
+
+    std::unique_ptr<Clustering> clustering{getClustering(options)};
+
     std::unique_ptr<Descripting> descripting{new CenterOfGravity()};
     std::unique_ptr<Matching> matching{new NearestNeighbour()};
     std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{new CogTrajectoryBuilder()};
     return Pipeline(
                 std::move(reader),
                 std::move(registration),
+                std::move(cloudFiltering),
                 std::move(clustering),
                 std::move(descripting),
                 std::move(matching),
@@ -44,6 +49,13 @@ Pipeline PipelineFactory::fromCliOptions(const op::variables_map& options) const
             );
 }
 
+std::unique_ptr<Clustering> PipelineFactory::getClustering(const op::variables_map& options) const {
+    std::unique_ptr<MeanShift> clustering{new MeanShift(options["mean-shift-sigma"].as<double>())};
+    clustering->setMaxIterations(options["mean-shift-max-iterations"].as<int>());
+    clustering->setMergeThreshold(options["mean-shift-merge-threshold"].as<double>());
+    clustering->setConvergenceThreshold(options["mean-shift-convergence-threshold"].as<double>());
+    return clustering;
+}
 
 
 } // MouseTrack

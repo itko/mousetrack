@@ -6,6 +6,7 @@ set(source_files
         clustering/mean_shift.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
+        generic/cluster_descriptor.cpp
         generic/disparity_map.cpp
         generic/explode.cpp
         generic/frame.cpp
@@ -20,6 +21,8 @@ set(source_files
         generic/random_sample.cpp
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
+        matching/matching.cpp
+        point_cloud_filtering/subsample.cpp
         registration/disparity_registration.cpp
         trajectory_builder/cog_trajectory_builder.cpp
         )
@@ -28,13 +31,17 @@ set(source_files
 set(test_files
         test_root.cc
         generic/explode.test.cc
+        generic/random_sample.test.cc
         generic/point_cloud.test.cc
         generic/read_csv.test.cc
         generic/read_png.test.cc
         generic/vec_addition.test.cc
-		clustering/mean_shift.test.cc
-    trajectory_builder/cog_trajectory_builder.test.cc
-        generic/random_sample.test.cc
+        clustering/mean_shift.test.cc
+        spatial/brute_force.test.cc
+        spatial/cube_iterator.test.cc
+        spatial/cubic_neighborhood.test.cc
+        spatial/uniform_grid.test.cc
+        trajectory_builder/cog_trajectory_builder.test.cc
         )
 
 add_library(libmousetrack ${source_files})

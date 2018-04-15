@@ -57,12 +57,17 @@ PointCloud DisparityRegistration::operator()(const FrameWindow& window) const {
                 p.x() = tmp[0];
                 p.y() = tmp[1];
                 p.z() = tmp[2];
-                p.intensity() = f.referencePicture(y, x);
+                p.intensity(f.referencePicture(y, x));
                 next_insert += 1;
             }
         }
     }
     cloud.resize(next_insert); // shrink to actual number of points
+
+    auto min = cloud.min();
+    auto max = cloud.max();
+
+    BOOST_LOG_TRIVIAL(debug) << "Found point cloud with " << cloud.size() << " points, xyz-min: [" << min[0] << ", " << min[1] << ", " << min[2] << "], xyz-max: [" << max[0] << ", " << max[1] << ", " << max[2] << "]" << std::flush;
     return cloud;
 }
 

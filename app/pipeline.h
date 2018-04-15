@@ -8,6 +8,7 @@
 #include "pipeline_observer.h"
 #include "reader/reader.h"
 #include "registration/registration.h"
+#include "point_cloud_filtering/point_cloud_filtering.h"
 #include "clustering/clustering.h"
 #include "descripting/descripting.h"
 #include "matching/matching.h"
@@ -39,6 +40,7 @@ public:
     Pipeline(
         std::unique_ptr<Reader> reader,
         std::unique_ptr<Registration> registration,
+        std::unique_ptr<PointCloudFiltering> filtering,
         std::unique_ptr<Clustering> clustering,
         std::unique_ptr<Descripting> descripting,
         std::unique_ptr<Matching> matching,
@@ -126,6 +128,7 @@ private:
 
     std::unique_ptr<Reader> _reader;
     std::unique_ptr<Registration> _registration;
+    std::unique_ptr<PointCloudFiltering> _cloudFiltering;
     std::unique_ptr<Clustering> _clustering;
     std::unique_ptr<Descripting> _descripting;
     std::unique_ptr<Matching> _matching;

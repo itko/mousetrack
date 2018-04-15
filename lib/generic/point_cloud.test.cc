@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE( point_cloud_read_write ) {
     pc[0].x() = 1.0;
     pc[0].y() = 2.0;
     pc[0].z() = 3.0;
-    pc[0].intensity() = 4.0;
+    pc[0].intensity(4.0);
 
     const auto point = pc[0];
 

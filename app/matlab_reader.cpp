@@ -75,7 +75,7 @@ const std::set<std::string> EXPECTED_FILES {ROTATION_CORRECTION_KEY, CAMERA_CHAI
 
 MatlabReader::MatlabReader(fs::path root_directory) : _root(fs::absolute(root_directory)), _valid(false) {
     if(!fs::exists(_root)){
-        BOOST_LOG_TRIVIAL(info) << "Path for root directory " << root_directory.string() << "does not exist (absolute: " << _root << ")";
+        BOOST_LOG_TRIVIAL(info) << "Path for root directory " << root_directory.string() << " does not exist (absolute: " << _root << ")";
         throw "Root directory not found.";
     }
     if(!fs::is_directory(_root)){

@@ -28,7 +28,9 @@ PointCloud random_sample(const PointCloud& cloud, const int size) {
             output[current_size].x() = cloud[index].x();
             output[current_size].y() = cloud[index].y();
             output[current_size].z() = cloud[index].z();
-            output[current_size].intensity() = cloud[index].intensity();
+            output[current_size].r(cloud[index].r());
+            output[current_size].g(cloud[index].g());
+            output[current_size].b(cloud[index].b());
             already_used[index] = true;
             current_size++;
         }

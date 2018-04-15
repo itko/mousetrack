@@ -40,6 +40,15 @@ void PipelineTimer::newRawPointCloud     (FrameIndex f, std::shared_ptr<const Po
     stopTimer(f, "registration");
 }
 
+void PipelineTimer::startPointCloudFiltering(FrameIndex f) {
+    startTimer(f, "point_cloud_filtering");
+}
+
+void PipelineTimer::newFilteredPointCloud(FrameIndex f, std::shared_ptr<const PointCloud> cloud) {
+    stopTimer(f, "point_cloud_filtering");
+}
+
+
 void PipelineTimer::startClustering      (FrameIndex f){
     startTimer(f, "clustering");
 }

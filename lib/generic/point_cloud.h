@@ -13,7 +13,6 @@
 
 namespace MouseTrack {
 
-
 /// A point cloud holds a list of 3D points. Each point can have additional attributes like color intensity.
 class PointCloud {
 	// Design note: In general, one has to decide betwen two basic concepts:
@@ -54,14 +53,32 @@ public:
         /// Read access to z coordinate.
         const Coordinate& z() const;
 
-        /// Write access to color intensity.
-        ColorChannel& intensity();
+        /// Write access to color r.
+        const ColorChannel& r(const ColorChannel& _new);
+
+        /// Read access to color r.
+        const ColorChannel& r() const;
+
+        /// Write access to color g.
+        const ColorChannel& g(const ColorChannel& _new);
+
+        /// Read access to color g.
+        const ColorChannel& g() const;
+
+        /// Write access to color b.
+        const ColorChannel& b(const ColorChannel& _new);
+
+        /// Read access to color b.
+        const ColorChannel& b() const;
+
+        /// Write access: set `r = g = b = _new`
+        ColorChannel intensity(const ColorChannel& _new);
 
         /// Read access to color intensity.
-        const ColorChannel& intensity() const;
+        ColorChannel intensity() const;
 
-				/// Convert to dx1 Eigen Matrix
-				Eigen::VectorXd eigenVec() const;
+        /// Convert to dx1 Eigen Matrix
+        Eigen::VectorXd eigenVec() const;
     };
 
     /// Exactly the same as `Point` but it only provides read-only access to the data.
@@ -82,11 +99,20 @@ public:
         /// Read access to z coordinate.
         const Coordinate& z() const;
 
-        /// Read access to color intensity.
-        const ColorChannel& intensity() const;
+        /// Read access to color r.
+        const ColorChannel& r() const;
 
-				/// Convert to dx1 Eigen Matrix
-				Eigen::VectorXd eigenVec() const;
+        /// Read access to color g.
+        const ColorChannel& g() const;
+
+        /// Read access to color b.
+        const ColorChannel& b() const;
+
+        /// Read access to color intensity.
+        ColorChannel intensity() const;
+
+        /// Convert to dx1 Eigen Matrix
+        Eigen::VectorXd eigenVec() const;
     };
 
     PointCloud();
@@ -102,11 +128,19 @@ public:
 
     /// Read-only access to i-th point.
     const ConstantPoint operator[](size_t i) const;
+
+    /// min corner of bounding box
+    const Eigen::Vector3d min() const;
+
+    /// max corner of bounding box
+    const Eigen::Vector3d max() const;
 private:
     std::vector<Coordinate> _xs;
     std::vector<Coordinate> _ys;
     std::vector<Coordinate> _zs;
-    std::vector<ColorChannel> _color;
+    std::vector<ColorChannel> _r;
+    std::vector<ColorChannel> _g;
+    std::vector<ColorChannel> _b;
 };
 
 

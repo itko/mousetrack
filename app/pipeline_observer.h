@@ -14,6 +14,7 @@ typedef int FrameIndex;
 #include "generic/point_cloud.h"
 #include "generic/cluster.h"
 #include "generic/cluster_descriptor.h"
+#include "generic/cluster_chain.h"
 
 #include <Eigen/Core>
 
@@ -55,6 +56,9 @@ public:
     /// Pipeline finished all work.
     virtual void pipelineTerminated();
 
+    /// When the pipeline terminates, it delivers the complete cluster chain used internally.
+    virtual void newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains);
+
     /// Work on frame `frame` started, it is inside the pipeline.
     virtual void frameStart(FrameIndex frame);
 
@@ -65,14 +69,22 @@ public:
 
     virtual void startFrameWindow     (FrameIndex f);
     virtual void newFrameWindow       (FrameIndex f, std::shared_ptr<const FrameWindow> window);
+
     virtual void startRegistration    (FrameIndex f);
     virtual void newRawPointCloud     (FrameIndex f, std::shared_ptr<const PointCloud> cloud);
+
+    virtual void startPointCloudFiltering(FrameIndex f);
+    virtual void newFilteredPointCloud(FrameIndex f, std::shared_ptr<const PointCloud> cloud);
+
     virtual void startClustering      (FrameIndex f);
     virtual void newClusters          (FrameIndex f, std::shared_ptr<const std::vector<Cluster>> clusters);
+
     virtual void startDescripting     (FrameIndex f);
     virtual void newDescriptors       (FrameIndex f, std::shared_ptr<const std::vector<std::shared_ptr<const ClusterDescriptor>>> descriptors);
+
     virtual void startMatching        (FrameIndex f);
     virtual void newMatches           (FrameIndex f, std::shared_ptr<const std::vector<long>> matches);
+
     virtual void startControlPoints   (FrameIndex f);
     virtual void newControlPoints     (FrameIndex f, std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints);
 };

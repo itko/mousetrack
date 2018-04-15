@@ -15,6 +15,9 @@ void PipelineObserver::pipelineTerminated() {
     // empty
 }
 
+void PipelineObserver::newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains) {
+
+}
 
 void PipelineObserver::frameStart(FrameIndex frame) {
     // empty
@@ -39,6 +42,15 @@ void PipelineObserver::startRegistration    (FrameIndex f) {
 void PipelineObserver::newRawPointCloud     (FrameIndex f, std::shared_ptr<const PointCloud> cloud) {
     // empty
 }
+
+void PipelineObserver::startPointCloudFiltering(FrameIndex f) {
+    // empty
+}
+
+void PipelineObserver::newFilteredPointCloud(FrameIndex f, std::shared_ptr<const PointCloud> cloud) {
+    // empty
+}
+
 
 void PipelineObserver::startClustering      (FrameIndex f) {
     // empty
