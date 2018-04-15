@@ -5,12 +5,14 @@
 #pragma once
 
 #include "registration.h"
+#include <Eigen/Core>
+#include <vector>
 
 namespace MouseTrack {
 
 class DisparityRegistration : public Registration {
 public:
-  PointCloud operator()(const FrameWindow &window) const;
+  virtual PointCloud operator()(const FrameWindow &window) const = 0;
 
   /// Lowest disparity value we accept (we remove points at infinity)
   double &minDisparity();
@@ -35,6 +37,36 @@ public:
 
   /// Ignores boder of n pixels around disparity map
   const int &frameBorder() const;
+
+protected:
+  /// Typedef for Inverse concept: There might be reasons
+  /// where we would like not to compute the inverse, but some
+  /// kind of decomposition because it's more robust or so.
+  /// This gives us the necessary flexibility
+  typedef Eigen::Matrix4d Inverse;
+
+  /// Performs calculations to easily apply the inverse of `mat` to a 4d
+  /// homogeneous point.
+  Inverse prepareInverseTransformation(const Eigen::Matrix4d &mat) const;
+
+  /// Apply the inverse transformation object
+  Eigen::Vector4d applyInverseTransformation(const Inverse &inv,
+                                             const Eigen::Vector4d &p) const;
+
+  /// Apply inverse transformation object to matrix of points
+  ///
+  /// `ps`: 4 x #P matrix
+  template <typename Derived>
+  Eigen::Matrix<double, 4, Eigen::Dynamic, Eigen::RowMajor>
+  applyInverseTransformation(const Inverse &inv,
+                             const Eigen::MatrixBase<Derived> &ps) const {
+    return inv * ps;
+  }
+
+  /// Convenience method to calculate the aboslute transformations for all
+  /// cameras. absolute transformation matrix relative to first camera
+  std::vector<Eigen::Matrix4d>
+  absoluteTransformations(const FrameWindow &window) const;
 
 private:
   /// constant from fpga set up
