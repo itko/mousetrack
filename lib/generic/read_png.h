@@ -9,7 +9,7 @@
 
 namespace MouseTrack {
 
-Eigen::MatrixXi read_png(const std::string& path);
-Picture read_png_normalized(const std::string& path);
+Eigen::MatrixXi read_png(const std::string &path);
+Picture read_png_normalized(const std::string &path);
 
-} // MouseTrack
+} // namespace MouseTrack

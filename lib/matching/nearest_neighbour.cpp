@@ -7,8 +7,8 @@
 
 #include "nearest_neighbour.h"
 #include "Eigen/Core"
-#include <limits.h>
 #include <boost/log/trivial.hpp>
+#include <limits.h>
 
 namespace MouseTrack {
 
@@ -20,8 +20,8 @@ std::vector<long> NearestNeighbour::operator()(
   // Prepare an empty vector that will store the index of each chain
   std::vector<long> matchIndex;
   for (size_t i = 0; i < descriptors.size(); i++) {
-    if(i%100 == 0){
-        BOOST_LOG_TRIVIAL(trace) << "Matching descriptor " << i;
+    if (i % 100 == 0) {
+      BOOST_LOG_TRIVIAL(trace) << "Matching descriptor " << i;
     }
     // Initialize a maximum distance and match index
     double nearest = std::numeric_limits<double>::max();

@@ -5,16 +5,14 @@
 
 #include "trajectory.h"
 
-
 namespace MouseTrack {
 
 std::map<FrameNumber, Eigen::Vector3d> Trajectory::controlPoints() {
-    return _controlPoints;
+  return _controlPoints;
 }
 
 const std::map<FrameNumber, Eigen::Vector3d> Trajectory::controlPoints() const {
-    return _controlPoints;
+  return _controlPoints;
 }
 
-
-} // MouseTrack
+} // namespace MouseTrack

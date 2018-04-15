@@ -10,6 +10,8 @@
 
 namespace MouseTrack {
 
-std::vector<std::vector<std::string>> read_csv(const std::string& file, char col_delemiter = ',', char row_delemiter = '\n');
+std::vector<std::vector<std::string>> read_csv(const std::string &file,
+                                               char col_delemiter = ',',
+                                               char row_delemiter = '\n');
 
-} // MouseTrack
+} // namespace MouseTrack

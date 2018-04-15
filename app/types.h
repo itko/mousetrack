@@ -1,11 +1,11 @@
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 namespace MouseTrack {
 
 namespace op = boost::program_options;
 namespace fs = boost::filesystem;
 
-} // MouseTrack
+} // namespace MouseTrack
