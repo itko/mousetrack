@@ -28,4 +28,4 @@ op::options_description cli_options() {
   return desc;
 }
 
-} // MouseTrack
+} // namespace MouseTrack

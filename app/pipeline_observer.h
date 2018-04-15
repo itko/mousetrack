@@ -94,4 +94,4 @@ public:
     virtual void newControlPoints     (FrameIndex f, std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints);
   // clang-format on
 };
-}
+} // namespace MouseTrack
