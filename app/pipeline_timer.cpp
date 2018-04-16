@@ -25,6 +25,15 @@ void PipelineTimer::newFrameWindow(FrameIndex f,
   stopTimer(f, "readFrameWindow");
 }
 
+void PipelineTimer::startFrameWindowFiltering(FrameIndex f) {
+  startTimer(f, "frameWindowFiltering");
+}
+
+void PipelineTimer::newFilteredFrameWindow(
+    FrameIndex f, std::shared_ptr<const FrameWindow> window) {
+  stopTimer(f, "frameWindowFiltering");
+}
+
 void PipelineTimer::startRegistration(FrameIndex f) {
   startTimer(f, "registration");
 }
