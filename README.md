@@ -71,6 +71,8 @@ For a complete list of options, please see the root CMakeLists.txt.
 
 Make sure to create a release version of the application, you enforce this by running `cmake -DCMAKE_BUILD_TYPE=RELEASE ..`. The debug version is not optimized and contains additional code for debugging.
 
+Certain modules are parallelized via OpenMP, make sure you have OpenMP available and configured correctly on your system.
+
 ## Running the application
 
 Once you configured your build directory with `cmake ..` and created all targets with `make`, you should find an executable in the `app` subdirectory called `mousetrack`. You have two basic modes at your disposal:
