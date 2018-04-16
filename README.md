@@ -56,7 +56,8 @@ Run `$ ./create_cmake.sh` to set up both folders automatically.
 
 Note: you still need to run `make` in each folder separately to generate the binaries.
 
-### Options
+
+### Build Options
 
 Certain modules can be turned off via cmake.
 
@@ -64,6 +65,23 @@ Example: Assume you only need to run the application in headless mode, so there'
 So, if you want to remove the GUI entirely for your build, you can run `cmake -DENABLE_GUI=OFF ..`.
 
 For a complete list of options, please see the root CMakeLists.txt.
+
+
+## Running the Application
+
+TL;DR, run in `build`:
+
+``` bash
+./app/mousetrack -c -s </path/to/extracted/bag/data/0123-45-67> --log trace --pipeline-timer --out-dir ./output-directory
+```
+
+Once you configured your build directory with `cmake ..` and created all targets with `make`, you should find an executable in the `app` subdirectory called `mousetrack`. You have two basic modes at your disposal:
+
+- The Graphical User Interface: By default, if you just run `./app/mousetrack`, the GUI will be started.
+- Headless mode:
+No GUI will be set up and all options need to be provided at the start of the application via the command line arguments.
+See `./mousetrack --help` for a list of available options.
+
 
 ### Issues
 
@@ -73,16 +91,8 @@ Make sure to create a release version of the application, you enforce this by ru
 
 Certain modules are parallelized via OpenMP, make sure you have OpenMP available and configured correctly on your system.
 
-## Running the application
 
-Once you configured your build directory with `cmake ..` and created all targets with `make`, you should find an executable in the `app` subdirectory called `mousetrack`. You have two basic modes at your disposal:
-
-- The Graphical User Interface: By default, if you just run `./app/mousetrack`, the GUI will be started.
-- Headless mode: No GUI will be set up and all options need to be provided at the start of the application via the command line arguments.
-
-
-
-## Documentation
+## Code Documentation
 
 You can generate HTML/LaTex/... documentation automatically from source code.
 For this you need to install [Doxygen](http://www.stack.nl/~dimitri/doxygen/).
