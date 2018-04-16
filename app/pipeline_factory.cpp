@@ -10,8 +10,8 @@
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
 #include "point_cloud_filtering/subsample.h"
+#include "registration/disparity_registration.h"
 #include "registration/disparity_registration_cpu_optimized.h"
-#include "registration/disparity_registration_simple.h"
 #include "trajectory_builder/cog_trajectory_builder.h"
 #include <boost/log/trivial.hpp>
 
@@ -81,8 +81,8 @@ PipelineFactory::getReader(const op::variables_map &options) const {
 std::unique_ptr<Registration>
 PipelineFactory::getRegistration(const op::variables_map &options) const {
   std::string target = options["pipeline-registration"].as<std::string>();
-  if (target == "disparity-simple") {
-    return std::unique_ptr<Registration>(new DisparityRegistrationSimple());
+  if (target == "disparity") {
+    return std::unique_ptr<Registration>(new DisparityRegistration());
   }
   if (target == "disparity-cpu-optimized") {
     return std::unique_ptr<Registration>(

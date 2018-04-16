@@ -25,7 +25,6 @@ set(source_files
         matching/matching.cpp
         point_cloud_filtering/subsample.cpp
         registration/disparity_registration.cpp
-        registration/disparity_registration_simple.cpp
         registration/disparity_registration_cpu_optimized.cpp
         trajectory_builder/cog_trajectory_builder.cpp
         )

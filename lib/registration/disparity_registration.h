@@ -12,7 +12,11 @@ namespace MouseTrack {
 
 class DisparityRegistration : public Registration {
 public:
-  virtual PointCloud operator()(const FrameWindow &window) const = 0;
+  /// Simple, sequential, straight forward solution.
+  /// Think of it as the most basic implementation suitable as reference.
+  ///
+  /// Overwrite this method for an improved implementation
+  virtual PointCloud operator()(const FrameWindow &window) const;
 
   /// Lowest disparity value we accept (we remove points at infinity)
   double &minDisparity();
