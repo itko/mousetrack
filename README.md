@@ -44,14 +44,40 @@ $ mkdir build && cd build && cmake .. & make -j7
 We use CMake as main building tool. CMake uses one or more input files (called `CMakeLists.txt`), to understand how to compile the project.
 You can find those files in the root of the project and in the `lib/` and `app/` folders.
 
-With CMake, you usually create an empty build folder. From that folder you can run `$ cmake ..` to run the configuration which creates, for example, Makefiles.
+With CMake, you usually create an empty build folder.
+From that folder you can run `$ cmake ..` to run the configuration which creates, for example, Makefiles.
 Those Makefiles can be executed with `$ make` which compiles the code, and creates executables/libraries/etc.
 
 CMake supports to build release and debug versions.
 
 This project uses `build/` as a release folder and `build-debug` for a debuggable build.
 
-Run `$ ./create_cmake.sh` to set up both folders automatically. Note: you still need to run `make` in each folder separately to generate the binaries.
+Run `$ ./create_cmake.sh` to set up both folders automatically.
+
+Note: you still need to run `make` in each folder separately to generate the binaries.
+
+### Options
+
+Certain modules can be turned off via cmake.
+
+Example: Assume you only need to run the application in headless mode, so there's no point in compiling it with the GUI.
+So, if you want to remove the GUI entirely for your build, you can run `cmake -DENABLE_GUI=OFF ..`.
+
+For a complete list of options, please see the root CMakeLists.txt.
+
+### Issues
+
+#### Application is slow
+
+Make sure to create a release version of the application, you enforce this by running `cmake -DCMAKE_BUILD_TYPE=RELEASE ..`. The debug version is not optimized and contains additional code for debugging.
+
+## Running the application
+
+Once you configured your build directory with `cmake ..` and created all targets with `make`, you should find an executable in the `app` subdirectory called `mousetrack`. You have two basic modes at your disposal:
+
+- The Graphical User Interface: By default, if you just run `./app/mousetrack`, the GUI will be started.
+- Headless mode: No GUI will be set up and all options need to be provided at the start of the application via the command line arguments.
+
 
 
 ## Documentation
