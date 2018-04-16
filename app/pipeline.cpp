@@ -42,6 +42,7 @@ Pipeline::~Pipeline() noexcept(true) {
 void Pipeline::moveMembersFrom(Pipeline &p) {
   _observers = std::move(p._observers);
   _reader = std::move(p._reader);
+  _frameWindowFiltering = std::move(p._frameWindowFiltering);
   _registration = std::move(p._registration);
   _cloudFiltering = std::move(p._cloudFiltering);
   _clustering = std::move(p._clustering);
