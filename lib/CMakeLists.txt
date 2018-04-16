@@ -23,6 +23,7 @@ set(source_files
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
         matching/matching.cpp
+        point_cloud_filtering/statistical_outlier_removal.cpp
         point_cloud_filtering/subsample.cpp
         registration/disparity_registration.cpp
         registration/disparity_registration_cpu_optimized.cpp
