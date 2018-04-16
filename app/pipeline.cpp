@@ -136,6 +136,8 @@ void Pipeline::_join() {
 
 void Pipeline::setDelegate(PipelineDelegate *delegate) {
   std::lock_guard<std::mutex> lock(_observer_mutex);
+  // note: this cases tries to catch undefined behavior but it is not thread
+  // safe
   if (delegate == nullptr && !_controller_terminated) {
     throw "It is invalid to set the delegate to nullptr while the pipeline is "
           "running";
