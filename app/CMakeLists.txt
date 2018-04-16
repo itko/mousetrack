@@ -83,6 +83,11 @@ target_link_libraries(appTests
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     )
 
+# create the sandbox_itto executable
+add_executable(sandbox_itto sandbox/sandbox_itto.cpp)
+target_link_libraries(sandbox_itto
+    libmousetrackAll
+    )
 
 # create a target for the headers, we don't actually need the result
 # but this way, IDE's also show header files in their project overviews
