@@ -136,6 +136,10 @@ void Pipeline::_join() {
 
 void Pipeline::setDelegate(PipelineDelegate *delegate) {
   std::lock_guard<std::mutex> lock(_observer_mutex);
+  if (delegate == nullptr && !_controller_terminated) {
+    throw "It is invalid to set the delegate to nullptr while the pipeline is "
+          "running";
+  }
   _delegate = delegate;
 }
 
@@ -179,8 +183,9 @@ void Pipeline::runPipeline() {
 
   if (_delegate != nullptr) {
     // we have a delegate, use it
-    while (_delegate->hasNextFrame()) {
-      FrameNumber f = _delegate->nextFrame();
+    while (askDelegate([](PipelineDelegate *d) { return d->hasNextFrame(); })) {
+      FrameNumber f =
+          askDelegate([](PipelineDelegate *d) { return d->nextFrame(); });
       if (terminateEarly()) {
         return;
       }
