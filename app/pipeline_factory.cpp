@@ -9,6 +9,7 @@
 #include "matching/nearest_neighbour.h"
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
+#include "point_cloud_filtering/statistical_outlier_removal.h"
 #include "point_cloud_filtering/subsample.h"
 #include "registration/disparity_registration.h"
 #include "registration/disparity_registration_cpu_optimized.h"
@@ -97,6 +98,12 @@ PipelineFactory::getCloudFiltering(const op::variables_map &options) const {
   if (target == "subsample") {
     return std::unique_ptr<PointCloudFiltering>(
         new SubSample(options["subsample-to"].as<int>()));
+  }
+  if (target == "statistical-outlier-removal") {
+    double alpha = options["statistical-outlier-removal-alpha"].as<double>();
+    int k = options["statistical-outlier-removal-k"].as<int>();
+    return std::unique_ptr<PointCloudFiltering>(
+        new StatisticalOutlierRemoval(alpha, k));
   }
   return nullptr;
 }

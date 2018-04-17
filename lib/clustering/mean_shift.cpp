@@ -139,7 +139,7 @@ MeanShift::iterate_mode(const Eigen::VectorXd mode,
   double normfact = 0;
   // Rest of COG
   Eigen::VectorXd cog = Eigen::VectorXd::Zero(mode.size());
-  for (int i; i < fixedPoints.size(); i++) {
+  for (int i = 0; i < fixedPoints.size(); i++) {
     double temp = gaussian_weight(fixedPoints[i], mode);
     normfact += temp;
     cog += temp * fixedPoints[i];

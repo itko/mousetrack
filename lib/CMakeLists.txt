@@ -44,6 +44,7 @@ set(test_files
         spatial/brute_force.test.cc
         spatial/cube_iterator.test.cc
         spatial/cubic_neighborhood.test.cc
+        spatial/statistical_outlier_detection.test.cc
         spatial/uniform_grid.test.cc
         trajectory_builder/cog_trajectory_builder.test.cc
         )

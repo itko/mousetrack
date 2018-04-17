@@ -168,7 +168,7 @@ public:
     auto zeroCell = indexOfPosition(p);
     typedef std::pair<Precision, PointIndex> P;
     std::priority_queue<P> neighbors;
-    neighbors.push(P(std::numeric_limits<Precision>::max(), -1));
+    neighbors.push(P(std::numeric_limits<Precision>::max(), (PointIndex)-1));
     // We only loop up to the largest bounding box dimension (assumes cube
     // shells)
     for (int l = 0; l < neighborhood.size(); l += 1) {
@@ -206,7 +206,7 @@ public:
     std::vector<PointIndex> result;
     while (neighbors.size() > 0) {
       auto i = neighbors.top().second;
-      if (i != -1) {
+      if (i != (PointIndex)-1) {
         result.push_back(i);
       }
       neighbors.pop();

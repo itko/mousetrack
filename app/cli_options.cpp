@@ -25,7 +25,7 @@ op::options_description cli_options() {
   // pipeline modules
   ad("pipeline-reader", op::value<std::string>()->default_value("matlab-concurrent"), "Which reader module to use. Valid values: none, matlab, matlab-concurrent");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
-  ad("pipeline-point-cloud-filtering", op::value<std::string>()->default_value("none"), "Which filtering modules to use. Valid values: none, subsample");
+  ad("pipeline-point-cloud-filtering", op::value<std::string>()->default_value("none"), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
   ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift");
   ad("pipeline-descripting", op::value<std::string>()->default_value("cog"), "Which descripting module to use. Valid values: none, cog");
   ad("pipeline-matching", op::value<std::string>()->default_value("nearest-neighbor"), "Which matching module to use. Valid values: none, nearest-neighbor");
@@ -33,8 +33,14 @@ op::options_description cli_options() {
 
   // module settings
 
-  // mean-shift
+  // subsample
   ad("subsample-to", op::value<int>()->default_value(100*000), "Subsample the points cloud such that there are only <n> points.");
+
+  // statistical outlier removal
+  ad("statistical-outlier-removal-alpha", op::value<double>()->default_value(1.0), "Range within which points are inliers: [-alpha * stddev, slpha * stddev]");
+  ad("statistical-outlier-removal-k", op::value<int>()->default_value(30), "K neighbors to take into account.");
+
+  // mean-shift
   ad("mean-shift-sigma", op::value<double>()->default_value(0.01), "Sigma used for the mean-shift clustering.");
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");
   ad("mean-shift-merge-threshold", op::value<double>()->default_value(0.001), "Maximum distance of two clusters such that they can still merge");

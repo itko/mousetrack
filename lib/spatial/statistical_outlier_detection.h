@@ -5,6 +5,7 @@
 #pragma once
 
 #include "spatial_oracle.h"
+#include <boost/log/trivial.hpp>
 
 namespace MouseTrack {
 
@@ -46,21 +47,27 @@ using namespace impl;
 template <typename PointList, typename Point, typename Precision>
 std::vector<size_t> statisticalOutlierDetection(
     const PointList &pts,
-    const SpatialOracle<PointList, Point, Precision> *oracle, unsigned int k,
-    Precision alpha) {
+    const SpatialOracle<PointList, Point, Precision> *oracle, Precision alpha,
+    unsigned int k) {
 
   std::vector<size_t> outliers;
+
   for (int i = 0; i < pts.cols(); ++i) {
+    if (i % 1024 == 0) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "outlier detection: checking i: " << i << std::flush;
+    }
     auto neighbors = oracle->find_closest(pts.col(i), k);
-    if (neighbors.empty()) {
+    if (neighbors.size() <= 1) {
       // classify lonely points as outliers?
-      // should this happen?
+      // should this happen at all?
+      BOOST_LOG_TRIVIAL(debug)
+          << "Found lonely point " << i << ", classifying as outlier";
       outliers.push_back(i);
       continue;
     }
     PointList locals(pts.rows(), neighbors.size());
     for (size_t n = 0; n < neighbors.size(); ++n) {
-      // include i??
       locals.col(n) = pts.col(neighbors[n]);
     }
     Point mean = locals.rowwise().sum() / locals.cols();
@@ -69,11 +76,10 @@ std::vector<size_t> statisticalOutlierDetection(
         ((diffs.array() * diffs.array()).rowwise().sum()) / locals.cols();
     Point stddev = alpha * variance.array().sqrt();
     // p is inlier iff p in [mean - stddev, mean + stddev]
-    auto centered = (pts.col(i) - mean).array().abs();
+    Point centered = (pts.col(i) - mean).array().abs();
     if (isLarger(centered, stddev)) {
       // outlier
       outliers.push_back(i);
-      break;
     }
   }
   return outliers;

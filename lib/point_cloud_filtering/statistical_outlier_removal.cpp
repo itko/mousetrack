@@ -21,7 +21,7 @@ operator()(const PointCloud &inCloud) const {
   auto bb_size = bb_max - bb_min;
 
   // division arbitrary, heuristic for better choice?
-  UniformGrid3d ug(bb_size.maxCoeff(), bb_size.minCoeff() / 40.0);
+  UniformGrid3d ug(bb_size.maxCoeff(), bb_size.minCoeff() / 60.0);
 
   typedef UniformGrid3d::PointList PointList;
   typedef UniformGrid3d::Point Point;
@@ -40,8 +40,8 @@ operator()(const PointCloud &inCloud) const {
   outCloud.resize(inCloud.size() - outliers.size());
   size_t next_insert = 0;
   size_t o = 0;
-  for (size_t i = 0; inCloud.size(); ++i) {
-    if (outliers[o] == i) {
+  for (size_t i = 0; i < inCloud.size(); ++i) {
+    if (o < outliers.size() && outliers[o] == i) {
       // skip
       ++o;
       continue;
@@ -49,6 +49,8 @@ operator()(const PointCloud &inCloud) const {
     outCloud[next_insert] = inCloud[i];
     ++next_insert;
   }
+  BOOST_LOG_TRIVIAL(debug) << "Removed " << outliers.size()
+                           << " outliers from point cloud.";
   return outCloud;
 }
 
