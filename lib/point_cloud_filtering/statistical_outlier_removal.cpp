@@ -9,7 +9,7 @@
 
 namespace MouseTrack {
 
-StatisticalOutlierRemoval::StatisticalOutlierRemoval(int k, double alpha)
+StatisticalOutlierRemoval::StatisticalOutlierRemoval(double alpha, int k)
     : _k(k), _alpha(alpha) {
   // empty
 }
@@ -21,7 +21,9 @@ operator()(const PointCloud &inCloud) const {
   auto bb_size = bb_max - bb_min;
 
   // division arbitrary, heuristic for better choice?
-  UniformGrid3d ug(bb_size.maxCoeff(), bb_size.minCoeff() / 60.0);
+  BOOST_LOG_TRIVIAL(debug) << "grid maxR: " << bb_size.maxCoeff()
+                           << ", grid cell size: " << bb_size.minCoeff() / 50.0;
+  UniformGrid3d ug(bb_size.maxCoeff(), bb_size.minCoeff() / 50.0);
 
   typedef UniformGrid3d::PointList PointList;
   typedef UniformGrid3d::Point Point;
@@ -34,7 +36,7 @@ operator()(const PointCloud &inCloud) const {
   }
   ug.compute(pts);
   auto outliers = statisticalOutlierDetection<PointList, Point, Precision>(
-      pts, &ug, k(), alpha());
+      pts, &ug, alpha(), k());
 
   PointCloud outCloud;
   outCloud.resize(inCloud.size() - outliers.size());

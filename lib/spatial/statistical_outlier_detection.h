@@ -49,11 +49,16 @@ std::vector<size_t> statisticalOutlierDetection(
     const PointList &pts,
     const SpatialOracle<PointList, Point, Precision> *oracle, Precision alpha,
     unsigned int k) {
+  BOOST_LOG_TRIVIAL(trace) << "Removing outliers with alpha = " << alpha
+                           << " and k = " << k << " on " << pts.cols()
+                           << " points.";
 
-  std::vector<size_t> outliers;
+  // set a flag, whether it's an outlier
+  std::vector<int> outlierMap(pts.cols());
 
+#pragma omp parallel for
   for (int i = 0; i < pts.cols(); ++i) {
-    if (i % 1024 == 0) {
+    if (i % 1024 * 16 == 0) {
       BOOST_LOG_TRIVIAL(trace)
           << "outlier detection: checking i: " << i << std::flush;
     }
@@ -63,7 +68,7 @@ std::vector<size_t> statisticalOutlierDetection(
       // should this happen at all?
       BOOST_LOG_TRIVIAL(debug)
           << "Found lonely point " << i << ", classifying as outlier";
-      outliers.push_back(i);
+      outlierMap[i] = 1;
       continue;
     }
     PointList locals(pts.rows(), neighbors.size());
@@ -79,6 +84,13 @@ std::vector<size_t> statisticalOutlierDetection(
     Point centered = (pts.col(i) - mean).array().abs();
     if (isLarger(centered, stddev)) {
       // outlier
+      outlierMap[i] = 1;
+    }
+  }
+  std::vector<size_t> outliers;
+  // collect outliers
+  for (int i = 0; i < pts.cols(); ++i) {
+    if (outlierMap[i] == 1) {
       outliers.push_back(i);
     }
   }

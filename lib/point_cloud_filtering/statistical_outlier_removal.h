@@ -25,7 +25,7 @@ namespace MouseTrack {
 class StatisticalOutlierRemoval : public PointCloudFiltering {
 public:
   StatisticalOutlierRemoval() = default;
-  StatisticalOutlierRemoval(int k, double alpha);
+  StatisticalOutlierRemoval(double alpha, int k);
   virtual ~StatisticalOutlierRemoval() = default;
 
   virtual PointCloud operator()(const PointCloud &inCloud) const;
