@@ -197,7 +197,7 @@ void Pipeline::runPipeline() {
       FrameNumber f =
           askDelegate([](PipelineDelegate *d) { return d->nextFrame(); });
       if (terminateEarly()) {
-        return;
+        break;
       }
       processFrame(f);
     }
@@ -205,7 +205,7 @@ void Pipeline::runPipeline() {
     // no delegate set, fall back to reader
     for (FrameNumber f = _reader->beginFrame(); f < _reader->endFrame(); ++f) {
       if (terminateEarly()) {
-        return;
+        break;
       }
       processFrame(f);
     }
