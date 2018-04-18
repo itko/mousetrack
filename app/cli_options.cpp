@@ -24,6 +24,7 @@ op::options_description cli_options() {
 
   // pipeline modules
   ad("pipeline-reader", op::value<std::string>()->default_value("matlab-concurrent"), "Which reader module to use. Valid values: none, matlab, matlab-concurrent");
+  ad("pipeline-frame-window-filtering", op::value<std::string>()->default_value("none"), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
   ad("pipeline-point-cloud-filtering", op::value<std::string>()->default_value("none"), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
   ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift");
@@ -32,6 +33,16 @@ op::options_description cli_options() {
   ad("pipeline-trajectory-builder", op::value<std::string>()->default_value("raw-cog"), "Which matching module to use. Valid values: none, raw-cog");
 
   // module settings
+
+  // frame window post processing
+  ad("disparity-gauss-k", op::value<int>()->default_value(3), "Patch diameter in x/y direction, must be positive and integer. k = 0 results in a 1x1 patch size.");
+  ad("disparity-gauss-sigma", op::value<double>()->default_value(0.5), "Gaussian standard deviation in x/y direction, must be positive.");
+  ad("disparity-bilateral-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-bilateral-sigma-color", op::value<double>()->default_value(0.1), "Filter sigma in color space.");
+  ad("disparity-bilateral-sigma-space", op::value<double>()->default_value(50), "Filter sigma in coordinate space.");
+  ad("disparity-median-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+
+  // point cloud post processing
 
   // subsample
   ad("subsample-to", op::value<int>()->default_value(100*000), "Subsample the points cloud such that there are only <n> points.");

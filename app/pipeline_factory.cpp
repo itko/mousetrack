@@ -6,6 +6,9 @@
 #include "pipeline_factory.h"
 #include "clustering/mean_shift.h"
 #include "descripting/cog.h"
+#include "frame_window_filtering/disparity_bilateral.h"
+#include "frame_window_filtering/disparity_gaussian_blur.h"
+#include "frame_window_filtering/disparity_median.h"
 #include "matching/nearest_neighbour.h"
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
@@ -75,6 +78,40 @@ PipelineFactory::getReader(const op::variables_map &options) const {
     return reader;
   }
 
+  return nullptr;
+}
+
+std::unique_ptr<FrameWindowFiltering>
+PipelineFactory::getWindowFiltering(const op::variables_map &options) const {
+  std::string target =
+      options["pipeline-frame-window-filtering"].as<std::string>();
+  if (target == "disparity-gauss") {
+    auto ptr =
+        std::unique_ptr<DisparityGaussianBlur>(new DisparityGaussianBlur());
+    int k = options["disparity-gauss-k"].as<int>();
+    double sigma = options["disparity-gauss-sigma"].as<double>();
+    ptr->kx(k);
+    ptr->ky(k);
+    ptr->sigmax(sigma);
+    ptr->sigmay(sigma);
+    return ptr;
+  }
+  if (target == "disparity-median") {
+    auto ptr = std::unique_ptr<DisparityMedian>(new DisparityMedian());
+    int diameter = options["disparity-median-diameter"].as<int>();
+    ptr->diameter(diameter);
+    return ptr;
+  }
+  if (target == "disparity-bilateral") {
+    auto ptr = std::unique_ptr<DisparityBilateral>(new DisparityBilateral());
+    int diameter = options["disparity-bilateral-diameter"].as<int>();
+    double sigmaColor = options["disparity-bilateral-sigma-color"].as<double>();
+    double sigmaSpace = options["disparity-bilateral-sigma-space"].as<double>();
+    ptr->diameter(diameter);
+    ptr->sigmaColor(sigmaColor);
+    ptr->sigmaSpace(sigmaSpace);
+    return ptr;
+  }
   return nullptr;
 }
 

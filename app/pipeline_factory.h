@@ -20,6 +20,11 @@ private:
   /// Depending on the given options, choose, create and return a reader
   std::unique_ptr<Reader> getReader(const op::variables_map &options) const;
 
+  /// Depending on the given options, choose, create and return a frame window
+  /// filter
+  std::unique_ptr<FrameWindowFiltering>
+  getWindowFiltering(const op::variables_map &options) const;
+
   /// Depending on the given options, choose, create and return a registration
   /// module
   std::unique_ptr<Registration>
