@@ -10,6 +10,8 @@
 
 namespace MouseTrack {
 
+/// This class knows about all pipeline modules and how to connect them to
+/// create a valid Pipeline.
 class PipelineFactory {
 public:
   /// temporary solution until we have some internal representation of the

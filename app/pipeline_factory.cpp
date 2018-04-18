@@ -9,6 +9,7 @@
 #include "frame_window_filtering/disparity_bilateral.h"
 #include "frame_window_filtering/disparity_gaussian_blur.h"
 #include "frame_window_filtering/disparity_median.h"
+#include "frame_window_filtering/disparity_morphology.h"
 #include "matching/nearest_neighbour.h"
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
@@ -110,6 +111,45 @@ PipelineFactory::getWindowFiltering(const op::variables_map &options) const {
     ptr->diameter(diameter);
     ptr->sigmaColor(sigmaColor);
     ptr->sigmaSpace(sigmaSpace);
+    return ptr;
+  }
+  if (target == "disparity-morphology") {
+    auto ptr = std::make_unique<DisparityMorphology>();
+    int diameter = options["disparity-bilateral-diameter"].as<int>();
+    DisparityMorphology::KernelShape shape;
+    std::string shapeStr =
+        options["disparity-morphology-shape"].as<std::string>();
+    if (shapeStr == "rect") {
+      shape = DisparityMorphology::KernelShape::rect;
+    } else if (shapeStr == "ellipse") {
+      shape = DisparityMorphology::KernelShape::ellipse;
+    } else if (shapeStr == "cross") {
+      shape = DisparityMorphology::KernelShape::cross;
+    } else {
+      BOOST_LOG_TRIVIAL(warning)
+          << "Unknown disparity-morphology-shape: " << shapeStr
+          << ". Falling back to rect.";
+      shape = DisparityMorphology::KernelShape::rect;
+    }
+
+    DisparityMorphology::Morph operation;
+    std::string operationStr =
+        options["disparity-morophology-operation"].as<std::string>();
+
+    if (operationStr == "open") {
+      operation = DisparityMorphology::Morph::open;
+    } else if (operationStr == "close") {
+      operation = DisparityMorphology::Morph::close;
+    } else {
+      BOOST_LOG_TRIVIAL(warning)
+          << "Unknown disparity-morphology-operation: " << shapeStr
+          << ". Falling back to open.";
+      operation = DisparityMorphology::Morph::open;
+    }
+
+    ptr->diameter(diameter);
+    ptr->kernelShape(shape);
+    ptr->operation(operation);
     return ptr;
   }
   return nullptr;
