@@ -117,10 +117,7 @@ void Pipeline::_start() {
   _controller = std::thread([this]() { controllerStart(); });
 }
 
-void Pipeline::stop() {
-  std::lock_guard<std::mutex> lock(_controller_mutex);
-  _stop();
-}
+void Pipeline::stop() { _stop(); }
 
 void Pipeline::_stop() {
   BOOST_LOG_TRIVIAL(debug) << "Stop signal sent to controller thread.";
