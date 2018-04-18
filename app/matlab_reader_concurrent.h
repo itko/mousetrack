@@ -11,6 +11,7 @@ namespace MouseTrack {
 
 class MatlabReaderConcurrent : public MatlabReader {
 public:
+  /// Root directory to search (file content as extracted by the matlab script)
   MatlabReaderConcurrent(fs::path root_directory);
 
   virtual FrameWindow frameWindow(FrameNumber f) const;
