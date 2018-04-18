@@ -12,8 +12,8 @@
 
 namespace MouseTrack {
 
-std::vector<double> GenerateRandomColor();
+std::vector<std::vector<double>> GenerateNColors(int n);
 
-std::vector<double> ColorizePointCloud(PointCloud &pc);
+std::vector<double> GenerateRandomColor();
 
 } // namespace MouseTrack
