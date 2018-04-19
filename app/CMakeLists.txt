@@ -1,6 +1,9 @@
 # make app headers available
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+#Instruct CMake to run meta object compiler automatically when needed
+set(CMAKE_AUTOMOC ON)
+
 # list here all source files appart from main
 set(source_files
         cli_controller.cpp
@@ -18,6 +21,9 @@ set(source_files
 # list here all source files related with the gui
 set(gui_source_files
         qt_controller.cpp
+        main_window.cpp
+        gui_observer.cpp
+        gui_ref_img_view.cpp
         )
 
 # list here your testing files (*.test.cc) of your module
@@ -43,7 +49,7 @@ ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
 if(ENABLE_GUI)
   find_package(Qt5Core)
-  
+
   # Find the QtWidgets library
   find_package(Qt5Widgets)
   set(GUI_LIBRARIES
