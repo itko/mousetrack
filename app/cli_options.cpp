@@ -19,6 +19,21 @@ op::options_description cli_options() {
   ad("log,l", op::value<std::string>()->default_value("info"), "Set lowest log level to show. Possible options: trace, debug, info, warning, error, fatal, none. Default: info");
   ad("first-frame", op::value<int>(), "Desired lowest start frame (inclusive).");
   ad("last-frame", op::value<int>(), "Desired highest end frame (inclusive).");
+  ad("first-stream", op::value<int>(), "Desired lowest start stream (inclusive).");
+  ad("last-stream", op::value<int>(), "Desired highest end stream (inclusive).");
+
+  // pipeline modules
+  ad("pipeline-reader", op::value<std::string>()->default_value("matlab-concurrent"), "Which reader module to use. Valid values: none, matlab, matlab-concurrent");
+  ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
+  ad("pipeline-point-cloud-filtering", op::value<std::string>()->default_value("none"), "Which filtering modules to use. Valid values: none, subsample");
+  ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift");
+  ad("pipeline-descripting", op::value<std::string>()->default_value("cog"), "Which descripting module to use. Valid values: none, cog");
+  ad("pipeline-matching", op::value<std::string>()->default_value("nearest-neighbor"), "Which matching module to use. Valid values: none, nearest-neighbor");
+  ad("pipeline-trajectory-builder", op::value<std::string>()->default_value("raw-cog"), "Which matching module to use. Valid values: none, raw-cog");
+
+  // module settings
+
+  // mean-shift
   ad("subsample-to", op::value<int>()->default_value(100*000), "Subsample the points cloud such that there are only <n> points.");
   ad("mean-shift-sigma", op::value<double>()->default_value(0.01), "Sigma used for the mean-shift clustering.");
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");

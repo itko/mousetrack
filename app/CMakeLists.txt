@@ -7,6 +7,7 @@ set(source_files
         cli_options.cpp
         controller.cpp
         matlab_reader.cpp
+        matlab_reader_concurrent.cpp
         pipeline.cpp
         pipeline_observer.cpp
         pipeline_factory.cpp

@@ -4,6 +4,7 @@
 ///
 
 #include "pipeline.h"
+#include "generic/cluster_chain_accumulator.h"
 #include <boost/log/trivial.hpp>
 #include <iostream>
 
@@ -322,17 +323,7 @@ void Pipeline::processFrame(FrameIndex f) {
   forallObservers([=](PipelineObserver *o) { o->startControlPoints(f); });
   // append descriptors and clusters to cluster chain according to matches
   // vector
-  for (size_t i = 0; i < descriptors->size(); i += 1) {
-    int chainIndex = (*matches)[i];
-    if (chainIndex == -1) {
-      ClusterChain chain;
-      chainIndex = _clusterChains.size();
-      _clusterChains.push_back(chain);
-    }
-    auto &chain = _clusterChains[chainIndex];
-    chain.clusters()[f] = &(*clusters)[i];
-    chain.descriptors()[f] = (*descriptors)[i];
-  }
+  addToClusterChain(_clusterChains, *matches, f, *clusters, *descriptors);
 
   // get 3d control points for trajectory
   std::unique_ptr<std::vector<Eigen::Vector3d>> controlPointsPtr{
@@ -363,4 +354,4 @@ void Pipeline::processFrame(FrameIndex f) {
   forallObservers([=](PipelineObserver *o) { o->frameEnd(f); });
 }
 
-} // namespace MouseTrack
+} // MouseTrack
