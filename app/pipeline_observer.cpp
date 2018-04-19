@@ -37,7 +37,16 @@ void PipelineObserver::newFrameWindow(
   // empty
 }
 
-void PipelineObserver::startRegistration(FrameNumber f) {
+void PipelineObserver::startFrameWindowFiltering(FrameIndex f) {
+  // empty
+}
+
+void PipelineObserver::newFilteredFrameWindow(
+    FrameIndex f, std::shared_ptr<const FrameWindow> window) {
+  // empty
+}
+
+void PipelineObserver::startRegistration(FrameIndex f) {
   // empty
 }
 

@@ -7,6 +7,7 @@
 
 #include "clustering/clustering.h"
 #include "descripting/descripting.h"
+#include "frame_window_filtering/frame_window_filtering.h"
 #include "matching/matching.h"
 #include "pipeline_delegate.h"
 #include "pipeline_observer.h"
@@ -42,8 +43,9 @@ public:
 
   /// The first module pointer with a nullptr defines the end of the pipeline.
   Pipeline(std::unique_ptr<Reader> reader,
+           std::unique_ptr<FrameWindowFiltering> windowFiltering,
            std::unique_ptr<Registration> registration,
-           std::unique_ptr<PointCloudFiltering> filtering,
+           std::unique_ptr<PointCloudFiltering> cloudFiltering,
            std::unique_ptr<Clustering> clustering,
            std::unique_ptr<Descripting> descripting,
            std::unique_ptr<Matching> matching,
@@ -154,6 +156,7 @@ private:
   // pipeline steps
 
   std::unique_ptr<Reader> _reader;
+  std::unique_ptr<FrameWindowFiltering> _frameWindowFiltering;
   std::unique_ptr<Registration> _registration;
   std::unique_ptr<PointCloudFiltering> _cloudFiltering;
   std::unique_ptr<Clustering> _clustering;

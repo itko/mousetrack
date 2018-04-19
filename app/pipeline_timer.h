@@ -23,8 +23,13 @@ public:
   virtual void newFrameWindow(FrameNumber f,
                               std::shared_ptr<const FrameWindow> window);
 
-  virtual void startRegistration(FrameNumber f);
-  virtual void newRawPointCloud(FrameNumber f,
+  virtual void startFrameWindowFiltering(FrameIndex f);
+  virtual void
+  newFilteredFrameWindow(FrameIndex f,
+                         std::shared_ptr<const FrameWindow> window);
+
+  virtual void startRegistration(FrameIndex f);
+  virtual void newRawPointCloud(FrameIndex f,
                                 std::shared_ptr<const PointCloud> cloud);
 
   virtual void startPointCloudFiltering(FrameNumber f);

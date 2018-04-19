@@ -250,6 +250,10 @@ StreamNumber MatlabReader::beginStream() const { return _beginStream; }
 
 StreamNumber MatlabReader::endStream() const { return _endStream; }
 
+void MatlabReader::setBeginStream(StreamNumber s) { _beginStream = s; }
+
+void MatlabReader::setEndStream(StreamNumber s) { _endStream = s; }
+
 FrameNumber MatlabReader::beginFrame() const { return _beginFrame; }
 
 FrameNumber MatlabReader::endFrame() const { return _endFrame; }
@@ -270,6 +274,7 @@ FrameWindow MatlabReader::frameWindow(FrameNumber f) const {
   unsigned int count = endStream() - beginStream();
   std::vector<Frame> frames{count};
   Eigen::MatrixXd params = channelParameters(f);
+
   for (int s = beginStream(); s < endStream(); s += 1) {
     auto &frame = frames[s - beginStream()];
     // read stream dependent files
