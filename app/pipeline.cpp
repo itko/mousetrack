@@ -25,16 +25,16 @@ Pipeline::Pipeline(std::unique_ptr<Reader> reader,
                    std::unique_ptr<Descripting> descripting,
                    std::unique_ptr<Matching> matching,
                    std::unique_ptr<TrajectoryBuilder> trajectoryBuilder)
-    : _controller_should_run(false), 
+    : _controller_should_run(false),
       _controller_running(false),
-      _controller_terminated(true), 
+      _controller_terminated(true),
       _delegate(nullptr),
       _frameWindowFiltering(std::move(windowFiltering)),
-      _reader(std::move(reader)), 
+      _reader(std::move(reader)),
       _registration(std::move(registration)),
       _cloudFiltering(std::move(cloudFiltering)),
       _clustering(std::move(clustering)),
-      _descripting(std::move(descripting)), 
+      _descripting(std::move(descripting)),
       _matching(std::move(matching)),
       _trajectoryBuilder(std::move(trajectoryBuilder)) {
   // clang-format on
@@ -202,18 +202,7 @@ void Pipeline::runPipeline() {
       if (terminateEarly()) {
         return;
       }
-      try {
-        processFrame(f);
-      } catch (const std::string &e) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception while processing frame " << f << ": " << e;
-      } catch (char *e) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception while processing frame " << f << ": " << e;
-      } catch (const std::exception &e) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception while processing frame " << f << ": " << e.what();
-      }
+      processFrameSafe(f);
     }
   } else {
     // no delegate set, fall back to reader
@@ -221,18 +210,7 @@ void Pipeline::runPipeline() {
       if (terminateEarly()) {
         return;
       }
-      try {
-        processFrame(f);
-      } catch (const std::string &e) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception while processing frame " << f << ": " << e;
-      } catch (char *e) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception while processing frame " << f << ": " << e;
-      } catch (const std::exception &e) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception while processing frame " << f << ": " << e.what();
-      }
+      processFrameSafe(f);
     }
   }
 
@@ -243,7 +221,7 @@ void Pipeline::runPipeline() {
 
   forallObservers(
       [&chains](PipelineObserver *o) { o->newClusterChains(chains); });
-} // namespace MouseTrack
+}
 
 bool Pipeline::terminateEarly() {
   if (!_controller_should_run) {
@@ -251,6 +229,24 @@ bool Pipeline::terminateEarly() {
     return true;
   }
   return false;
+}
+
+void Pipeline::processFrameSafe(FrameNumber f) {
+  try {
+    processFrame(f);
+  } catch (const std::string &e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e;
+  } catch (char *e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e;
+  } catch (int e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e;
+  } catch (const std::exception &e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e.what();
+  }
 }
 
 void Pipeline::processFrame(FrameNumber f) {
