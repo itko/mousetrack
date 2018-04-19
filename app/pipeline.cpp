@@ -16,7 +16,7 @@ Pipeline::Pipeline()
   BOOST_LOG_TRIVIAL(debug) << "Constructing pipeline.";
 }
 
-  // clang-format off
+// clang-format off
 Pipeline::Pipeline(std::unique_ptr<Reader> reader,
                    std::unique_ptr<FrameWindowFiltering> windowFiltering,
                    std::unique_ptr<Registration> registration,
@@ -32,7 +32,7 @@ Pipeline::Pipeline(std::unique_ptr<Reader> reader,
       _frameWindowFiltering(std::move(windowFiltering)),
       _reader(std::move(reader)), 
       _registration(std::move(registration)),
-      _cloudFiltering(std::move(filtering)), 
+      _cloudFiltering(std::move(cloudFiltering)),
       _clustering(std::move(clustering)),
       _descripting(std::move(descripting)), 
       _matching(std::move(matching)),
@@ -409,4 +409,4 @@ void Pipeline::processFrame(FrameNumber f) {
   forallObservers([=](PipelineObserver *o) { o->frameEnd(f); });
 }
 
-} // MouseTrack
+} // namespace MouseTrack
