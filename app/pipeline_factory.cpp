@@ -29,6 +29,9 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
   }
   std::unique_ptr<Reader> reader = getReader(options);
 
+  std::unique_ptr<FrameWindowFiltering> windowFiltering =
+      getWindowFiltering(options);
+
   std::unique_ptr<Registration> registration{getRegistration(options)};
 
   std::unique_ptr<PointCloudFiltering> cloudFiltering{
@@ -42,10 +45,10 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
 
   std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{
       getTrajectoryBuilder(options)};
-  return Pipeline(std::move(reader), nullptr, std::move(registration),
-                  std::move(cloudFiltering), std::move(clustering),
-                  std::move(descripting), std::move(matching),
-                  std::move(trajectoryBuilder));
+  return Pipeline(std::move(reader), std::move(windowFiltering),
+                  std::move(registration), std::move(cloudFiltering),
+                  std::move(clustering), std::move(descripting),
+                  std::move(matching), std::move(trajectoryBuilder));
 }
 
 std::unique_ptr<Reader>
