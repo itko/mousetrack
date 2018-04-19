@@ -29,13 +29,13 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
   }
   std::unique_ptr<Reader> reader = getReader(options);
 
-  std::unique_ptr<FrameWindowFiltering> windowFiltering =
-      getWindowFiltering(options);
+  std::vector<std::unique_ptr<FrameWindowFiltering>> windowFiltering =
+      getWindowFilters(options);
 
   std::unique_ptr<Registration> registration{getRegistration(options)};
 
-  std::unique_ptr<PointCloudFiltering> cloudFiltering{
-      getCloudFiltering(options)};
+  std::vector<std::unique_ptr<PointCloudFiltering>> cloudFiltering{
+      getCloudFilters(options)};
 
   std::unique_ptr<Clustering> clustering{getClustering(options)};
 
@@ -45,10 +45,16 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
 
   std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{
       getTrajectoryBuilder(options)};
-  return Pipeline(std::move(reader), std::move(windowFiltering),
-                  std::move(registration), std::move(cloudFiltering),
-                  std::move(clustering), std::move(descripting),
-                  std::move(matching), std::move(trajectoryBuilder));
+  // clang-format off
+  return Pipeline(std::move(reader),
+                  std::move(windowFiltering),
+                  std::move(registration),
+                  std::move(cloudFiltering),
+                  std::move(clustering),
+                  std::move(descripting),
+                  std::move(matching),
+                  std::move(trajectoryBuilder));
+  // clang-format on
 }
 
 std::unique_ptr<Reader>
@@ -85,10 +91,27 @@ PipelineFactory::getReader(const op::variables_map &options) const {
   return nullptr;
 }
 
+std::vector<std::unique_ptr<FrameWindowFiltering>>
+PipelineFactory::getWindowFilters(const op::variables_map &options) const {
+  std::vector<std::unique_ptr<FrameWindowFiltering>> filters;
+  if (options.count("pipeline-frame-window-filtering") == 0) {
+    return filters;
+  }
+  std::vector<std::string> targets =
+      options["pipeline-frame-window-filtering"].as<std::vector<std::string>>();
+  for (const auto &target : targets) {
+    auto ptr = getWindowFiltering(target, options);
+    if (ptr.get() == nullptr) {
+      continue;
+    }
+    filters.push_back(std::move(ptr));
+  }
+  return filters;
+}
+
 std::unique_ptr<FrameWindowFiltering>
-PipelineFactory::getWindowFiltering(const op::variables_map &options) const {
-  std::string target =
-      options["pipeline-frame-window-filtering"].as<std::string>();
+PipelineFactory::getWindowFiltering(const std::string &target,
+                                    const op::variables_map &options) const {
   if (target == "disparity-gauss") {
     auto ptr =
         std::unique_ptr<DisparityGaussianBlur>(new DisparityGaussianBlur());
@@ -155,6 +178,11 @@ PipelineFactory::getWindowFiltering(const op::variables_map &options) const {
     ptr->operation(operation);
     return ptr;
   }
+  if (target == "none") {
+    return nullptr;
+  }
+  BOOST_LOG_TRIVIAL(info)
+      << "Could not create frame window filter for unknown target " << target;
   return nullptr;
 }
 
@@ -171,10 +199,27 @@ PipelineFactory::getRegistration(const op::variables_map &options) const {
   return nullptr;
 }
 
+std::vector<std::unique_ptr<PointCloudFiltering>>
+PipelineFactory::getCloudFilters(const op::variables_map &options) const {
+  std::vector<std::unique_ptr<PointCloudFiltering>> filters;
+  if (options.count("pipeline-point-cloud-filtering") == 0) {
+    return filters;
+  }
+  std::vector<std::string> targets =
+      options["pipeline-point-cloud-filtering"].as<std::vector<std::string>>();
+  for (const auto &target : targets) {
+    auto ptr = getCloudFiltering(target, options);
+    if (ptr.get() == nullptr) {
+      continue;
+    }
+    filters.push_back(std::move(ptr));
+  }
+  return filters;
+}
+
 std::unique_ptr<PointCloudFiltering>
-PipelineFactory::getCloudFiltering(const op::variables_map &options) const {
-  std::string target =
-      options["pipeline-point-cloud-filtering"].as<std::string>();
+PipelineFactory::getCloudFiltering(const std::string &target,
+                                   const op::variables_map &options) const {
   if (target == "subsample") {
     return std::unique_ptr<PointCloudFiltering>(
         new SubSample(options["subsample-to"].as<int>()));
@@ -185,6 +230,11 @@ PipelineFactory::getCloudFiltering(const op::variables_map &options) const {
     return std::unique_ptr<PointCloudFiltering>(
         new StatisticalOutlierRemoval(alpha, k));
   }
+  if (target == "none") {
+    return nullptr;
+  }
+  BOOST_LOG_TRIVIAL(info) << "Could not create cloud filter for unknown target "
+                          << target;
   return nullptr;
 }
 

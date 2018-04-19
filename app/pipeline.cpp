@@ -18,9 +18,9 @@ Pipeline::Pipeline()
 
 // clang-format off
 Pipeline::Pipeline(std::unique_ptr<Reader> reader,
-                   std::unique_ptr<FrameWindowFiltering> windowFiltering,
+                   std::vector<std::unique_ptr<FrameWindowFiltering>>&& windowFiltering,
                    std::unique_ptr<Registration> registration,
-                   std::unique_ptr<PointCloudFiltering> cloudFiltering,
+                   std::vector<std::unique_ptr<PointCloudFiltering>>&& cloudFiltering,
                    std::unique_ptr<Clustering> clustering,
                    std::unique_ptr<Descripting> descripting,
                    std::unique_ptr<Matching> matching,
@@ -246,14 +246,16 @@ void Pipeline::processFrame(FrameNumber f) {
   }
 
   // optional: frame window point cloud
-  if (_frameWindowFiltering != nullptr) {
+  if (!_frameWindowFiltering.empty()) {
     forallObservers(
         [=](PipelineObserver *o) { o->startFrameWindowFiltering(f); });
-    std::unique_ptr<FrameWindow> filteredFrameWindowPtr(new FrameWindow());
-    (*filteredFrameWindowPtr) = (*_frameWindowFiltering)(*window);
-    // replace raw frame window
-    window =
-        std::shared_ptr<const FrameWindow>{std::move(filteredFrameWindowPtr)};
+    for (const auto &filter : _frameWindowFiltering) {
+      std::unique_ptr<FrameWindow> filteredFrameWindowPtr(new FrameWindow());
+      (*filteredFrameWindowPtr) = (*filter)(*window);
+      // replace raw frame window
+      window =
+          std::shared_ptr<const FrameWindow>{std::move(filteredFrameWindowPtr)};
+    }
     forallObservers(
         [=](PipelineObserver *o) { o->newFilteredFrameWindow(f, window); });
 
@@ -283,14 +285,16 @@ void Pipeline::processFrame(FrameNumber f) {
   }
 
   // optional: filter point cloud
-  if (_cloudFiltering != nullptr) {
+  if (!_cloudFiltering.empty()) {
     forallObservers(
         [=](PipelineObserver *o) { o->startPointCloudFiltering(f); });
-    std::unique_ptr<PointCloud> filteredPointCloudPtr(new PointCloud());
-    (*filteredPointCloudPtr) = (*_cloudFiltering)(*pointCloud);
-    // replace raw point cloud
-    pointCloud =
-        std::shared_ptr<const PointCloud>{std::move(filteredPointCloudPtr)};
+    for (const auto &filter : _cloudFiltering) {
+      std::unique_ptr<PointCloud> filteredPointCloudPtr(new PointCloud());
+      (*filteredPointCloudPtr) = (*filter)(*pointCloud);
+      // replace raw point cloud
+      pointCloud =
+          std::shared_ptr<const PointCloud>{std::move(filteredPointCloudPtr)};
+    }
     forallObservers(
         [=](PipelineObserver *o) { o->newFilteredPointCloud(f, pointCloud); });
 

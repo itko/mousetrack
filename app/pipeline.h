@@ -43,9 +43,9 @@ public:
 
   /// The first module pointer with a nullptr defines the end of the pipeline.
   Pipeline(std::unique_ptr<Reader> reader,
-           std::unique_ptr<FrameWindowFiltering> windowFiltering,
+           std::vector<std::unique_ptr<FrameWindowFiltering>> &&windowFiltering,
            std::unique_ptr<Registration> registration,
-           std::unique_ptr<PointCloudFiltering> cloudFiltering,
+           std::vector<std::unique_ptr<PointCloudFiltering>> &&cloudFiltering,
            std::unique_ptr<Clustering> clustering,
            std::unique_ptr<Descripting> descripting,
            std::unique_ptr<Matching> matching,
@@ -156,9 +156,9 @@ private:
   // pipeline steps
 
   std::unique_ptr<Reader> _reader;
-  std::unique_ptr<FrameWindowFiltering> _frameWindowFiltering;
+  std::vector<std::unique_ptr<FrameWindowFiltering>> _frameWindowFiltering;
   std::unique_ptr<Registration> _registration;
-  std::unique_ptr<PointCloudFiltering> _cloudFiltering;
+  std::vector<std::unique_ptr<PointCloudFiltering>> _cloudFiltering;
   std::unique_ptr<Clustering> _clustering;
   std::unique_ptr<Descripting> _descripting;
   std::unique_ptr<Matching> _matching;
