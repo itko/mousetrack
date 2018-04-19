@@ -123,8 +123,8 @@ for image_index = startFrame:endIndex
     for i = 1:streams
         s = int2str(i);
         out_pics{i} = [output_path '/pic' '_s_' s '_f_' f '.png' ];
-        out_depths{i} = [output_path '/depth' '_s_' s '_f_' f '.png' ];
-        out_depthsCleaned{i} = [output_path '/depth_normalized' '_s_' s '_f_' f '.png' ];
+        out_depths{i} = [output_path '/disparity' '_s_' s '_f_' f '.png' ];
+        out_depthsCleaned{i} = [output_path '/disparity_normalized' '_s_' s '_f_' f '.png' ];
         out_ptCloud{i} = [output_path '/point_cloud' '_s_' s '_f_' f '.ply' ];
     end
     out_frame_params = [output_path '/params_f_' f '.csv'];

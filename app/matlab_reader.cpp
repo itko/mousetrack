@@ -53,16 +53,24 @@ struct IndexAggregateF {
 };
 
 // base file names for bag files
-const std::string NORMALIZED_DISPARITY_KEY{"depth_normalized"};
-const std::string RAW_DISPARITY_KEY{"depth"};
+const std::string NORMALIZED_DISPARITY_KEY{"disparity_normalized"};
+const std::string RAW_DISPARITY_KEY{"disparity"};
 const std::string FRAME_PARAMETERS_KEY{"params"};
 const std::string REFERENCE_PICTURE_KEY{"pic"};
 const std::string ROTATION_CORRECTION_KEY{"params_R"};
 const std::string CAMERA_CHAIN_KEY{"params_camchain"};
 
-const std::set<std::string> EXPECTED_CHANNELS{
-    NORMALIZED_DISPARITY_KEY, RAW_DISPARITY_KEY, FRAME_PARAMETERS_KEY,
-    REFERENCE_PICTURE_KEY};
+// clan-format off
+typedef std::pair<std::string, std::string> CM;
+const std::map<std::string, std::string> EXPECTED_CHANNELS{
+    CM(NORMALIZED_DISPARITY_KEY, NORMALIZED_DISPARITY_KEY),
+    CM("depth_normalized", NORMALIZED_DISPARITY_KEY), // historical
+    CM(RAW_DISPARITY_KEY, RAW_DISPARITY_KEY),
+    CM("depth", RAW_DISPARITY_KEY), // historical
+    CM(FRAME_PARAMETERS_KEY, FRAME_PARAMETERS_KEY),
+    CM(REFERENCE_PICTURE_KEY, REFERENCE_PICTURE_KEY)};
+// clang-format on
+
 const std::set<std::string> EXPECTED_FILES{ROTATION_CORRECTION_KEY,
                                            CAMERA_CHAIN_KEY};
 
@@ -121,7 +129,7 @@ void MatlabReader::preflight() {
       continue;
     }
     // we have now two different paths:
-    // p.path(): the representation we should use to recognize
+    // p.path(): the representation we should use to recognize the file
     // path: path to the actual file, might be called anything, but this is the
     // thing we want to store
     auto exp = EXPECTED_FILES.find(p.path().stem().string());
@@ -197,6 +205,11 @@ void MatlabReader::preflight() {
                               << ", does not match any expected file name.";
       _ignoredPaths.push_back(p.path());
       continue;
+    }
+    // normalize channel name of expected channel
+    auto chIt = EXPECTED_CHANNELS.find(channel);
+    if (chIt != EXPECTED_CHANNELS.end()) {
+      channel = chIt->second;
     }
     BOOST_LOG_TRIVIAL(trace) << "Adding frame file " << path.string()
                              << " from " << p.path().string();
