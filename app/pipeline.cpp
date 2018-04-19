@@ -202,7 +202,18 @@ void Pipeline::runPipeline() {
       if (terminateEarly()) {
         return;
       }
-      processFrame(f);
+      try {
+        processFrame(f);
+      } catch (const std::string &e) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception while processing frame " << f << ": " << e;
+      } catch (char *e) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception while processing frame " << f << ": " << e;
+      } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception while processing frame " << f << ": " << e.what();
+      }
     }
   } else {
     // no delegate set, fall back to reader
@@ -210,7 +221,18 @@ void Pipeline::runPipeline() {
       if (terminateEarly()) {
         return;
       }
-      processFrame(f);
+      try {
+        processFrame(f);
+      } catch (const std::string &e) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception while processing frame " << f << ": " << e;
+      } catch (char *e) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception while processing frame " << f << ": " << e;
+      } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception while processing frame " << f << ": " << e.what();
+      }
     }
   }
 
@@ -221,7 +243,7 @@ void Pipeline::runPipeline() {
 
   forallObservers(
       [&chains](PipelineObserver *o) { o->newClusterChains(chains); });
-}
+} // namespace MouseTrack
 
 bool Pipeline::terminateEarly() {
   if (!_controller_should_run) {
