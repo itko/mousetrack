@@ -137,7 +137,7 @@ PipelineFactory::getWindowFiltering(const op::variables_map &options) const {
 
     DisparityMorphology::Morph operation;
     std::string operationStr =
-        options["disparity-morophology-operation"].as<std::string>();
+        options["disparity-morphology-operation"].as<std::string>();
 
     if (operationStr == "open") {
       operation = DisparityMorphology::Morph::open;
