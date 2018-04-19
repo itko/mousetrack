@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Place this in your .git/hooks folder
+
+export PATH=`git rev-parse --git-dir`/../tools/:$PATH
+
+git clang-format -v
+# Possible predefined styles:
+# LLVM
+# Google
+# Chromium
+# Mozilla
+# WebKit
+
+# Change the code with:
+# git clang-format --extensions cpp,hpp -style=llvm -v

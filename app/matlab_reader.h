@@ -35,6 +35,12 @@ public:
   /// C++ convention: points to the first non existing stream at the end
   StreamNumber endStream() const;
 
+  /// Increase lower bound of frame range.
+  void setBeginStream(StreamNumber s);
+
+  /// Lower upper bound of frame range.
+  void setEndStream(StreamNumber s);
+
   /// index of first existing frame
   virtual FrameNumber beginFrame() const;
 
@@ -75,7 +81,7 @@ public:
   std::vector<Eigen::Matrix4d> camchain() const;
 
   /// Fetch all data belonging to frame f of all streams
-  FrameWindow frameWindow(FrameNumber f) const;
+  virtual FrameWindow frameWindow(FrameNumber f) const;
 
   /// Implement interface
   virtual FrameWindow operator()(FrameNumber f);
