@@ -17,8 +17,9 @@ Pipeline::Pipeline()
 }
 
 Pipeline::Pipeline(std::unique_ptr<Reader> reader,
+                   std::unique_ptr<FrameWindowFiltering> windowFiltering,
                    std::unique_ptr<Registration> registration,
-                   std::unique_ptr<PointCloudFiltering> filtering,
+                   std::unique_ptr<PointCloudFiltering> cloudFiltering,
                    std::unique_ptr<Clustering> clustering,
                    std::unique_ptr<Descripting> descripting,
                    std::unique_ptr<Matching> matching,
@@ -26,8 +27,10 @@ Pipeline::Pipeline(std::unique_ptr<Reader> reader,
     : _controller_should_run(false), _controller_running(false),
       _controller_terminated(true), _reader(std::move(reader)),
       _registration(std::move(registration)),
-      _cloudFiltering(std::move(filtering)), _clustering(std::move(clustering)),
-      _descripting(std::move(descripting)), _matching(std::move(matching)),
+      _frameWindowFiltering(std::move(windowFiltering)),
+      _cloudFiltering(std::move(cloudFiltering)),
+      _clustering(std::move(clustering)), _descripting(std::move(descripting)),
+      _matching(std::move(matching)),
       _trajectoryBuilder(std::move(trajectoryBuilder)) {
   // empty
 }
@@ -40,6 +43,7 @@ Pipeline::~Pipeline() noexcept(true) {
 void Pipeline::moveMembersFrom(Pipeline &p) {
   _observers = std::move(p._observers);
   _reader = std::move(p._reader);
+  _frameWindowFiltering = std::move(p._frameWindowFiltering);
   _registration = std::move(p._registration);
   _cloudFiltering = std::move(p._cloudFiltering);
   _clustering = std::move(p._clustering);
@@ -209,6 +213,24 @@ void Pipeline::processFrame(FrameIndex f) {
   if (terminateEarly()) {
     forallObservers([=](PipelineObserver *o) { o->frameEnd(f); });
     return;
+  }
+
+  // optional: frame window point cloud
+  if (_frameWindowFiltering != nullptr) {
+    forallObservers(
+        [=](PipelineObserver *o) { o->startFrameWindowFiltering(f); });
+    std::unique_ptr<FrameWindow> filteredFrameWindowPtr(new FrameWindow());
+    (*filteredFrameWindowPtr) = (*_frameWindowFiltering)(*window);
+    // replace raw frame window
+    window =
+        std::shared_ptr<const FrameWindow>{std::move(filteredFrameWindowPtr)};
+    forallObservers(
+        [=](PipelineObserver *o) { o->newFilteredFrameWindow(f, window); });
+
+    if (terminateEarly()) {
+      forallObservers([=](PipelineObserver *o) { o->frameEnd(f); });
+      return;
+    }
   }
 
   // get raw point cloud

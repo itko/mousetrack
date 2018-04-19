@@ -37,8 +37,7 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
 
   std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{
       getTrajectoryBuilder(options)};
-
-  return Pipeline(std::move(reader), std::move(registration),
+  return Pipeline(std::move(reader), nullptr, std::move(registration),
                   std::move(cloudFiltering), std::move(clustering),
                   std::move(descripting), std::move(matching),
                   std::move(trajectoryBuilder));
