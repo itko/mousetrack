@@ -24,7 +24,7 @@ op::options_description cli_options() {
 
   // pipeline modules
   ad("pipeline-reader", op::value<std::string>()->default_value("matlab-concurrent"), "Which reader module to use. Valid values: none, matlab, matlab-concurrent");
-  ad("pipeline-frame-window-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral, disparity-morphology");
+  ad("pipeline-frame-window-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral, disparity-morph-open, disparity-morph-close");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
   ad("pipeline-point-cloud-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
   ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift");
@@ -36,14 +36,15 @@ op::options_description cli_options() {
 
   // frame window post processing
   ad("disparity-gauss-k", op::value<int>()->default_value(3), "Patch diameter in x/y direction, must be positive and integer. k = 0 results in a 1x1 patch size.");
-  ad("disparity-gauss-sigma", op::value<double>()->default_value(0.5), "Gaussian standard deviation in x/y direction, must be positive.");
+  ad("disparity-gauss-sigma", op::value<double>(), "Gaussian standard deviation in x/y direction, must be positive, default: 0.3*k + 0.8.");
   ad("disparity-bilateral-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
   ad("disparity-bilateral-sigma-color", op::value<double>()->default_value(0.1), "Filter sigma in color space.");
   ad("disparity-bilateral-sigma-space", op::value<double>()->default_value(50), "Filter sigma in coordinate space.");
   ad("disparity-median-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
-  ad("disparity-morphology-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
-  ad("disparity-morphology-operation", op::value<std::string>()->default_value("open"), "Specific morphological operation. Valid values: open, close");
-  ad("disparity-morphology-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
+  ad("disparity-morph-open-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-morph-open-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
+  ad("disparity-morph-close-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-morph-close-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
 
   // point cloud post processing
 

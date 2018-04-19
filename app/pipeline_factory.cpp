@@ -109,6 +109,23 @@ PipelineFactory::getWindowFilters(const op::variables_map &options) const {
   return filters;
 }
 
+DisparityMorphology::KernelShape morphShapeToEnum(const std::string &shapeStr) {
+  DisparityMorphology::KernelShape shape;
+  if (shapeStr == "rect") {
+    shape = DisparityMorphology::KernelShape::rect;
+  } else if (shapeStr == "ellipse") {
+    shape = DisparityMorphology::KernelShape::ellipse;
+  } else if (shapeStr == "cross") {
+    shape = DisparityMorphology::KernelShape::cross;
+  } else {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Unknown disparity-morphology-shape: " << shapeStr
+        << ". Falling back to rect.";
+    shape = DisparityMorphology::KernelShape::rect;
+  }
+  return shape;
+}
+
 std::unique_ptr<FrameWindowFiltering>
 PipelineFactory::getWindowFiltering(const std::string &target,
                                     const op::variables_map &options) const {
@@ -116,7 +133,12 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     auto ptr =
         std::unique_ptr<DisparityGaussianBlur>(new DisparityGaussianBlur());
     int k = options["disparity-gauss-k"].as<int>();
-    double sigma = options["disparity-gauss-sigma"].as<double>();
+    double sigma;
+    if (options.count("disparity-gauss-sigam")) {
+      sigma = options["disparity-gauss-sigma"].as<double>();
+    } else {
+      sigma = 0.3 * k + 0.8;
+    }
     ptr->kx(k);
     ptr->ky(k);
     ptr->sigmax(sigma);
@@ -139,43 +161,30 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     ptr->sigmaSpace(sigmaSpace);
     return ptr;
   }
-  if (target == "disparity-morphology") {
+  if (target == "disparity-morph-open") {
     auto ptr = std::make_unique<DisparityMorphology>();
-    int diameter = options["disparity-bilateral-diameter"].as<int>();
-    DisparityMorphology::KernelShape shape;
+    ptr->operation(DisparityMorphology::open);
+
+    int diameter = options["disparity-morph-open-diameter"].as<int>();
     std::string shapeStr =
-        options["disparity-morphology-shape"].as<std::string>();
-    if (shapeStr == "rect") {
-      shape = DisparityMorphology::KernelShape::rect;
-    } else if (shapeStr == "ellipse") {
-      shape = DisparityMorphology::KernelShape::ellipse;
-    } else if (shapeStr == "cross") {
-      shape = DisparityMorphology::KernelShape::cross;
-    } else {
-      BOOST_LOG_TRIVIAL(warning)
-          << "Unknown disparity-morphology-shape: " << shapeStr
-          << ". Falling back to rect.";
-      shape = DisparityMorphology::KernelShape::rect;
-    }
-
-    DisparityMorphology::Morph operation;
-    std::string operationStr =
-        options["disparity-morphology-operation"].as<std::string>();
-
-    if (operationStr == "open") {
-      operation = DisparityMorphology::Morph::open;
-    } else if (operationStr == "close") {
-      operation = DisparityMorphology::Morph::close;
-    } else {
-      BOOST_LOG_TRIVIAL(warning)
-          << "Unknown disparity-morphology-operation: " << shapeStr
-          << ". Falling back to open.";
-      operation = DisparityMorphology::Morph::open;
-    }
+        options["disparity-morph-open-shape"].as<std::string>();
+    DisparityMorphology::KernelShape shape = morphShapeToEnum(shapeStr);
 
     ptr->diameter(diameter);
     ptr->kernelShape(shape);
-    ptr->operation(operation);
+    return ptr;
+  }
+  if (target == "disparity-morph-close") {
+    auto ptr = std::make_unique<DisparityMorphology>();
+    ptr->operation(DisparityMorphology::open);
+
+    int diameter = options["disparity-morph-close-diameter"].as<int>();
+    std::string shapeStr =
+        options["disparity-morph-close-shape"].as<std::string>();
+    DisparityMorphology::KernelShape shape = morphShapeToEnum(shapeStr);
+
+    ptr->diameter(diameter);
+    ptr->kernelShape(shape);
     return ptr;
   }
   if (target == "none") {
