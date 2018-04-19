@@ -33,7 +33,7 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
   }
 }
 
-void PipelineWriter::newRawPointCloud(FrameIndex f,
+void PipelineWriter::newRawPointCloud(FrameNumber f,
                                       std::shared_ptr<const PointCloud> cloud) {
   _clouds[f] = cloud;
   fs::path path = _outputDir / insertFrame(_rawPointCloudPath, f);
@@ -41,7 +41,7 @@ void PipelineWriter::newRawPointCloud(FrameIndex f,
 }
 
 void PipelineWriter::newFilteredPointCloud(
-    FrameIndex f, std::shared_ptr<const PointCloud> cloud) {
+    FrameNumber f, std::shared_ptr<const PointCloud> cloud) {
   // overwrite rawPointCloud
   _clouds[f] = cloud;
 
@@ -50,7 +50,7 @@ void PipelineWriter::newFilteredPointCloud(
 }
 
 void PipelineWriter::newClusters(
-    FrameIndex f, std::shared_ptr<const std::vector<Cluster>> clusters) {
+    FrameNumber f, std::shared_ptr<const std::vector<Cluster>> clusters) {
   _clusters[f] = clusters;
   std::vector<std::vector<PointIndex>> tmp;
   tmp.reserve(clusters->size());
@@ -86,14 +86,14 @@ void PipelineWriter::newClusters(
 }
 
 void PipelineWriter::newDescriptors(
-    FrameIndex,
+    FrameNumber,
     std::shared_ptr<
         const std::vector<std::shared_ptr<const ClusterDescriptor>>>) {
   // empty
 }
 
 void PipelineWriter::newMatches(
-    FrameIndex f, std::shared_ptr<const std::vector<long>> matches) {
+    FrameNumber f, std::shared_ptr<const std::vector<long>> matches) {
   std::vector<std::vector<long>> tmp;
   tmp.push_back(*matches);
 
@@ -102,7 +102,7 @@ void PipelineWriter::newMatches(
 }
 
 void PipelineWriter::newControlPoints(
-    FrameIndex f,
+    FrameNumber f,
     std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints) {
   const int dimensions = 3;
   std::vector<std::vector<double>> tmp(controlPoints->size());
@@ -117,7 +117,7 @@ void PipelineWriter::newControlPoints(
 }
 
 std::string PipelineWriter::insertFrame(const std::string &templatePath,
-                                        FrameIndex f) const {
+                                        FrameNumber f) const {
   return boost::replace_all_copy(templatePath, "<frameNumber>",
                                  std::to_string(f));
 }
@@ -125,7 +125,7 @@ std::string PipelineWriter::insertFrame(const std::string &templatePath,
 void PipelineWriter::newClusterChains(
     std::shared_ptr<const std::vector<ClusterChain>> chains) {
   for (auto cloudIt : _clouds) {
-    FrameIndex f = cloudIt.first;
+    FrameNumber f = cloudIt.first;
     PointCloud cloud = *cloudIt.second;
     for (size_t chainIndex = 0; chainIndex < chains->size(); ++chainIndex) {
       const ClusterChain &chain = (*chains)[chainIndex];

@@ -15,12 +15,12 @@ public:
 
   virtual void pipelineTerminated();
 
-  virtual void frameStart(FrameIndex frame);
+  virtual void frameStart(FrameNumber frame);
 
-  virtual void frameEnd(FrameIndex frame);
+  virtual void frameEnd(FrameNumber frame);
 
-  virtual void startFrameWindow(FrameIndex f);
-  virtual void newFrameWindow(FrameIndex f,
+  virtual void startFrameWindow(FrameNumber f);
+  virtual void newFrameWindow(FrameNumber f,
                               std::shared_ptr<const FrameWindow> window);
 
   virtual void startFrameWindowFiltering(FrameIndex f);
@@ -32,35 +32,35 @@ public:
   virtual void newRawPointCloud(FrameIndex f,
                                 std::shared_ptr<const PointCloud> cloud);
 
-  virtual void startPointCloudFiltering(FrameIndex f);
-  virtual void newFilteredPointCloud(FrameIndex f,
+  virtual void startPointCloudFiltering(FrameNumber f);
+  virtual void newFilteredPointCloud(FrameNumber f,
                                      std::shared_ptr<const PointCloud> cloud);
 
-  virtual void startClustering(FrameIndex f);
+  virtual void startClustering(FrameNumber f);
   virtual void
-  newClusters(FrameIndex f,
+  newClusters(FrameNumber f,
               std::shared_ptr<const std::vector<Cluster>> clusters);
 
-  virtual void startDescripting(FrameIndex f);
+  virtual void startDescripting(FrameNumber f);
   virtual void newDescriptors(
-      FrameIndex f,
+      FrameNumber f,
       std::shared_ptr<
           const std::vector<std::shared_ptr<const ClusterDescriptor>>>
           descriptors);
 
-  virtual void startMatching(FrameIndex f);
-  virtual void newMatches(FrameIndex f,
+  virtual void startMatching(FrameNumber f);
+  virtual void newMatches(FrameNumber f,
                           std::shared_ptr<const std::vector<long>> matches);
 
-  virtual void startControlPoints(FrameIndex f);
+  virtual void startControlPoints(FrameNumber f);
   virtual void newControlPoints(
-      FrameIndex f,
+      FrameNumber f,
       std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints);
 
 private:
-  typedef std::pair<FrameIndex, std::string> Key;
-  void startTimer(FrameIndex f, const std::string &key);
-  void stopTimer(FrameIndex f, const std::string &key);
+  typedef std::pair<FrameNumber, std::string> Key;
+  void startTimer(FrameNumber f, const std::string &key);
+  void stopTimer(FrameNumber f, const std::string &key);
   std::map<Key, std::chrono::system_clock::time_point> _starts;
 };
 

@@ -16,6 +16,7 @@ Pipeline::Pipeline()
   BOOST_LOG_TRIVIAL(debug) << "Constructing pipeline.";
 }
 
+// clang-format off
 Pipeline::Pipeline(std::unique_ptr<Reader> reader,
                    std::unique_ptr<FrameWindowFiltering> windowFiltering,
                    std::unique_ptr<Registration> registration,
@@ -24,14 +25,19 @@ Pipeline::Pipeline(std::unique_ptr<Reader> reader,
                    std::unique_ptr<Descripting> descripting,
                    std::unique_ptr<Matching> matching,
                    std::unique_ptr<TrajectoryBuilder> trajectoryBuilder)
-    : _controller_should_run(false), _controller_running(false),
-      _controller_terminated(true), _reader(std::move(reader)),
-      _registration(std::move(registration)),
+    : _controller_should_run(false), 
+      _controller_running(false),
+      _controller_terminated(true), 
+      _delegate(nullptr),
       _frameWindowFiltering(std::move(windowFiltering)),
+      _reader(std::move(reader)), 
+      _registration(std::move(registration)),
       _cloudFiltering(std::move(cloudFiltering)),
-      _clustering(std::move(clustering)), _descripting(std::move(descripting)),
+      _clustering(std::move(clustering)),
+      _descripting(std::move(descripting)), 
       _matching(std::move(matching)),
       _trajectoryBuilder(std::move(trajectoryBuilder)) {
+  // clang-format on
   // empty
 }
 
@@ -41,6 +47,7 @@ Pipeline::~Pipeline() noexcept(true) {
 }
 
 void Pipeline::moveMembersFrom(Pipeline &p) {
+  _delegate = std::move(p._delegate);
   _observers = std::move(p._observers);
   _reader = std::move(p._reader);
   _frameWindowFiltering = std::move(p._frameWindowFiltering);
@@ -136,6 +143,19 @@ void Pipeline::_join() {
   _controller_terminated = true;
 }
 
+// delegate handling
+
+void Pipeline::setDelegate(PipelineDelegate *delegate) {
+  std::lock_guard<std::mutex> lock(_observer_mutex);
+  // note: this cases tries to catch undefined behavior but it is not thread
+  // safe
+  if (delegate == nullptr && !_controller_terminated) {
+    throw "It is invalid to set the delegate to nullptr while the pipeline is "
+          "running";
+  }
+  _delegate = delegate;
+}
+
 // observer handling
 
 void Pipeline::addObserver(PipelineObserver *observer) {
@@ -174,11 +194,24 @@ void Pipeline::runPipeline() {
 
   _clusterChains.clear();
 
-  for (FrameIndex f = _reader->beginFrame(); f < _reader->endFrame(); f += 1) {
-    if (terminateEarly()) {
-      return;
+  if (_delegate != nullptr) {
+    // we have a delegate, use it
+    while (askDelegate([](PipelineDelegate *d) { return d->hasNextFrame(); })) {
+      FrameNumber f =
+          askDelegate([](PipelineDelegate *d) { return d->nextFrame(); });
+      if (terminateEarly()) {
+        return;
+      }
+      processFrame(f);
     }
-    processFrame(f);
+  } else {
+    // no delegate set, fall back to reader
+    for (FrameNumber f = _reader->beginFrame(); f < _reader->endFrame(); ++f) {
+      if (terminateEarly()) {
+        return;
+      }
+      processFrame(f);
+    }
   }
 
   std::unique_ptr<std::vector<ClusterChain>> chainsPtr{
@@ -198,7 +231,7 @@ bool Pipeline::terminateEarly() {
   return false;
 }
 
-void Pipeline::processFrame(FrameIndex f) {
+void Pipeline::processFrame(FrameNumber f) {
   // tell everybody we're starting to process frame f
   BOOST_LOG_TRIVIAL(debug) << "Processing frame " << f;
   forallObservers([=](PipelineObserver *o) { o->frameStart(f); });
@@ -376,4 +409,4 @@ void Pipeline::processFrame(FrameIndex f) {
   forallObservers([=](PipelineObserver *o) { o->frameEnd(f); });
 }
 
-} // MouseTrack
+} // namespace MouseTrack

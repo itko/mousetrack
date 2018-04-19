@@ -14,22 +14,22 @@ namespace MouseTrack {
 class PipelineWriter : public PipelineObserver {
 public:
   PipelineWriter(fs::path targetDir);
-  virtual void newRawPointCloud(FrameIndex f,
+  virtual void newRawPointCloud(FrameNumber f,
                                 std::shared_ptr<const PointCloud> cloud);
-  virtual void newFilteredPointCloud(FrameIndex f,
+  virtual void newFilteredPointCloud(FrameNumber f,
                                      std::shared_ptr<const PointCloud> cloud);
   virtual void
-  newClusters(FrameIndex f,
+  newClusters(FrameNumber f,
               std::shared_ptr<const std::vector<Cluster>> clusters);
   virtual void newDescriptors(
-      FrameIndex f,
+      FrameNumber f,
       std::shared_ptr<
           const std::vector<std::shared_ptr<const ClusterDescriptor>>>
           descriptors);
-  virtual void newMatches(FrameIndex f,
+  virtual void newMatches(FrameNumber f,
                           std::shared_ptr<const std::vector<long>> matches);
   virtual void newControlPoints(
-      FrameIndex f,
+      FrameNumber f,
       std::shared_ptr<const std::vector<Eigen::Vector3d>> controlPoints);
 
   virtual void
@@ -45,11 +45,11 @@ private:
   std::string _matchesPath;
   std::string _controlPointsPath;
   std::string _chainedPointCloudPath;
-  std::unordered_map<FrameIndex, std::shared_ptr<const PointCloud>> _clouds;
-  std::unordered_map<FrameIndex, std::shared_ptr<const std::vector<Cluster>>>
+  std::unordered_map<FrameNumber, std::shared_ptr<const PointCloud>> _clouds;
+  std::unordered_map<FrameNumber, std::shared_ptr<const std::vector<Cluster>>>
       _clusters;
 
-  std::string insertFrame(const std::string &templatePath, FrameIndex f) const;
+  std::string insertFrame(const std::string &templatePath, FrameNumber f) const;
 
   /// index in [0, totalClusters)
   Eigen::Vector3d colorForCluster(int clusterIndex, int totalClusters) const;
