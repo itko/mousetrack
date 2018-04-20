@@ -95,8 +95,8 @@ PipelineFactory::getCloudFiltering(const op::variables_map &options) const {
   std::string target =
       options["pipeline-point-cloud-filtering"].as<std::string>();
   if (target == "subsample") {
-    return std::unique_ptr<PointCloudFiltering>(
-        new SubSample(options["subsample-to"].as<int>()));
+    int desired = options["subsample-to"].as<int>();
+    return std::unique_ptr<PointCloudFiltering>(new SubSample(desired));
   }
   return nullptr;
 }

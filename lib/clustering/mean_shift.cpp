@@ -94,9 +94,13 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
     }
   }
 
+  BOOST_LOG_TRIVIAL(debug) << "Merging points to clusters";
   // Merge step
   // For every mode..
   for (int i = 0; i < currCenters.size(); i++) {
+    if (i % 1024 == 0) {
+      BOOST_LOG_TRIVIAL(trace) << "Merging into " << i;
+    }
     // Check modes we haven't already executed the (i)-loop for
     for (int j = i + 1; j < currCenters.size(); j++) {
       Eigen::VectorXd diff = currCenters[i] - currCenters[j];
