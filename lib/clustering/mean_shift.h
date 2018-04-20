@@ -8,12 +8,15 @@
 
 #include "clustering.h"
 #include "generic/cluster.h"
+#include "spatial/oracle_factory.h"
 #include <Eigen/Core>
 #include <vector>
 
 /// ***The Mean Shift Algorithm***
 /// Goal: assign each given point to a cluster based on the nearest local
-/// maximum of the point density. Algorithm:
+/// maximum of the point density.
+///
+/// Algorithm:
 /// 1. At each point location, a cluster is initialized.
 /// 2. For each cluster i:
 ///    i) Apply a gaussian kernel centered at the location of i to all points.
@@ -27,10 +30,14 @@
 namespace MouseTrack {
 class MeanShift : public Clustering {
 public:
+  typedef OracleFactory<double> OFactory;
+  typedef OFactory::Oracle Oracle;
+
   /// window_size is the sigma for the gaussian kernel
   MeanShift(double window_size);
+
   /// Performs MeanShift algorithm
-  std::vector<Cluster> operator()(const PointCloud &cloud) const;
+  virtual std::vector<Cluster> operator()(const PointCloud &cloud) const;
 
   void setMaxIterations(int max_iterations);
   int getMaxIterations() const;
@@ -40,6 +47,24 @@ public:
 
   void setConvergenceThreshold(double convergence_threshold);
   double getConvergenceThreshold() const;
+
+  void setWindowSize(double window_size);
+  double getWindowSize() const;
+
+  /// modify factory settings
+  OFactory &oracleFactory();
+
+  /// query factory
+  const OFactory &oracleFactory() const;
+
+protected:
+  /// Converge points according to mean shift procedure
+  virtual std::vector<Eigen::VectorXd>
+  convergePoints(const Oracle::PointList &points) const;
+
+  /// Merge the converged points into clusters
+  virtual std::vector<Cluster>
+  mergePoints(std::vector<Eigen::VectorXd> &points) const;
 
 private:
   /// when two peaks are closer than this, they are merged. Must be larger than
@@ -64,6 +89,8 @@ private:
   /// Performs one iteration of the mean shift algorithm for a single mode
   Eigen::VectorXd iterate_mode(const Eigen::VectorXd mode,
                                const std::vector<Eigen::VectorXd> &state) const;
+
+  OFactory _oracleFactory;
 };
 
 } // namespace MouseTrack

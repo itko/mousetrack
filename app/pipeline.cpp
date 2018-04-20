@@ -235,7 +235,7 @@ void Pipeline::processFrameSafe(FrameNumber f) {
   } catch (const std::string &e) {
     BOOST_LOG_TRIVIAL(warning)
         << "Exception while processing frame " << f << ": " << e;
-  } catch (char *e) {
+  } catch (const char *e) {
     BOOST_LOG_TRIVIAL(warning)
         << "Exception while processing frame " << f << ": " << e;
   } catch (int e) {

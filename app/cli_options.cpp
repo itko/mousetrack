@@ -27,7 +27,7 @@ op::options_description cli_options() {
   ad("pipeline-frame-window-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral, disparity-morph-open, disparity-morph-close");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
   ad("pipeline-point-cloud-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
-  ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift, single-cluster");
+  ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, single-cluster, mean-shift, mean-shift-cpu-optimized, kmeans");
   ad("pipeline-descripting", op::value<std::string>()->default_value("cog"), "Which descripting module to use. Valid values: none, cog");
   ad("pipeline-matching", op::value<std::string>()->default_value("nearest-neighbor"), "Which matching module to use. Valid values: none, nearest-neighbor");
   ad("pipeline-trajectory-builder", op::value<std::string>()->default_value("raw-cog"), "Which matching module to use. Valid values: none, raw-cog");
@@ -52,7 +52,7 @@ op::options_description cli_options() {
   ad("subsample-to", op::value<int>()->default_value(100*1000), "Subsample the points cloud such that there are only <n> points.");
 
   // statistical outlier removal
-  ad("statistical-outlier-removal-alpha", op::value<double>()->default_value(1.0), "Range within which points are inliers: [-alpha * stddev, slpha * stddev]");
+  ad("statistical-outlier-removal-alpha", op::value<double>()->default_value(1.0), "Range within which points are inliers: [-alpha * stddev, alpha * stddev]");
   ad("statistical-outlier-removal-k", op::value<int>()->default_value(30), "K neighbors to take into account.");
 
   // clustering
@@ -62,6 +62,12 @@ op::options_description cli_options() {
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");
   ad("mean-shift-merge-threshold", op::value<double>()->default_value(0.001), "Maximum distance of two clusters such that they can still merge");
   ad("mean-shift-convergence-threshold", op::value<double>()->default_value(0.0001), "Maximum distance a point is allowed to travel in an iteration and still being classified as converged.");
+  ad("mean-shift-oracle", op::value<std::string>()->default_value("uniform-grid"), "Which spatial acceleration should be used? valid values: brute-force, uniform-grid, flann");
+
+  // k-means
+  ad("kmeans-k", op::value<unsigned int>()->default_value(50), "Number of expected clusters.");
+  ad("kmeans-oracle", op::value<std::string>()->default_value("flann"), "Which spatial acceleration should be used? valid values: brute-force, uniform-grid, flann");
+
   // clang-format on
   return desc;
 }

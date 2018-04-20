@@ -6,6 +6,7 @@
 #pragma once
 
 #include "pipeline.h"
+#include "spatial/oracle_factory.h"
 #include "types.h"
 
 namespace MouseTrack {
@@ -19,6 +20,7 @@ public:
   Pipeline fromCliOptions(const op::variables_map &options) const;
 
 private:
+  typedef OracleFactoryXd OFactory;
   /// Depending on the given options, choose, create and return a reader
   std::unique_ptr<Reader> getReader(const op::variables_map &options) const;
 
@@ -65,6 +67,9 @@ private:
   /// builder module
   std::unique_ptr<TrajectoryBuilder>
   getTrajectoryBuilder(const op::variables_map &options) const;
+
+  /// Choose a value from the Oracles enum based on a given string
+  OFactory::Oracles getOracle(const std::string &oracleKey) const;
 };
 
 } // namespace MouseTrack
