@@ -91,6 +91,7 @@ cams{4} = select(bag, 'Topic', '/uvc_baseboard1/cam_2/camera_info');
 
 % find common image range
 lowestIndex = min([img_streams.NumMessages]);
+highestIndex = max([img_streams.NumMessages]);
 
 % hope the first image exists to preallocate our array
 msg = readMessages(img_streams(1), 1);
@@ -112,7 +113,7 @@ ccy = zeros(streams, 1);
 % initialize point clouds
 xyzPoints = cell(streams, 1);
 
-endIndex = min(lowestIndex, startFrame + maxProcessFrames);
+endIndex = min(highestIndex, startFrame + maxProcessFrames);
 
 for image_index = startFrame:endIndex
     progress = ['Extracting: ' int2str(image_index) '/' int2str(lowestIndex) ];
@@ -123,8 +124,8 @@ for image_index = startFrame:endIndex
     for i = 1:streams
         s = int2str(i);
         out_pics{i} = [output_path '/pic' '_s_' s '_f_' f '.png' ];
-        out_depths{i} = [output_path '/depth' '_s_' s '_f_' f '.png' ];
-        out_depthsCleaned{i} = [output_path '/depth_normalized' '_s_' s '_f_' f '.png' ];
+        out_depths{i} = [output_path '/disparity' '_s_' s '_f_' f '.png' ];
+        out_depthsCleaned{i} = [output_path '/disparity_normalized' '_s_' s '_f_' f '.png' ];
         out_ptCloud{i} = [output_path '/point_cloud' '_s_' s '_f_' f '.ply' ];
     end
     out_frame_params = [output_path '/params_f_' f '.csv'];
@@ -151,6 +152,10 @@ for image_index = startFrame:endIndex
 
     % core processing: extract images, disparity maps, parameters
     for i = 1:streams
+        if img_streams(2*i-1).NumMessages < image_index
+            % missing data, skip
+            continue;
+        end
         %get camera instrinsics and baseline values from camera info messages
         camMsg = readMessages(cams{i},image_index);
         focallengths(i) = camMsg{1}.K(1);
@@ -176,6 +181,10 @@ for image_index = startFrame:endIndex
 
     % write first batch of data
     for i = 1:streams
+        if img_streams(2*i-1).NumMessages < image_index
+            % missing data, skip
+            continue;
+        end
         imwrite(pics{i}, out_pics{i});
         imwrite(depths{i}, out_depths{i});
         cleaned = uint8(depthsCleaned{i});
@@ -201,6 +210,10 @@ for image_index = startFrame:endIndex
         yRange = (1+frame):1:(h-frame);
         xRange = (1+frame):1:(w-frame);
         for i = 1:streams
+            if img_streams(2*i-1).NumMessages < image_index
+                % missing data, skip
+                continue;
+            end
             xyzPoints{i} = single(zeros(h,w,3));
             T = eye(4);
             for iter = 2:i
@@ -229,11 +242,19 @@ for image_index = startFrame:endIndex
         % concatenate point clouds to get one large cloud
         xyzPointsTotal = [];
         for i = 1:streams
+            if img_streams(2*i-1).NumMessages < image_index
+                % missing data, skip
+                continue;
+            end
             xyzPointsTotal = [xyzPointsTotal, xyzPoints{i}];
         end
 
         % write point clouds
         for i = 1:streams
+            if img_streams(2*i-1).NumMessages < image_index
+                % missing data, skip
+                continue;
+            end
             ptCloud = pointCloud(xyzPoints{i});
             pcwrite(ptCloud, out_ptCloud{i}, 'PLYFormat', 'binary');
         end
