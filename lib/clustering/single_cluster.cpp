@@ -18,7 +18,7 @@ SingleCluster::SingleCluster() {
 
 std::vector<Cluster> SingleCluster::operator()(const PointCloud &cloud) const {
   BOOST_LOG_TRIVIAL(trace) << "SingleCluster started";
-  // Initialize return vector
+  //Create vector with single cluster containing all the points
   std::vector<Cluster> cluster_vec(1);
   cluster_vec[0].points().resize(cloud.size());
   std::iota(cluster_vec[0].points().begin(), cluster_vec[0].points().end(), 0);

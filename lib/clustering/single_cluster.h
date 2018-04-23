@@ -10,7 +10,7 @@
 #include "generic/cluster.h"
 #include <vector>
 
-
+/// Throws all the points in a single cluster. This exists for debug purposes.
 
 namespace MouseTrack {
 class SingleCluster : public Clustering {
