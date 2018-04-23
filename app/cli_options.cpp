@@ -34,7 +34,7 @@ op::options_description cli_options() {
   // module settings
 
   // mean-shift
-  ad("subsample-to", op::value<int>()->default_value(100*000), "Subsample the points cloud such that there are only <n> points.");
+  ad("subsample-to", op::value<int>()->default_value(100*1000), "Subsample the points cloud such that there are only <n> points.");
   ad("mean-shift-sigma", op::value<double>()->default_value(0.01), "Sigma used for the mean-shift clustering.");
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");
   ad("mean-shift-merge-threshold", op::value<double>()->default_value(0.001), "Maximum distance of two clusters such that they can still merge");
