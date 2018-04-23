@@ -230,8 +230,8 @@ std::unique_ptr<PointCloudFiltering>
 PipelineFactory::getCloudFiltering(const std::string &target,
                                    const op::variables_map &options) const {
   if (target == "subsample") {
-    return std::unique_ptr<PointCloudFiltering>(
-        new SubSample(options["subsample-to"].as<int>()));
+    int desired = options["subsample-to"].as<int>();
+    return std::unique_ptr<PointCloudFiltering>(new SubSample(desired));
   }
   if (target == "statistical-outlier-removal") {
     double alpha = options["statistical-outlier-removal-alpha"].as<double>();

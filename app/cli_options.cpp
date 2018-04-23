@@ -48,13 +48,15 @@ op::options_description cli_options() {
 
   // point cloud post processing
 
-  // subsample
-  ad("subsample-to", op::value<int>()->default_value(100*000), "Subsample the points cloud such that there are only <n> points.");
+  // subsample point cloud
+  ad("subsample-to", op::value<int>()->default_value(100*1000), "Subsample the points cloud such that there are only <n> points.");
 
   // statistical outlier removal
   ad("statistical-outlier-removal-alpha", op::value<double>()->default_value(1.0), "Range within which points are inliers: [-alpha * stddev, slpha * stddev]");
   ad("statistical-outlier-removal-k", op::value<int>()->default_value(30), "K neighbors to take into account.");
 
+  // clustering
+  
   // mean-shift
   ad("mean-shift-sigma", op::value<double>()->default_value(0.01), "Sigma used for the mean-shift clustering.");
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");

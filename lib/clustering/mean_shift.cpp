@@ -94,11 +94,15 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
     }
   }
 
+  BOOST_LOG_TRIVIAL(debug) << "Merging points to clusters";
   // Merge step
   // For every mode..
-  for (int i = 0; i < currCenters.size(); i++) {
+  for (size_t i = 0; i < currCenters.size(); i++) {
+    if (i % 1024 == 0) {
+      BOOST_LOG_TRIVIAL(trace) << "Merging into " << i;
+    }
     // Check modes we haven't already executed the (i)-loop for
-    for (int j = i + 1; j < currCenters.size(); j++) {
+    for (size_t j = i + 1; j < currCenters.size(); j++) {
       Eigen::VectorXd diff = currCenters[i] - currCenters[j];
       if (diff.norm() < _merge_threshold) {
         // Merge clusters. Erase one of the modes corresponding to the clusters
@@ -139,7 +143,7 @@ MeanShift::iterate_mode(const Eigen::VectorXd mode,
   double normfact = 0;
   // Rest of COG
   Eigen::VectorXd cog = Eigen::VectorXd::Zero(mode.size());
-  for (int i = 0; i < fixedPoints.size(); i++) {
+  for (size_t i = 0; i < fixedPoints.size(); i++) {
     double temp = gaussian_weight(fixedPoints[i], mode);
     normfact += temp;
     cog += temp * fixedPoints[i];

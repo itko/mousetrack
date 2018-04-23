@@ -16,7 +16,6 @@ set(source_files
         generic/read_csv.cpp
         generic/read_png.cpp
         generic/trajectory.cpp
-        generic/vec_addition.cpp
         generic/center.cpp
         generic/write_point_cloud.cpp
         generic/random_sample.cpp
@@ -43,7 +42,6 @@ set(test_files
         generic/point_cloud.test.cc
         generic/read_csv.test.cc
         generic/read_png.test.cc
-        generic/vec_addition.test.cc
         clustering/mean_shift.test.cc
         spatial/brute_force.test.cc
         spatial/cube_iterator.test.cc

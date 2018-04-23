@@ -21,8 +21,7 @@ void signalHandler(int signum) {
 
 namespace MouseTrack {
 
-int CliController::main(int argc, char *argv[],
-                        op::variables_map &cli_options) {
+int CliController::main(int, char **, op::variables_map &) {
   activeMouseTrackCliController = this;
   signal(SIGINT, signalHandler);
   signal(SIGTERM, signalHandler);
