@@ -5,6 +5,7 @@
 
 #include "pipeline_factory.h"
 #include "clustering/mean_shift.h"
+#include "clustering/single_cluster.h"
 #include "descripting/cog.h"
 #include "matching/nearest_neighbour.h"
 #include "matlab_reader.h"
@@ -112,7 +113,10 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
     ptr->setConvergenceThreshold(
         options["mean-shift-convergence-threshold"].as<double>());
     return ptr;
-  }
+} else if (target == "single-cluster") {
+    std::unique_ptr<SingleCluster> ptr{new SingleCluster()};
+    return ptr;
+}
   return nullptr;
 }
 
