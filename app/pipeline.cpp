@@ -35,7 +35,7 @@ Pipeline::Pipeline(std::unique_ptr<Reader> reader,
       _registration(std::move(registration)),
       _cloudFiltering(std::move(cloudFiltering)),
       _clustering(std::move(clustering)),
-      _descripting(std::move(descripting)), 
+      _descripting(std::move(descripting)),
       _matching(std::move(matching)),
       _trajectoryBuilder(std::move(trajectoryBuilder)) {
   // clang-format on
@@ -203,7 +203,7 @@ void Pipeline::runPipeline() {
       if (terminateEarly()) {
         return;
       }
-      processFrame(f);
+      processFrameSafe(f);
     }
   } else {
     // no delegate set, fall back to reader
@@ -211,7 +211,7 @@ void Pipeline::runPipeline() {
       if (terminateEarly()) {
         return;
       }
-      processFrame(f);
+      processFrameSafe(f);
     }
   }
 
@@ -230,6 +230,24 @@ bool Pipeline::terminateEarly() {
     return true;
   }
   return false;
+}
+
+void Pipeline::processFrameSafe(FrameNumber f) {
+  try {
+    processFrame(f);
+  } catch (const std::string &e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e;
+  } catch (char *e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e;
+  } catch (int e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e;
+  } catch (const std::exception &e) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Exception while processing frame " << f << ": " << e.what();
+  }
 }
 
 void Pipeline::processFrame(FrameNumber f) {

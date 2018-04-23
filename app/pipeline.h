@@ -128,6 +128,9 @@ private:
   /// coordinates pipeline for one frame
   void processFrame(FrameNumber f);
 
+  /// Wraps `processFrame` and takes care of exception handling
+  void processFrameSafe(FrameNumber f);
+
   template <typename Lambda> void forallObservers(Lambda lambda) {
     std::lock_guard<std::mutex> lock(_observer_mutex);
     for (PipelineObserver *o : _observers) {
