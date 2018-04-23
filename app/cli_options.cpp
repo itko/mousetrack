@@ -36,7 +36,7 @@ op::options_description cli_options() {
 
   // frame window post processing
   ad("disparity-gauss-k", op::value<int>()->default_value(3), "Patch diameter in x/y direction, must be positive and integer. k = 0 results in a 1x1 patch size.");
-  ad("disparity-gauss-sigma", op::value<double>(), "Gaussian standard deviation in x/y direction, must be positive, default: 0.3*k + 0.8.");
+  ad("disparity-gauss-sigma", op::value<double>(), "Gaussian standard deviation in x/y direction, must be positive, default: 0.3*k + 0.8 (Scale standard deviation proportional to kernel size).");
   ad("disparity-bilateral-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
   ad("disparity-bilateral-sigma-color", op::value<double>()->default_value(0.1), "Filter sigma in color space.");
   ad("disparity-bilateral-sigma-space", op::value<double>()->default_value(50), "Filter sigma in coordinate space.");

@@ -134,9 +134,14 @@ PipelineFactory::getWindowFiltering(const std::string &target,
         std::unique_ptr<DisparityGaussianBlur>(new DisparityGaussianBlur());
     int k = options["disparity-gauss-k"].as<int>();
     double sigma;
-    if (options.count("disparity-gauss-sigam")) {
+    if (options.count("disparity-gauss-sigma")) {
       sigma = options["disparity-gauss-sigma"].as<double>();
     } else {
+      // By default, we scale the standard deviation proportional to the window
+      // size.
+      // Why exactly these numbers? Not sure, they come from OpenCV's
+      // getGaussianKernel():
+      // https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=gaussianblur#Mat%20getGaussianKernel(int%20ksize,%20double%20sigma,%20int%20ktype)
       sigma = 0.3 * k + 0.8;
     }
     ptr->kx(k);
