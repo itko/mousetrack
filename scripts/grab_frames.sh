@@ -9,11 +9,11 @@
 # Checks if file exists, copies if yes, throws waring if not.
 function check_and_copy {
     if [ -f $1 ]
-then
-  cp $1 $2
-else
-  echo "WARNING:" $1 "not found"
-fi
+    then
+	cp $1 $2
+    else
+ 	echo "WARNING:" $1 "not found"
+    fi
 }
 
 # Check correct number of arguments
