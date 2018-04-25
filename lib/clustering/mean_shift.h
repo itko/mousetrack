@@ -27,9 +27,9 @@
 namespace MouseTrack {
 class MeanShift : public Clustering {
 public:
-  /// k is the number of desired clusters
+  /// window_size is the sigma for the gaussian kernel
   MeanShift(double window_size);
-  /// Splits a point cloud into k clusters randomly
+  /// Performs MeanShift algorithm
   std::vector<Cluster> operator()(const PointCloud &cloud) const;
 
   void setMaxIterations(int max_iterations);
