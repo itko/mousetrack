@@ -23,6 +23,11 @@ set(source_files
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
         matching/matching.cpp
+        frame_window_filtering/disparity_gaussian_blur.cpp
+        frame_window_filtering/disparity_bilateral.cpp
+        frame_window_filtering/disparity_median.cpp
+        frame_window_filtering/disparity_morphology.cpp
+        point_cloud_filtering/statistical_outlier_removal.cpp
         point_cloud_filtering/subsample.cpp
         registration/disparity_registration.cpp
         registration/disparity_registration_cpu_optimized.cpp
@@ -43,6 +48,7 @@ set(test_files
         spatial/brute_force.test.cc
         spatial/cube_iterator.test.cc
         spatial/cubic_neighborhood.test.cc
+        spatial/statistical_outlier_detection.test.cc
         spatial/uniform_grid.test.cc
         trajectory_builder/cog_trajectory_builder.test.cc
         )

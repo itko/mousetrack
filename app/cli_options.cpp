@@ -24,8 +24,9 @@ op::options_description cli_options() {
 
   // pipeline modules
   ad("pipeline-reader", op::value<std::string>()->default_value("matlab-concurrent"), "Which reader module to use. Valid values: none, matlab, matlab-concurrent");
+  ad("pipeline-frame-window-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral, disparity-morph-open, disparity-morph-close");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
-  ad("pipeline-point-cloud-filtering", op::value<std::string>()->default_value("none"), "Which filtering modules to use. Valid values: none, subsample");
+  ad("pipeline-point-cloud-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
   ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift, single-cluster");
   ad("pipeline-descripting", op::value<std::string>()->default_value("cog"), "Which descripting module to use. Valid values: none, cog");
   ad("pipeline-matching", op::value<std::string>()->default_value("nearest-neighbor"), "Which matching module to use. Valid values: none, nearest-neighbor");
@@ -33,8 +34,30 @@ op::options_description cli_options() {
 
   // module settings
 
-  // mean-shift
+  // frame window post processing
+  ad("disparity-gauss-k", op::value<int>()->default_value(3), "Patch diameter in x/y direction, must be positive and integer. k = 0 results in a 1x1 patch size.");
+  ad("disparity-gauss-sigma", op::value<double>(), "Gaussian standard deviation in x/y direction, must be positive, default: 0.3*k + 0.8 (Scale standard deviation proportional to kernel size).");
+  ad("disparity-bilateral-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-bilateral-sigma-color", op::value<double>()->default_value(0.1), "Filter sigma in color space.");
+  ad("disparity-bilateral-sigma-space", op::value<double>()->default_value(50), "Filter sigma in coordinate space.");
+  ad("disparity-median-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-morph-open-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-morph-open-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
+  ad("disparity-morph-close-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
+  ad("disparity-morph-close-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
+
+  // point cloud post processing
+
+  // subsample point cloud
   ad("subsample-to", op::value<int>()->default_value(100*1000), "Subsample the points cloud such that there are only <n> points.");
+
+  // statistical outlier removal
+  ad("statistical-outlier-removal-alpha", op::value<double>()->default_value(1.0), "Range within which points are inliers: [-alpha * stddev, slpha * stddev]");
+  ad("statistical-outlier-removal-k", op::value<int>()->default_value(30), "K neighbors to take into account.");
+
+  // clustering
+  
+  // mean-shift
   ad("mean-shift-sigma", op::value<double>()->default_value(0.01), "Sigma used for the mean-shift clustering.");
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");
   ad("mean-shift-merge-threshold", op::value<double>()->default_value(0.001), "Maximum distance of two clusters such that they can still merge");
