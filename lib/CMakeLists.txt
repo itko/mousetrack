@@ -4,6 +4,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # list here your source files (*.cpp) of your module
 set(source_files
         clustering/mean_shift.cpp
+        clustering/single_cluster.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
         generic/cluster_chain_accumulator.cpp
@@ -43,6 +44,7 @@ set(test_files
         generic/read_csv.test.cc
         generic/read_png.test.cc
         clustering/mean_shift.test.cc
+        clustering/single_cluster.test.cc
         spatial/brute_force.test.cc
         spatial/cube_iterator.test.cc
         spatial/cubic_neighborhood.test.cc

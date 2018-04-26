@@ -27,7 +27,7 @@ op::options_description cli_options() {
   ad("pipeline-frame-window-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral, disparity-morph-open, disparity-morph-close");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
   ad("pipeline-point-cloud-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
-  ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift");
+  ad("pipeline-clustering", op::value<std::string>()->default_value("mean-shift"), "Which clustering module to use. Valid values: none, mean-shift, single-cluster");
   ad("pipeline-descripting", op::value<std::string>()->default_value("cog"), "Which descripting module to use. Valid values: none, cog");
   ad("pipeline-matching", op::value<std::string>()->default_value("nearest-neighbor"), "Which matching module to use. Valid values: none, nearest-neighbor");
   ad("pipeline-trajectory-builder", op::value<std::string>()->default_value("raw-cog"), "Which matching module to use. Valid values: none, raw-cog");
