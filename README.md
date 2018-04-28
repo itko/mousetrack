@@ -8,14 +8,15 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev libflann-dev
 ```
 
 - CMake: `$ sudo apt install cmake`
 - Boost.Test: `$ sudo apt install libboost-all-dev`
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
 - Eigen: `$ sudo apt install libeigen3-dev`
-- We need to read PNG files: `$ sudo apt install libpng16-dev`
+- We need to read PNG files: `$ sudo apt install libpng16-dev` (comes with OpenCV)
+- We use FLANN for spatial queries: `$ sudo apt install libflann-dev` (comes with OpenCV)
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:

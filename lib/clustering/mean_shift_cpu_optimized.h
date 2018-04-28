@@ -27,7 +27,7 @@ protected:
 private:
   typedef UniformGrid4d::PointList PointList;
   /// Performs one iteration of the mean shift algorithm for a single mode
-  Eigen::VectorXd iterate_mode(const Eigen::VectorXd mode,
+  Eigen::VectorXd iterate_mode(const Eigen::VectorXd &mode,
                                const PointList &state) const;
 };
 

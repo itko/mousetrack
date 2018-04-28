@@ -41,7 +41,7 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
   Eigen::VectorXd min = points.rowwise().minCoeff();
   Eigen::VectorXd max = points.rowwise().maxCoeff();
   Eigen::VectorXd bb_size = max - min;
-  double change = 1000000;
+  Precision change = std::numeric_limits<Precision>::max();
 
   BOOST_LOG_TRIVIAL(debug) << "KMeans: bb: " << bb_size;
 
@@ -78,9 +78,9 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
     // calculate new cluster centers
     BOOST_LOG_TRIVIAL(trace) << "KMeans: Assigning centroids";
     prevMeans = means;
-    for (int c = 0; c < clusters.size(); ++c) {
+    for (PointIndex c = 0; c < clusters.size(); ++c) {
       PointList assigned(dims, clusters[c].points().size());
-      for (int i = 0; i < clusters[c].points().size(); ++i) {
+      for (PointIndex i = 0; i < clusters[c].points().size(); ++i) {
         int pi = clusters[c].points()[i];
         assigned.col(i) = points.col(pi);
       }

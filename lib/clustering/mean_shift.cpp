@@ -124,7 +124,7 @@ MeanShift::convergePoints(const Oracle::PointList &points) const {
 std::vector<Cluster>
 MeanShift::mergePoints(std::vector<Eigen::VectorXd> &currCenters) const {
   // Initialize Clusters. Initially, every point has its own cluster.
-  const int nPoints = currCenters.size();
+  const size_t nPoints = currCenters.size();
   std::vector<Cluster> clusters(nPoints);
   for (PointIndex i = 0; i < nPoints; i++) {
     clusters[i].points().push_back(i);
@@ -132,7 +132,7 @@ MeanShift::mergePoints(std::vector<Eigen::VectorXd> &currCenters) const {
   // For every mode..
   int merged = 0;
   for (size_t i = 0; i < currCenters.size(); i++) {
-    if (merged % 1024 == 1023) {
+    if (merged % 1024 == 0) {
       BOOST_LOG_TRIVIAL(trace) << merged << " points merged, i: " << i
                                << ", remaining: " << currCenters.size() - i;
     }

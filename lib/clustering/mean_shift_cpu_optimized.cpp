@@ -22,12 +22,11 @@ MeanShiftCpuOptimized::convergePoints(const Oracle::PointList &points) const {
 
   const int dimensions = points.rows();
 
-  std::vector<Eigen::VectorXd> currCenters, pointsVec;
+  std::vector<Eigen::VectorXd> currCenters;
 
-  for (PointIndex i = 0; i < points.cols(); i += 1) {
+  for (int i = 0; i < points.cols(); i += 1) {
     auto v = points.col(i);
     currCenters.push_back(v);
-    pointsVec.push_back(v);
   }
 
   std::unique_ptr<Oracle> oraclePtr;
@@ -42,7 +41,7 @@ MeanShiftCpuOptimized::convergePoints(const Oracle::PointList &points) const {
   oracle.compute(points);
 
   // For each point...
-  for (PointIndex i = 0; i < currCenters.size(); i++) {
+  for (size_t i = 0; i < currCenters.size(); i++) {
     int iterations = 0; // for logging and abort condition
 
     Eigen::VectorXd prevCenter;
@@ -89,7 +88,7 @@ std::vector<Cluster> MeanShiftCpuOptimized::mergePoints(
   std::vector<int> remainingPoints(currCenters.size());
   std::iota(remainingPoints.begin(), remainingPoints.end(), 0);
   const int dimensions = currCenters[0].size();
-  const int nPoints = currCenters.size();
+  const size_t nPoints = currCenters.size();
   std::unique_ptr<Oracle> mergeOraclePtr;
   {
     OFactory::Query q;
@@ -102,8 +101,12 @@ std::vector<Cluster> MeanShiftCpuOptimized::mergePoints(
   // For every mode..
   int merged = 0;
   int mergedTotal = 0;
+  // as long as there are un-classified points:
+  // pick first point and ask spatial oracle for it's neighbors within the merge
+  // threshold and create a new cluster from it.
+  //
+  // Removed the clustered points from `remainingPoints` and repeat
   while (!remainingPoints.empty()) {
-    // Check modes we haven't already executed the (i)-loop for
     Oracle::PointList points(dimensions, remainingPoints.size());
 
     for (size_t j = 0; j < remainingPoints.size(); j++) {
@@ -143,7 +146,7 @@ std::vector<Cluster> MeanShiftCpuOptimized::mergePoints(
 }
 
 Eigen::VectorXd
-MeanShiftCpuOptimized::iterate_mode(const Eigen::VectorXd mode,
+MeanShiftCpuOptimized::iterate_mode(const Eigen::VectorXd &mode,
                                     const PointList &fixedPoints) const {
   auto w = (fixedPoints.colwise() - mode).colwise().squaredNorm();
   Eigen::RowVectorXd weights = (-w.array() / (2 * getWindowSize())).exp();

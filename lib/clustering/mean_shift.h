@@ -66,6 +66,11 @@ protected:
   virtual std::vector<Cluster>
   mergePoints(std::vector<Eigen::VectorXd> &points) const;
 
+  /// Returns a weight in [0,1] for point by applying a gaussian kernel with
+  /// variance window_size and mean mean
+  double gaussian_weight(const Eigen::VectorXd point,
+                         const Eigen::VectorXd mean) const;
+
 private:
   /// when two peaks are closer than this, they are merged. Must be larger than
   /// _convergence_threshold for convergence.
@@ -80,11 +85,6 @@ private:
 
   /// window size parameter for mean shift algorithm
   double _window_size;
-
-  /// Returns a weight in [0,1] for point by applying a gaussian kernel with
-  /// variance window_size and mean mean
-  double gaussian_weight(const Eigen::VectorXd point,
-                         const Eigen::VectorXd mean) const;
 
   /// Performs one iteration of the mean shift algorithm for a single mode
   Eigen::VectorXd iterate_mode(const Eigen::VectorXd mode,

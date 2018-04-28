@@ -98,10 +98,6 @@ msg = readMessages(img_streams(1), 1);
 pic1 = readImage(msg{1});
 [h, w] = size(pic1);
 
-endIndex = min(highestIndex, startFrame + maxProcessFrames);
-tic;
-parfor image_index = startFrame:endIndex
-    
 % preallocate
 out_pics = cell(streams, 1);
 out_depths = cell(streams, 1);
@@ -117,6 +113,9 @@ ccy = zeros(streams, 1);
 % initialize point clouds
 xyzPoints = cell(streams, 1);
 
+endIndex = min(highestIndex, startFrame + maxProcessFrames);
+
+for image_index = startFrame:endIndex
     progress = ['Extracting: ' int2str(image_index) '/' int2str(lowestIndex) ];
     fprintf(progress);
     
