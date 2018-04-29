@@ -29,14 +29,14 @@ MeanShiftCpuOptimized::convergePoints(const Oracle::PointList &points) const {
     currCenters.push_back(v);
   }
 
-  std::unique_ptr<Oracle> oraclePtr;
-  {
+  std::lock_guard<std::mutex> lock(_convergeOracleMutex);
+  if (_cachedConvergeOracle.get() == nullptr) {
     OFactory::Query q;
     q.maxR = 2 * getWindowSize();
     q.dimensions = dimensions;
-    oraclePtr = oracleFactory().forQuery(q);
+    _cachedConvergeOracle = oracleFactory().forQuery(q);
   }
-  Oracle &oracle = *oraclePtr;
+  Oracle &oracle = *_cachedConvergeOracle;
 
   oracle.compute(points);
 
@@ -89,14 +89,15 @@ std::vector<Cluster> MeanShiftCpuOptimized::mergePoints(
   std::iota(remainingPoints.begin(), remainingPoints.end(), 0);
   const int dimensions = currCenters[0].size();
   const size_t nPoints = currCenters.size();
-  std::unique_ptr<Oracle> mergeOraclePtr;
-  {
+
+  std::lock_guard<std::mutex> lock(_mergeOracleMutex);
+  if (_cachedMergeOracle.get() == nullptr) {
     OFactory::Query q;
     q.maxR = getMergeThreshold();
     q.dimensions = dimensions;
-    mergeOraclePtr = oracleFactory().forQuery(q);
+    _cachedMergeOracle = oracleFactory().forQuery(q);
   }
-  Oracle &mergeOracle = *mergeOraclePtr;
+  Oracle &mergeOracle = *_cachedMergeOracle;
 
   // For every mode..
   int merged = 0;

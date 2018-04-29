@@ -8,6 +8,7 @@
 #include "mean_shift.h"
 #include "spatial/uniform_grid.h"
 #include <Eigen/Core>
+#include <mutex>
 #include <vector>
 
 /// For CPU optimized version of MeanShift
@@ -29,6 +30,12 @@ private:
   /// Performs one iteration of the mean shift algorithm for a single mode
   Eigen::VectorXd iterate_mode(const Eigen::VectorXd &mode,
                                const PointList &state) const;
+
+  mutable std::mutex _convergeOracleMutex;
+  mutable std::unique_ptr<Oracle> _cachedConvergeOracle;
+
+  mutable std::mutex _mergeOracleMutex;
+  mutable std::unique_ptr<Oracle> _cachedMergeOracle;
 };
 
 } // namespace MouseTrack
