@@ -27,7 +27,7 @@ If operations run slow, you can try reinstalling OpenCV with these additional de
 This list is not complete, but might help you to finding possible problems when compiling for the first time.
 Feel free to add or adjust entries on your own experience.
 
-- g++ 4.9 or larger: we need C++11 with regex fully implemented, g++ 4.8 or bellow won't work
+- g++ 4.9 or larger: we need C++11 with regex fully implemented, g++ 4.8 or below won't work
 - gcc 5.4 is known to work
 - clang 3.8 is known to work
 - libpng 1.2 and 1.6 are known to work

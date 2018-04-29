@@ -41,7 +41,6 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
   Eigen::VectorXd min = points.rowwise().minCoeff();
   Eigen::VectorXd max = points.rowwise().maxCoeff();
   Eigen::VectorXd bb_size = max - min;
-  Precision change = std::numeric_limits<Precision>::max();
 
   BOOST_LOG_TRIVIAL(debug) << "KMeans: bb: " << bb_size;
 
@@ -57,13 +56,14 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
   }
   Oracle &oracle = *_cachedOracle;
 
-  std::vector<Cluster> clusters;
+  std::vector<Cluster> clusters(K()), prevClusters;
 
   BOOST_LOG_TRIVIAL(debug) << "KMeans: Starting iterations.";
   do {
     // assign clusters
     BOOST_LOG_TRIVIAL(trace) << "KMeans: Assigning clusters";
     oracle.compute(means);
+    prevClusters = std::move(clusters);
     clusters = std::vector<Cluster>(K());
 
     for (int i = 0; i < points.cols(); ++i) {
@@ -90,9 +90,8 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
       Eigen::VectorXd mean = assigned.array().rowwise().sum() / assigned.cols();
       means.col(c) = mean;
     }
-    change = (prevMeans - means).norm();
-    BOOST_LOG_TRIVIAL(trace) << "change: " << change;
-  } while (change > convergenceThreshold());
+  } while (!meansConverged(means, prevMeans) &&
+           !assignmentConverged(clusters, prevClusters, cloud.size()));
 
   return clusters;
 }
@@ -100,14 +99,47 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
 void KMeans::K(int k) { _k = k; }
 int KMeans::K() const { return _k; }
 
-void KMeans::convergenceThreshold(double threshold) {
-  _convergenceThreshold = threshold;
+void KMeans::centroidThreshold(double threshold) {
+  _centroidThreshold = threshold;
 }
 
-double KMeans::convergenceThreshold() const { return _convergenceThreshold; }
+double KMeans::centroidThreshold() const { return _centroidThreshold; }
+
+void KMeans::assignmentThreshold(double threshold) {
+  _assignmentThreshold = threshold;
+}
+
+double KMeans::assignmentThreshold() const { return _assignmentThreshold; }
 
 KMeans::OFactory &KMeans::oracleFactory() { return _oracleFactory; }
 
 const KMeans::OFactory &KMeans::oracleFactory() const { return _oracleFactory; }
+
+bool KMeans::meansConverged(const PointList &newMeans,
+                            const PointList &lastMeans) const {
+  auto centroidChange = (lastMeans - newMeans).colwise().norm();
+  Precision change = centroidChange.maxCoeff();
+  BOOST_LOG_TRIVIAL(trace) << "worst means change: " << change;
+  return change <= centroidThreshold();
+}
+bool KMeans::assignmentConverged(const std::vector<Cluster> &newClusters,
+                                 const std::vector<Cluster> &lastClusters,
+                                 int totalPoints) const {
+  int switched = 0;
+  for (int i = 0; i < K(); ++i) {
+    // rough estimate how many points changed assignment
+    int delta =
+        newClusters[i].points().size() - lastClusters[i].points().size();
+    delta = std::abs(delta);
+    switched += delta;
+  }
+  // double-counting??
+  // switched /= 2;
+  Precision switchedPercentage = switched / (Precision)totalPoints;
+  BOOST_LOG_TRIVIAL(trace) << "switched change: " << switched << "/"
+                           << totalPoints << " (" << (switchedPercentage * 100)
+                           << "%)";
+  return switchedPercentage <= assignmentThreshold();
+}
 
 } // namespace MouseTrack

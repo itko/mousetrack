@@ -27,22 +27,42 @@ public:
   void K(int k);
   int K() const;
 
-  void convergenceThreshold(double threshold);
-  double convergenceThreshold() const;
+  /// Set worst centroid movement below which convergence is assumed.
+  void centroidThreshold(double threshold);
+  double centroidThreshold() const;
+
+  /// Set the percentage of points that change the their cluster in one
+  /// iteration below which convergence is assumed.
+  void assignmentThreshold(double threshold);
+  double assignmentThreshold() const;
 
   /// modify factory settings
   OFactory &oracleFactory();
 
-  /// query factory
+  /// query the factory
   const OFactory &oracleFactory() const;
 
 private:
   int _k;
-  double _convergenceThreshold;
+
+  /// If the largest movement of all centroids is below or equal this threshold,
+  /// convergence is assumed.
+  double _centroidThreshold = 0.03;
+
+  /// If the precentage (number of points/total points) of points that changed
+  /// their cluster is below this threshold, convergence is assumed.
+  double _assignmentThreshold = 0.02;
+
   OFactory _oracleFactory;
   mutable std::mutex _oracleMutex;
   mutable OFactory::Point _cachedBoundingBox;
   mutable std::unique_ptr<Oracle> _cachedOracle;
+
+  bool meansConverged(const PointList &newMeans,
+                      const PointList &lastMeans) const;
+  bool assignmentConverged(const std::vector<Cluster> &newClusters,
+                           const std::vector<Cluster> &lastClusters,
+                           int totalPoints) const;
 };
 
 } // namespace MouseTrack
