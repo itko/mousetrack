@@ -66,6 +66,7 @@ op::options_description cli_options() {
 
   // k-means
   ad("kmeans-k", op::value<unsigned int>()->default_value(50), "Number of expected clusters.");
+  ad("kmeans-convergence-threshold", op::value<double>()->default_value(0.03), "Total movement of cluster centers that should be classified as 'converged'.");
   ad("kmeans-oracle", op::value<std::string>()->default_value("flann"), "Which spatial acceleration should be used? valid values: brute-force, uniform-grid, flann");
 
   // clang-format on

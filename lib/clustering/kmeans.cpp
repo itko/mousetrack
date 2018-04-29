@@ -92,13 +92,19 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
     }
     change = (prevMeans - means).norm();
     BOOST_LOG_TRIVIAL(trace) << "change: " << change;
-  } while (change > 0.03);
+  } while (change > convergenceThreshold());
 
   return clusters;
 }
 
 void KMeans::K(int k) { _k = k; }
 int KMeans::K() const { return _k; }
+
+void KMeans::convergenceThreshold(double threshold) {
+  _convergenceThreshold = threshold;
+}
+
+double KMeans::convergenceThreshold() const { return _convergenceThreshold; }
 
 KMeans::OFactory &KMeans::oracleFactory() { return _oracleFactory; }
 

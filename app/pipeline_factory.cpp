@@ -288,6 +288,8 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
     ptr->K(options["kmeans-k"].as<unsigned int>());
     ptr->oracleFactory().desiredOracle(
         getOracle(options["kmeans-oracle"].as<std::string>()));
+    ptr->convergenceThreshold(
+        options["kmeans-convergence-threshold"].as<double>());
     return ptr;
   }
 

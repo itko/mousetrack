@@ -27,6 +27,9 @@ public:
   void K(int k);
   int K() const;
 
+  void convergenceThreshold(double threshold);
+  double convergenceThreshold() const;
+
   /// modify factory settings
   OFactory &oracleFactory();
 
@@ -35,6 +38,7 @@ public:
 
 private:
   int _k;
+  double _convergenceThreshold;
   OFactory _oracleFactory;
   mutable std::mutex _oracleMutex;
   mutable OFactory::Point _cachedBoundingBox;
