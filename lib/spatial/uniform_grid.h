@@ -107,7 +107,6 @@ private:
     }
     return true;
   }
-
   /// recache data
   void _compute() {
     assert(points != nullptr);

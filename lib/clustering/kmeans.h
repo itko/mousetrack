@@ -9,6 +9,7 @@
 #include "generic/cluster.h"
 #include "spatial/oracle_factory.h"
 #include <Eigen/Core>
+#include <mutex>
 #include <vector>
 
 namespace MouseTrack {
@@ -35,6 +36,9 @@ public:
 private:
   int _k;
   OFactory _oracleFactory;
+  mutable std::mutex _oracleMutex;
+  mutable OFactory::Point _cachedBoundingBox;
+  mutable std::unique_ptr<Oracle> _cachedOracle;
 };
 
 } // namespace MouseTrack

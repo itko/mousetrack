@@ -45,14 +45,17 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
 
   BOOST_LOG_TRIVIAL(debug) << "KMeans: bb: " << bb_size;
 
-  std::unique_ptr<Oracle> oraclePtr;
-  {
+  std::lock_guard<std::mutex> lock(_oracleMutex);
+  if (_cachedOracle.get() == nullptr ||
+      !(bb_size.array() <= _cachedBoundingBox.array()).all()) {
+    bb_size *= 1.5;
     OFactory::Query q;
     q.dimensions = bb_size.size();
     q.bb_size = &bb_size;
-    oraclePtr = oracleFactory().forQuery(q);
+    _cachedOracle = oracleFactory().forQuery(q);
+    _cachedBoundingBox = bb_size;
   }
-  Oracle &oracle = *oraclePtr;
+  Oracle &oracle = *_cachedOracle;
 
   std::vector<Cluster> clusters;
 
