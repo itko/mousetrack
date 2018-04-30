@@ -55,7 +55,8 @@ public:
 
   virtual bool hasNextFrame() const;
 
-  /// Increase lower bound of frame range.
+  /// Increase lower bound of frame range. Also sets the active frame for
+  /// FrameIterable to the first existing frame larger/equal to `f`
   void setBeginFrame(FrameNumber f);
 
   /// Lower upper bound of frame range.

@@ -319,6 +319,13 @@ FrameNumber MatlabReader::beginFrame() const { return _beginFrame; }
 
 FrameNumber MatlabReader::endFrame() const { return _endFrame; }
 
+void MatlabReader::setBeginFrame(FrameNumber f) {
+  _beginFrame = f;
+  _activeFrame = _completeFrameNumbers.lower_bound(f);
+}
+
+void MatlabReader::setEndFrame(FrameNumber f) { _endFrame = f; }
+
 FrameNumber MatlabReader::nextFrame() {
   if (_activeFrame == _completeFrameNumbers.end()) {
     return endFrame();
@@ -331,9 +338,6 @@ bool MatlabReader::hasNextFrame() const {
   return _activeFrame != _completeFrameNumbers.end() &&
          *_activeFrame < endFrame();
 }
-void MatlabReader::setBeginFrame(FrameNumber f) { _beginFrame = f; }
-
-void MatlabReader::setEndFrame(FrameNumber f) { _endFrame = f; }
 
 const std::vector<fs::path> &MatlabReader::ignoredPaths() const {
   return _ignoredPaths;
