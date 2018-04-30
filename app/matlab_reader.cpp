@@ -60,7 +60,7 @@ const std::string REFERENCE_PICTURE_KEY{"pic"};
 const std::string ROTATION_CORRECTION_KEY{"params_R"};
 const std::string CAMERA_CHAIN_KEY{"params_camchain"};
 
-// clan-format off
+// clang-format off
 typedef std::pair<std::string, std::string> CM;
 const std::map<std::string, std::string> EXPECTED_CHANNELS{
     CM(NORMALIZED_DISPARITY_KEY, NORMALIZED_DISPARITY_KEY),
@@ -91,6 +91,10 @@ MatlabReader::MatlabReader(fs::path root_directory)
   preflight();
 }
 
+MatlabReader::MatlabReader() : _valid(false) {
+  // empty
+}
+
 void MatlabReader::preflight() {
 
   /// We want to work out the index range for streams and frames.
@@ -104,6 +108,7 @@ void MatlabReader::preflight() {
   /// symlinks in all other cases.
   std::unordered_map<std::string, IndexAggregateSF> aggSF;
   std::unordered_map<std::string, IndexAggregateF> aggF;
+  _seenFrameNumbers.clear();
   std::regex nameShape(
       "^([A-Za-z0-9_-]+?)(?:_s_([0-9]+))?_f_([0-9]+)\\.([A-Za-z0-9]+)$",
       std::regex::ECMAScript);
@@ -211,6 +216,9 @@ void MatlabReader::preflight() {
     if (chIt != EXPECTED_CHANNELS.end()) {
       channel = chIt->second;
     }
+
+    _seenFrameNumbers.insert(frame);
+
     BOOST_LOG_TRIVIAL(trace) << "Adding frame file " << path.string()
                              << " from " << p.path().string();
     _files.frames[ElementKey(stream, frame, channel)].insert(path);
@@ -246,15 +254,55 @@ void MatlabReader::preflight() {
     _beginFrame = 0;
     _endFrame = 0;
     return;
-  } else {
-    _beginStream = firstStream;
-    _endStream = lastStream + 1;
-    _beginFrame = firstFrame;
-    _endFrame = lastFrame + 1;
   }
+  // boundaries look ok
+  _beginStream = firstStream;
+  _endStream = lastStream + 1;
+  _beginFrame = firstFrame;
+  _endFrame = lastFrame + 1;
 
+  // figure out, which frames are complete
+  _completeFrameNumbers.clear();
+  for (const auto &f : _seenFrameNumbers) {
+    // check if all required files for frame `f` are available
+    if (!fileExists(ElementKey(-1, f, FRAME_PARAMETERS_KEY))) {
+      // no point in going further
+      break;
+    }
+    bool complete = true;
+    // check if all required files for frame `f` and stream `s` are available
+    for (auto s = beginStream(); s < endStream(); ++s) {
+      if (!fileExists(ElementKey(s, f, NORMALIZED_DISPARITY_KEY))) {
+        complete = false;
+        break;
+      }
+      if (!fileExists(ElementKey(s, f, REFERENCE_PICTURE_KEY))) {
+        complete = false;
+        break;
+      }
+    }
+    // all required files there
+    if (complete) {
+      _completeFrameNumbers.insert(f);
+    }
+  }
+  if (_completeFrameNumbers.empty()) {
+    _beginFrame = 0;
+    _endFrame = 0;
+    return;
+  }
+  _activeFrame = _completeFrameNumbers.begin();
+
+  _beginFrame = *_completeFrameNumbers.begin();
+  _endFrame = *_completeFrameNumbers.rbegin() + 1;
+
+  // cache files we need for every frame
   _cache.rotationCorrections = readRotationCorrections();
   _cache.camchain = readCamchain();
+}
+
+bool MatlabReader::fileExists(const ElementKey &key) const {
+  return _files.frames.find(key) != _files.frames.end();
 }
 
 bool MatlabReader::valid() const { return _valid; }
@@ -271,6 +319,18 @@ FrameNumber MatlabReader::beginFrame() const { return _beginFrame; }
 
 FrameNumber MatlabReader::endFrame() const { return _endFrame; }
 
+FrameNumber MatlabReader::nextFrame() {
+  if (_activeFrame == _completeFrameNumbers.end()) {
+    return endFrame();
+  }
+  FrameNumber nextF = *_activeFrame;
+  ++_activeFrame;
+  return nextF;
+}
+bool MatlabReader::hasNextFrame() const {
+  return _activeFrame != _completeFrameNumbers.end() &&
+         *_activeFrame < endFrame();
+}
 void MatlabReader::setBeginFrame(FrameNumber f) { _beginFrame = f; }
 
 void MatlabReader::setEndFrame(FrameNumber f) { _endFrame = f; }

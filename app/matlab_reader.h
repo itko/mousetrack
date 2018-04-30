@@ -25,6 +25,9 @@ public:
   /// directory
   MatlabReader(fs::path root_directory);
 
+  /// Default constructor
+  MatlabReader();
+
   /// true if constructor decided, the file system is formatted properly, false
   /// otherwise
   virtual bool valid() const;
@@ -46,6 +49,11 @@ public:
 
   /// Index of first non existing frame at the end
   virtual FrameNumber endFrame() const;
+
+  /// Return next frame number and increment internal pointer to next frame
+  virtual FrameNumber nextFrame();
+
+  virtual bool hasNextFrame() const;
 
   /// Increase lower bound of frame range.
   void setBeginFrame(FrameNumber f);
@@ -145,6 +153,17 @@ private:
   /// We collect expected paths here
   FilePaths _files;
 
+  /// All indexes we've seen (corresponding frames might not be complete)
+  std::set<FrameNumber> _seenFrameNumbers;
+
+  /// Indexes of all complete frames (all required data available)
+  std::set<FrameNumber> _completeFrameNumbers;
+
+  /// Points to the next active valid frame number starting at the lowest one.
+  /// If all frames are consumed, it points to the end of
+  /// `_completeFrameNumbers`.
+  std::set<FrameNumber>::iterator _activeFrame;
+
   /// Some files are expected to be accessed many times, we cache them here
   ConstParameters _cache;
   /// number of symlinks to evaluate (0: don't follow symlinks, 1: evaluate one
@@ -185,6 +204,9 @@ private:
   /// If there are multiple files mapping to the same key, this method tries to
   /// work out the best match
   fs::path chooseCandidate(const std::set<fs::path> &candidates) const;
+
+  /// Check if file exists
+  bool fileExists(const ElementKey &key) const;
 };
 
 } // namespace MouseTrack
