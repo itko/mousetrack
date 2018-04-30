@@ -58,14 +58,14 @@ op::options_description cli_options() {
   // clustering
   
   // mean-shift
-  ad("mean-shift-sigma", op::value<double>()->default_value(0.01), "Sigma used for the mean-shift clustering.");
+  ad("mean-shift-sigma", op::value<double>()->default_value(0.02), "Sigma used for the mean-shift clustering.");
   ad("mean-shift-max-iterations", op::value<int>()->default_value(1000), "Maximum number of iterations for a point before it should converge.");
-  ad("mean-shift-merge-threshold", op::value<double>()->default_value(0.001), "Maximum distance of two clusters such that they can still merge");
+  ad("mean-shift-merge-threshold", op::value<double>()->default_value(0.01), "Maximum distance of two clusters such that they can still merge");
   ad("mean-shift-convergence-threshold", op::value<double>()->default_value(0.0001), "Maximum distance a point is allowed to travel in an iteration and still being classified as converged.");
   ad("mean-shift-oracle", op::value<std::string>()->default_value("uniform-grid"), "Which spatial acceleration should be used? valid values: brute-force, uniform-grid, flann");
 
   // k-means
-  ad("kmeans-k", op::value<unsigned int>()->default_value(50), "Number of expected clusters.");
+  ad("kmeans-k", op::value<unsigned int>()->default_value(15), "Number of expected clusters.");
   ad("kmeans-centroid-threshold", op::value<double>()->default_value(0.01), "Total movement of cluster centers that should be classified as 'converged'.");
   ad("kmeans-assignment-threshold", op::value<double>()->default_value(0.02), "Percentage of points that changed clusters: if the percentage is below this threshold, convergence is assumed.");
   ad("kmeans-oracle", op::value<std::string>()->default_value("flann"), "Which spatial acceleration should be used? valid values: brute-force, uniform-grid, flann");
