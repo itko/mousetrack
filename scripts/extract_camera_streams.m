@@ -98,24 +98,26 @@ msg = readMessages(img_streams(1), 1);
 pic1 = readImage(msg{1});
 [h, w] = size(pic1);
 
-% preallocate
-out_pics = cell(streams, 1);
-out_depths = cell(streams, 1);
-out_depthsCleaned = cell(streams, 1);
-out_ptCloud = cell(streams, 1);
-pics = cell(streams, 1);
-depths = cell(streams, 1);
-depthsCleaned = cell(streams, 1);
-focallengths = zeros(streams, 1);
-baselines = zeros(streams, 1);
-ccx = zeros(streams, 1);
-ccy = zeros(streams, 1);
-% initialize point clouds
-xyzPoints = cell(streams, 1);
+endIndex = min(lowestIndex, startFrame + maxProcessFrames-1);
 
-endIndex = min(highestIndex, startFrame + maxProcessFrames);
+fprintf('start: %d, last: %d\n', startFrame, endIndex);
 
 for image_index = startFrame:endIndex
+    % preallocate
+    out_pics = cell(streams, 1);
+    out_depths = cell(streams, 1);
+    out_depthsCleaned = cell(streams, 1);
+    out_ptCloud = cell(streams, 1);
+    pics = cell(streams, 1);
+    depths = cell(streams, 1);
+    depthsCleaned = cell(streams, 1);
+    focallengths = zeros(streams, 1);
+    baselines = zeros(streams, 1);
+    ccx = zeros(streams, 1);
+    ccy = zeros(streams, 1);
+    % initialize point clouds
+    xyzPoints = cell(streams, 1);
+
     progress = ['Extracting: ' int2str(image_index) '/' int2str(lowestIndex) ];
     fprintf(progress);
     
@@ -135,7 +137,7 @@ for image_index = startFrame:endIndex
     skip = exist(out_frame_params, 'file') && (exist(out_ptCloudTotal, 'file') || ~extract_point_clouds);
     for i = 1:streams
         if  ~exist(out_pics{i}, 'file') ...
-            || ~exist(out_depths{i}, 'file') ...
+            || (export_raw_disparity && ~exist(out_depths{i}, 'file')) ...
             || ~exist(out_depthsCleaned{i}, 'file') ...
             || (~exist(out_ptCloud{i}, 'file') && extract_point_clouds)
             skip = false;
@@ -186,7 +188,9 @@ for image_index = startFrame:endIndex
             continue;
         end
         imwrite(pics{i}, out_pics{i});
-        imwrite(depths{i}, out_depths{i});
+        if export_raw_disparity
+            imwrite(depths{i}, out_depths{i});
+        end
         cleaned = uint8(depthsCleaned{i});
         imwrite(cleaned, out_depthsCleaned{i});
     end
