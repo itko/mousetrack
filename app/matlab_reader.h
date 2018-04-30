@@ -166,9 +166,26 @@ private:
 
   /// Some files are expected to be accessed many times, we cache them here
   ConstParameters _cache;
+
   /// number of symlinks to evaluate (0: don't follow symlinks, 1: evaluate one
   /// link, etc.)
   int _followSymlinkDepth = 1000;
+
+  /// if true: fail if no disparity map file is available
+  /// if false: set empty map
+  bool _normalizedDisparityRequired = true;
+
+  /// if true: fail if no disparity map file is available
+  /// if false: set empty map
+  bool _rawDisparityRequired = false;
+
+  /// if true: fail if no parameters file is available
+  /// if false: set empty parameters
+  bool _frameParametersRequired = true;
+
+  /// if true: fail if no reference picture file is available
+  /// if false: set empty reference picture
+  bool _referencePictureRequired = true;
 
   /// Assumes an existing `_root` directory. It scans the directory and collects
   /// all filenames that might interest us.

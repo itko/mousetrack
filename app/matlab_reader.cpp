@@ -408,7 +408,14 @@ DisparityMap MatlabReader::readNormalizedDisparityMap(StreamNumber s,
   const auto candidatesPtr =
       _files.frames.find(ElementKey(s, f, NORMALIZED_DISPARITY_KEY));
   if (candidatesPtr == _files.frames.end()) {
-    throw "No file found.";
+    if (_normalizedDisparityRequired) {
+      BOOST_LOG_TRIVIAL(info)
+          << "No normalized disparity map file found for frame " << f
+          << " and stream " << s;
+      throw "No normalized disparity map file found.";
+    }
+    // return empty map
+    return DisparityMap{};
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readNormalizedDisparityMap: " << p.string();
@@ -423,7 +430,13 @@ DisparityMap MatlabReader::readRawDisparityMap(StreamNumber s,
   const auto candidatesPtr =
       _files.frames.find(ElementKey(s, f, RAW_DISPARITY_KEY));
   if (candidatesPtr == _files.frames.end()) {
-    throw "No file found.";
+    if (_rawDisparityRequired) {
+      BOOST_LOG_TRIVIAL(info) << "No raw disparity map file found for frame "
+                              << f << " and stream " << s;
+      throw "No raw disparity map file found.";
+    }
+    // return empty map
+    return DisparityMap{};
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readRawDisparityMap: " << p.string();
@@ -437,7 +450,12 @@ Eigen::MatrixXd MatlabReader::readChannelParameters(FrameNumber f) const {
   const auto candidatesPtr =
       _files.frames.find(ElementKey(-1, f, FRAME_PARAMETERS_KEY));
   if (candidatesPtr == _files.frames.end()) {
-    throw "No file found.";
+    if (_frameParametersRequired) {
+      BOOST_LOG_TRIVIAL(info)
+          << "No channel parameters file found for frame " << f;
+      throw "No channel paramters file found.";
+    }
+    return Eigen::MatrixXd{};
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readChannelParameters: " << p.string();
@@ -449,7 +467,12 @@ Picture MatlabReader::readPicture(StreamNumber s, FrameNumber f) const {
   const auto candidatesPtr =
       _files.frames.find(ElementKey(s, f, REFERENCE_PICTURE_KEY));
   if (candidatesPtr == _files.frames.end()) {
-    throw "No file found.";
+    if (_referencePictureRequired) {
+      BOOST_LOG_TRIVIAL(info) << "No reference picture file found for frame "
+                              << f << " and stream " << s;
+      throw "No reference picture file found.";
+    }
+    return Picture{};
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readPicture: " << p.string();
