@@ -20,6 +20,11 @@ set(gui_source_files
         qt_controller.cpp
         )
 
+# list here all source files related with reading ros bag files
+set(rosbag_source_files
+    ros_bag_reader.cpp
+    )
+
 # list here your testing files (*.test.cc) of your module
 set(test_files
         test_root.cc
@@ -41,6 +46,9 @@ find_package( Boost COMPONENTS
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
+find_package( yaml-cpp REQUIRED )
+include_directories(${YAML_CPP_INCLUDE_DIR})
+
 if(ENABLE_GUI)
   find_package(Qt5Core)
   
@@ -55,10 +63,19 @@ else(ENABLE_GUI)
     set(gui_source_files "")
 endif(ENABLE_GUI)
 
+if(ENABLE_ROSBAG)
+    find_package(rosbag REQUIRED)
+    find_package(sensor_msgs REQUIRED)
+    include_directories(${rosbag_INCLUDE_DIRS} ${sensor_msgs_INCLUDE_DIRS})
+    set(ROSBAG_LIBRARIES ${rosbag_LIBRARIES} ${sensor_msgs_LIBRARIES})
+else(ENABLE_ROSBAG)
+    # reset rosbag sources
+    set(rosbag_source_files "")
+endif(ENABLE_ROSBAG)
 
 # compile everything into a library and then link into the target executable (tests, main, etc.)
 # this should increase compilation speed
-add_library(libmousetrackAll ${source_files})
+add_library(libmousetrackAll ${source_files} ${rosbag_source_files})
 
 # link all dependencies
 target_link_libraries(libmousetrackAll
@@ -68,6 +85,8 @@ target_link_libraries(libmousetrackAll
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_LOG_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${ROSBAG_LIBRARIES}
+    ${YAML_CPP_LIBRARIES}
 )
 
 # create the mousetrack executable

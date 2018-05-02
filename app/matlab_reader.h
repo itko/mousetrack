@@ -80,7 +80,7 @@ public:
   Eigen::MatrixXd channelParameters(FrameNumber f) const;
 
   /// Fetch left camera picture for frame f and stream s
-  Picture picture(StreamNumber s, FrameNumber f) const;
+  PictureD picture(StreamNumber s, FrameNumber f) const;
 
   /// Fetch rotation corrections for cameras
   std::vector<Eigen::Matrix4d> rotationCorrections() const;
@@ -203,7 +203,7 @@ private:
   Eigen::MatrixXd readChannelParameters(FrameNumber f) const;
 
   /// read left camera picture for frame f and stream s
-  Picture readPicture(StreamNumber s, FrameNumber f) const;
+  PictureD readPicture(StreamNumber s, FrameNumber f) const;
 
   /// Read rotation corrections for cameras
   std::vector<Eigen::Matrix4d> readRotationCorrections() const;

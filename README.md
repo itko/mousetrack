@@ -16,6 +16,7 @@ $ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng1
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
 - Eigen: `$ sudo apt install libeigen3-dev`
 - We need to read PNG files: `$ sudo apt install libpng16-dev`
+- QT: `$ sudo apt-get install qt5-default `
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:

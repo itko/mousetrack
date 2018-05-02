@@ -31,7 +31,13 @@ typedef double Coordinate;
 /// Defines precision of a single color component
 typedef float ColorChannel;
 
-/// Represents an input picture from a camera stream
-typedef Eigen::MatrixXd Picture;
+/// Represents an image in double format (intensity range: [0,1])
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+    PictureD;
+
+/// Represents an image in int format (intensity range: [0,255])
+typedef Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic,
+                      Eigen::RowMajor>
+    PictureI;
 
 } // namespace MouseTrack

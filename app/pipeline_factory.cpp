@@ -4,29 +4,39 @@
 ///
 
 #include "pipeline_factory.h"
-#include "clustering/mean_shift.h"
-#include "clustering/single_cluster.h"
-#include "descripting/cog.h"
+
 #include "frame_window_filtering/background_subtraction.h"
 #include "frame_window_filtering/disparity_bilateral.h"
 #include "frame_window_filtering/disparity_gaussian_blur.h"
 #include "frame_window_filtering/disparity_median.h"
 #include "frame_window_filtering/disparity_morphology.h"
+
 #include "matching/nearest_neighbour.h"
+
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
-#include "point_cloud_filtering/statistical_outlier_removal.h"
-#include "point_cloud_filtering/subsample.h"
+#include "ros_bag_reader.h"
+
 #include "registration/disparity_registration.h"
 #include "registration/disparity_registration_cpu_optimized.h"
+
+#include "point_cloud_filtering/statistical_outlier_removal.h"
+#include "point_cloud_filtering/subsample.h"
+
+#include "clustering/mean_shift.h"
+#include "clustering/single_cluster.h"
+
+#include "descripting/cog.h"
+
 #include "trajectory_builder/cog_trajectory_builder.h"
+
 #include <boost/log/trivial.hpp>
 
 namespace MouseTrack {
 
 Pipeline
 PipelineFactory::fromCliOptions(const op::variables_map &options) const {
-  if (options.count("src-dir") == 0) {
+  if (options.count("src") == 0) {
     BOOST_LOG_TRIVIAL(info) << "No command line source path given.";
   }
   std::unique_ptr<Reader> reader = getReader(options);
@@ -47,6 +57,7 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
 
   std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{
       getTrajectoryBuilder(options)};
+  BOOST_LOG_TRIVIAL(debug) << "Pipeline modules successfully created.";
   // clang-format off
   return Pipeline(std::move(reader),
                   std::move(windowFiltering),
@@ -62,14 +73,27 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
 std::unique_ptr<Reader>
 PipelineFactory::getReader(const op::variables_map &options) const {
   std::string target = options["pipeline-reader"].as<std::string>();
+  std::string src = options["src"].as<std::string>();
+  if (target == "auto") {
+    fs::path sPath(src);
+    if (fs::is_directory(sPath)) {
+      target = "matlab-concurrent";
+    } else if (fs::is_regular_file(sPath)) {
+      target = "ros-bag";
+    } else {
+      BOOST_LOG_TRIVIAL(warning) << "PipelineFactory, Reader: Unexpected path "
+                                    "type encountered, please "
+                                    "add to case distinction or enter other "
+                                    "source path.";
+      return nullptr;
+    }
+  }
   if (target == "matlab" || target == "matlab-concurrent") {
     std::unique_ptr<MatlabReader> reader;
     if (target == "matlab") {
-      reader = std::unique_ptr<MatlabReader>(
-          new MatlabReader(options["src-dir"].as<std::string>()));
+      reader = std::unique_ptr<MatlabReader>(new MatlabReader(src));
     } else {
-      reader = std::unique_ptr<MatlabReader>(
-          new MatlabReaderConcurrent(options["src-dir"].as<std::string>()));
+      reader = std::unique_ptr<MatlabReader>(new MatlabReaderConcurrent(src));
     }
     if (options.count("first-frame")) {
       reader->setBeginFrame(
@@ -86,6 +110,25 @@ PipelineFactory::getReader(const op::variables_map &options) const {
     if (options.count("last-stream")) {
       reader->setEndStream(
           std::min(reader->endStream(), options["last-stream"].as<int>() + 1));
+    }
+    return reader;
+  } else if (target == "ros-bag") {
+    if (options.count("camchain") == 0) {
+      BOOST_LOG_TRIVIAL(warning)
+          << "You've chosen to process a ROS bag file, "
+             "please set --camchain=<YAML-Path> correspondingly.";
+      return nullptr;
+    }
+    std::string camchain = options["camchain"].as<std::string>();
+    std::unique_ptr<RosBagReader> reader =
+        std::make_unique<RosBagReader>(src, camchain);
+    if (options.count("first-frame")) {
+      reader->setBeginFrame(
+          std::max(reader->beginFrame(), options["first-frame"].as<int>()));
+    }
+    if (options.count("last-frame")) {
+      reader->setEndFrame(
+          std::min(reader->endFrame(), options["last-frame"].as<int>() + 1));
     }
     return reader;
   }
@@ -197,7 +240,7 @@ PipelineFactory::getWindowFiltering(const std::string &target,
   if (target == "background-subtraction") {
     std::string path;
     if (options.count("background-subtraction-cage-directory") == 0) {
-      path = options["src-dir"].as<std::string>();
+      path = options["src"].as<std::string>();
     } else {
       path = options["background-subtraction-cage-directory"].as<std::string>();
     }

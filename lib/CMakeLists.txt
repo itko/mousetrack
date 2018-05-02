@@ -16,9 +16,11 @@ set(source_files
         generic/point_cloud.cpp
         generic/read_csv.cpp
         generic/read_png.cpp
+        generic/resolve_symlink.cpp
         generic/trajectory.cpp
         generic/center.cpp
         generic/write_point_cloud.cpp
+        generic/write_png.cpp
         generic/random_sample.cpp
         descripting/cog.cpp
         matching/nearest_neighbour.cpp
@@ -60,11 +62,13 @@ add_library(libmousetrack ${source_files})
 target_include_directories(libmousetrack PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package( Boost COMPONENTS
+    system
+    filesystem
     log
     unit_test_framework
     REQUIRED )
-ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
 find_package( OpenCV REQUIRED )
 
@@ -77,9 +81,11 @@ include_directories(${PNG_INCLUDE_DIRS})
 
 target_link_libraries(libmousetrack
     ${OpenCV_LIBS}
-    ${PNG_LIBRARIES}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_LOG_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${PNG_LIBRARIES}
     )
 
 add_executable(tests ${test_files})

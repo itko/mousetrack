@@ -7,10 +7,8 @@
 
 #include "types.h"
 
-#include <Eigen/Core>
-
 namespace MouseTrack {
 
-typedef PictureD DisparityMap;
+std::string resolve_symlink(const std::string &p, int maxSymlinksFollowed);
 
 } // namespace MouseTrack

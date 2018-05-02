@@ -1,6 +1,12 @@
+/// \file
+/// Maintainer: Felice Serena
+///
+///
+
 #include "matlab_reader.h"
 #include "generic/read_csv.h"
 #include "generic/read_png.h"
+#include "generic/resolve_symlink.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/range.hpp>
@@ -120,12 +126,9 @@ void MatlabReader::preflight() {
                                                   fs::directory_iterator())) {
     fs::path path = p.path();
     BOOST_LOG_TRIVIAL(trace) << "Found path: " << path.string();
-    int evaluatedSymlinks = 0;
-    while (evaluatedSymlinks < _followSymlinkDepth && fs::is_symlink(path)) {
-      path = fs::read_symlink(path);
-      BOOST_LOG_TRIVIAL(info) << "Followed symbolic link to: " << path.string();
-      evaluatedSymlinks += 1;
-    }
+
+    path = resolve_symlink(path.string(), _followSymlinkDepth);
+
     if (!fs::is_regular_file(path)) {
       // add original path to ignore list
       BOOST_LOG_TRIVIAL(info)
@@ -392,7 +395,7 @@ Eigen::MatrixXd MatlabReader::channelParameters(FrameNumber f) const {
   return readChannelParameters(f);
 }
 
-Eigen::MatrixXd MatlabReader::picture(StreamNumber s, FrameNumber f) const {
+PictureD MatlabReader::picture(StreamNumber s, FrameNumber f) const {
   return readPicture(s, f);
 }
 
@@ -423,7 +426,7 @@ DisparityMap MatlabReader::readNormalizedDisparityMap(StreamNumber s,
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readNormalizedDisparityMap: " << p.string();
-  Picture map = read_png_normalized(p.string());
+  PictureD map = read_png_normalized(p.string());
   DisparityMap result{std::move(map)};
   return result;
 }
@@ -444,7 +447,7 @@ DisparityMap MatlabReader::readRawDisparityMap(StreamNumber s,
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readRawDisparityMap: " << p.string();
-  Picture map = read_png_normalized(p.string());
+  PictureD map = read_png_normalized(p.string());
   DisparityMap result{std::move(map)};
   return result;
 }
@@ -467,7 +470,7 @@ Eigen::MatrixXd MatlabReader::readChannelParameters(FrameNumber f) const {
 }
 
 /// read left camera picture for frame f and stream s
-Picture MatlabReader::readPicture(StreamNumber s, FrameNumber f) const {
+PictureD MatlabReader::readPicture(StreamNumber s, FrameNumber f) const {
   const auto candidatesPtr =
       _files.frames.find(ElementKey(s, f, REFERENCE_PICTURE_KEY));
   if (candidatesPtr == _files.frames.end()) {
@@ -476,7 +479,7 @@ Picture MatlabReader::readPicture(StreamNumber s, FrameNumber f) const {
                               << f << " and stream " << s;
       throw "No reference picture file found.";
     }
-    return Picture{};
+    return PictureD{};
   }
   fs::path p = chooseCandidate(candidatesPtr->second);
   BOOST_LOG_TRIVIAL(trace) << "readPicture: " << p.string();
