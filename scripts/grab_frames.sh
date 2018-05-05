@@ -5,8 +5,10 @@
 # $3: Start frame
 # $4: Step
 # $5: End frame
+# $6: Strart stream (optional, default=1)
+# $7: End stream (optional, default=4)
 
-# Checks if file exists, copies if yes, throws waring if not.
+# Checks if file exists, copies if yes, throws warning if not.
 function check_and_copy {
     if [ -f $1 ]
 then
@@ -19,7 +21,7 @@ fi
 # Check correct number of arguments
 if [ $# -lt 5 ]
 then
-  echo "Usage: $0 INPUT_DIR OUTPUT_DIR START_FRAME STEP END_FRAME"
+  echo "Usage: $0 INPUT_DIR OUTPUT_DIR START_FRAME STEP END_FRAME [START-STREAM] [END-STREAM]"
   exit 1
 fi
 
@@ -36,7 +38,7 @@ check_and_copy $1/params_camchain.csv $2/
 for i in `seq $3 $4 $5`;
 do
     check_and_copy $1/params_f_$i.csv $2/
-    for j in `seq 1 4`;
+    for j in `seq ${6-1} ${7-4}`;
     do
 	check_and_copy $1/disparity_normalized_s_${j}_f_$i.png $2/
 	check_and_copy $1/disparity_s_${j}_f_$i.png $2/
