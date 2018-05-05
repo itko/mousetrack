@@ -11,6 +11,7 @@
 #include "frame_window_filtering/disparity_gaussian_blur.h"
 #include "frame_window_filtering/disparity_median.h"
 #include "frame_window_filtering/disparity_morphology.h"
+#include "frame_window_filtering/background_subtraction.h"
 #include "matching/nearest_neighbour.h"
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
@@ -191,6 +192,23 @@ PipelineFactory::getWindowFiltering(const std::string &target,
 
     ptr->diameter(diameter);
     ptr->kernelShape(shape);
+    return ptr;
+  }
+  if (target == "background-subtraction") {
+    std::string path;
+    if (options["background-subtraction-cage-directory"].as<std::string>() == "") {
+      path = options["src-dir"].as<std::string>();
+    } else {
+      path = options["background-subtraction-cage-directory"].as<std::string>();
+    }
+    MatlabReader reader (path);
+    reader.setBeginFrame(options["background-subtraction-cage-frame"].as<int>());
+    reader.setEndFrame(options["background-subtraction-cage-frame"].as<int>());
+    reader.setBeginStream(options["first-stream"].as<int>());
+    reader.setEndStream(options["last-stream"].as<int>());
+    FrameWindow cageWindow = reader.frameWindow(options["background-subtraction-cage-frame"].as<int>());
+    auto ptr = std::make_unique<BackgroundSubtraction>();
+    ptr->cage_frame(cageWindow);
     return ptr;
   }
   if (target == "none") {

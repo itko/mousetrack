@@ -5,6 +5,7 @@
 #pragma once
 
 #include "frame_window_filtering.h"
+#include <string>
 
 namespace MouseTrack {
 
@@ -13,17 +14,17 @@ namespace MouseTrack {
 /// 
 class BackgroundSubtraction : public FrameWindowFiltering {
 public:
-  BackgroundSubtraction(const FrameWindow* const cage_frame);
-  FrameWindow operator()(const FrameWindow &window);
+  BackgroundSubtraction();
+  virtual FrameWindow operator()(const FrameWindow &window) const;
 
-  const FrameWindow *cage_frame() const;
-  void cage_frame(FrameWindow *cage_frame);
+  const FrameWindow& cage_frame() const;
+  void cage_frame(FrameWindow& cage_frame);
 
   const double threshold() const;
   void threshold(double threshold);
 
 private:
-  const FrameWindow* _cage_frame;
+  FrameWindow _cage_frame = FrameWindow();
   double _threshold = 0.01;
 };
 
