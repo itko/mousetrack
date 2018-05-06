@@ -58,7 +58,6 @@ RosBagReader::RosBagReader(const fs::path &bag_path, const fs::path &camchain)
     throw "Camchain file path not a regular file.";
   }
 
-  _valid = true;
   // read yaml
   BOOST_LOG_TRIVIAL(debug) << "Reading camchain: " << cpath.string();
   readCamChain(camchain);
@@ -66,6 +65,8 @@ RosBagReader::RosBagReader(const fs::path &bag_path, const fs::path &camchain)
   // read bag
   BOOST_LOG_TRIVIAL(debug) << "Reading bag: " << bpath.string();
   readBag(bpath);
+
+  _valid = true;
 }
 
 RosBagReader::RosBagReader() : _valid(false) {
@@ -107,7 +108,7 @@ FrameWindow RosBagReader::frameWindow(FrameNumber f) const {
     const auto camInfo = _frameMessages[f][index(s, CamInfo)]
                              .instantiate<sensor_msgs::CameraInfo>();
     if (camInfo == nullptr) {
-      BOOST_LOG_TRIVIAL(warning) << "Couldn't instatiate CamerInfo, setting "
+      BOOST_LOG_TRIVIAL(warning) << "Couldn't instatiate CameraInfo, setting "
                                     "camera info values to zero.";
       frame.focallength = 0;
       frame.ccx = 0;
@@ -223,9 +224,9 @@ void RosBagReader::readBag(const fs::path &bagPath) {
   BOOST_LOG_TRIVIAL(debug) << "Collecting bag handles.";
   // Collect handles to all relevant messages
   while (!reachedEnd(viewIters, viewEnds)) {
-    logIters(viewIters);
     auto diff = largestTimeDifference(viewIters);
     if (diff > _upperFrameDuration) {
+      logIters(viewIters);
       BOOST_LOG_TRIVIAL(info) << "Frames in FrameWindow no longer sychronized, "
                                  "trying to recover. Time difference: "
                               << diff.toSec();

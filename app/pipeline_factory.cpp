@@ -15,7 +15,10 @@
 
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
+
+#if ENABLE_ROSBAG
 #include "ros_bag_reader.h"
+#endif
 
 #include "registration/disparity_registration.h"
 #include "registration/disparity_registration_cpu_optimized.h"
@@ -113,6 +116,7 @@ PipelineFactory::getReader(const op::variables_map &options) const {
     }
     return reader;
   } else if (target == "ros-bag") {
+#if ENABLE_ROSBAG
     if (options.count("camchain") == 0) {
       BOOST_LOG_TRIVIAL(warning)
           << "You've chosen to process a ROS bag file, "
@@ -131,6 +135,11 @@ PipelineFactory::getReader(const op::variables_map &options) const {
           std::min(reader->endFrame(), options["last-frame"].as<int>() + 1));
     }
     return reader;
+#else
+    BOOST_LOG_TRIVIAL(warning)
+        << "Application was compiled without ROS-bag support.";
+    return nullptr;
+#endif
   }
 
   return nullptr;

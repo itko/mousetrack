@@ -15,7 +15,7 @@ option(ENABLE_ROSBAG "Build with Ros-Bag support" ON)
 
 message("GUI: " ${ENABLE_GUI})
 message("OpenMP: " ${ENABLE_OPENMP})
-message("OpenMP: " ${ENABLE_ROSBAG})
+message("RosBag: " ${ENABLE_ROSBAG})
 
 if(ENABLE_OPENMP)
     find_package(OpenMP)

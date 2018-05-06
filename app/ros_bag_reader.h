@@ -15,6 +15,10 @@
 
 namespace MouseTrack {
 
+/// This class reads a ROS bag in combination with a given camchain yaml.
+///
+/// It collects handles to all frame data in a preflight step in the constructor
+/// but only reads the actual data when requested.
 class RosBagReader : public Reader {
 public:
   enum Channel { Reference = 0, Disparity = 1, CamInfo = 2, ChannelCount = 3 };

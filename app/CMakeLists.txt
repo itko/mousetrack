@@ -46,9 +46,6 @@ find_package( Boost COMPONENTS
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
-find_package( yaml-cpp REQUIRED )
-include_directories(${YAML_CPP_INCLUDE_DIR})
-
 if(ENABLE_GUI)
   find_package(Qt5Core)
   
@@ -68,6 +65,12 @@ if(ENABLE_ROSBAG)
     find_package(sensor_msgs REQUIRED)
     include_directories(${rosbag_INCLUDE_DIRS} ${sensor_msgs_INCLUDE_DIRS})
     set(ROSBAG_LIBRARIES ${rosbag_LIBRARIES} ${sensor_msgs_LIBRARIES})
+
+    # at the moment only used for ROS bag extraction
+    find_package( yaml-cpp REQUIRED )
+    include_directories(${YAML_CPP_INCLUDE_DIR})
+
+    add_definitions(-DENABLE_ROSBAG)
 else(ENABLE_ROSBAG)
     # reset rosbag sources
     set(rosbag_source_files "")
