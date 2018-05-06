@@ -98,15 +98,24 @@ FrameWindow RosBagReader::frameWindow(FrameNumber f) const {
   FrameWindow window;
   for (StreamNumber s = 0; s < _streamsCount; ++s) {
     Frame frame;
-    PictureI im = readImageFromMsg(_frameMessages[f][index(s, Reference)]);
-    frame.referencePicture = im.cast<PictureD::Scalar>() * (1.0 / 255);
-    im = readImageFromMsg(_frameMessages[f][index(s, Disparity)]);
+    const rosbag::MessageInstance *msg = frameMessage(index(s, Reference), f);
+    if (msg != nullptr) {
+      PictureI im = readImageFromMsg(*msg);
+      frame.referencePicture = im.cast<PictureD::Scalar>() * (1.0 / 255);
+    }
+    msg = frameMessage(index(s, Disparity), f);
+    if (msg != nullptr) {
+      PictureI im = readImageFromMsg(*msg);
 
-    frame.rawDisparityMap = im.cast<PictureD::Scalar>() * (1.0 / 255);
-    frame.normalizedDisparityMap = normalizeDisparity(im);
+      frame.rawDisparityMap = im.cast<PictureD::Scalar>() * (1.0 / 255);
+      frame.normalizedDisparityMap = normalizeDisparity(im);
+    }
     // camInfo holds: focallength, ccx, ccy
-    const auto camInfo = _frameMessages[f][index(s, CamInfo)]
-                             .instantiate<sensor_msgs::CameraInfo>();
+    msg = frameMessage(index(s, CamInfo), f);
+    boost::shared_ptr<const sensor_msgs::CameraInfo> camInfo = nullptr;
+    if (msg != nullptr) {
+      camInfo = msg->instantiate<sensor_msgs::CameraInfo>();
+    }
     if (camInfo == nullptr) {
       BOOST_LOG_TRIVIAL(warning) << "Couldn't instatiate CameraInfo, setting "
                                     "camera info values to zero.";
@@ -177,6 +186,18 @@ Eigen::Matrix4d RosBagReader::readYAML4x4Matrix(const YAML::Node &node) const {
   }
   return mat;
 }
+const size_t NO_MSG = -1;
+
+const rosbag::MessageInstance *RosBagReader::frameMessage(int mi,
+                                                          FrameNumber f) const {
+  auto fi = _syncedFrameMsgPtrs[mi][f];
+  if (fi == NO_MSG) {
+    return nullptr;
+  }
+  return &_frameMessages[mi][fi];
+}
+
+// handling iterators
 
 void logIters(const std::vector<rosbag::View::iterator> &iters) {
   for (size_t i = 0; i < iters.size(); ++i) {
@@ -184,10 +205,159 @@ void logIters(const std::vector<rosbag::View::iterator> &iters) {
   }
 }
 
+template <typename It>
+bool reachedEnd(std::vector<It> &iters, const std::vector<It> &ends) {
+  assert(iters.size() == ends.size());
+  for (size_t i = 0; i < iters.size(); ++i) {
+    if (iters[i] == ends[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <typename It> void incrementIterators(std::vector<It> &iters) {
+  for (auto &it : iters) {
+    ++it;
+  }
+}
+
+typedef std::vector<std::vector<size_t>> Ret;
+
+// fills all vectors with empty values to make them the same length
+void fillResult(Ret &result) {
+  size_t max = 0;
+  for (size_t i = 0; i < result.size(); ++i) {
+    max = std::max(max, result[i].size());
+  }
+  for (size_t i = 0; i < result.size(); ++i) {
+    for (size_t j = result[i].size(); j < max; ++j) {
+      result[i][j] = -1;
+    }
+  }
+}
+
+std::vector<std::vector<size_t>> unsynchronizedIterators(
+    const std::vector<std::vector<rosbag::MessageInstance>> &msgs) {
+  Ret result(msgs.size());
+  for (size_t i = 0; i < msgs.size(); ++i) {
+    result[i].resize(msgs[i].size());
+    std::iota(result[i].begin(), result[i].end(), 0);
+  }
+  return result;
+}
+
+// get all iterators to the messages in aligned lists
+std::vector<std::vector<size_t>> synchronizedIterators(
+    const std::vector<std::vector<rosbag::MessageInstance>> &msgs) {
+  typedef std::pair<ros::Time, size_t> I;
+  typedef std::list<I>::iterator Iter;
+  typedef std::vector<Iter> IterVec;
+  typedef IterVec::iterator Iter2Iter;
+
+  /// set up
+
+  // nothing to synchronize
+  if (msgs.size() <= 1) {
+    return unsynchronizedIterators(msgs);
+  }
+
+  // collect indexes to message instances, and their time values
+  std::vector<std::list<I>> iters(msgs.size());
+  for (size_t i = 0; i < msgs.size(); ++i) {
+    for (size_t j = 0; j < msgs[i].size(); ++j) {
+      iters[i].push_back(I(msgs[i][j].getTime(), j));
+    }
+  }
+
+  //// insert "empty" nodes to fix synchronization of frames
+
+  // holds a frameWindow of iterators to the time pairs
+  IterVec active;
+  std::transform(iters.begin(), iters.end(), std::back_inserter(active),
+                 [](std::list<I> &v) { return v.begin(); });
+  IterVec ends;
+  std::transform(iters.begin(), iters.end(), std::back_inserter(ends),
+                 [](std::list<I> &v) { return v.end(); });
+
+  // synchronize nodes:
+  // take iterator `it` with smallest time
+  // check if (++it) shrinks size of time frame
+  //
+  // - if it does, insert empty values before every other node
+  //   and increment it (this skips `it`)
+  //
+  // - if it doesn't, this means we found the smallest possible window
+  // -> increment every iterator by one and repeat
+
+  auto compare = [](const Iter &a, const Iter &b) {
+    return a->first < b->first;
+  };
+  while (!reachedEnd(active, ends)) {
+    BOOST_LOG_TRIVIAL(trace) << "checking:";
+    std::for_each(active.begin(), active.end(), [](Iter &it) {
+      BOOST_LOG_TRIVIAL(trace) << "c: " << it->first;
+    });
+    // clang-format off
+    Iter2Iter lowestTime = std::min_element(active.begin(), active.end(), compare);
+    Iter2Iter highestTime = std::max_element(active.begin(), active.end(), compare);
+    ros::Duration beforeDiff = (*highestTime)->first - (*lowestTime)->first;
+    // try to point to the next frame
+    BOOST_LOG_TRIVIAL(trace)
+        << "low: " << (*lowestTime)->first << ", hi: " << (*highestTime)->first;
+    ++(*lowestTime);
+    Iter2Iter newLowestTime = std::min_element(active.begin(), active.end(), compare);
+    Iter2Iter newHighestTime = std::max_element(active.begin(), active.end(), compare);
+    ros::Duration afterDiff = (*newHighestTime)->first - (*newLowestTime)->first;
+    // clang-format on
+    BOOST_LOG_TRIVIAL(trace) << "nlow: " << (*newLowestTime)->first
+                             << ", nhi: " << (*newHighestTime)->first;
+    // decide what to do
+    if (afterDiff > beforeDiff) {
+      // we would make the situation worse, so this is a local optimum
+      // roll back
+      --(*lowestTime);
+      // increment to next frame window and leave this frame window alone
+      std::for_each(active.begin(), active.end(), [](const Iter &it) {
+        BOOST_LOG_TRIVIAL(trace) << "optimum: " << it->first;
+      });
+      std::for_each(active.begin(), active.end(), [](Iter &it) { ++it; });
+      std::for_each(active.begin(), active.end(), [](const Iter &it) {
+        BOOST_LOG_TRIVIAL(trace) << "to: " << it->first;
+      });
+      std::cout << std::flush;
+      std::abort();
+    } else {
+      // we need to skip --(*lowestTime), hence don't roll back lowestTime and
+      // insert empty nodes before everything else to give them the same index
+      for (size_t i = 0; i < active.size(); ++i) {
+        auto &it = active[i];
+        if (it != *lowestTime) {
+          iters[i].insert(it, I(ros::Time(), -1));
+        }
+      }
+    }
+  }
+  /// TODO: synchronize end
+
+  /// Write clean result for return
+  Ret result(msgs.size());
+  for (size_t i = 0; i < result.size(); ++i) {
+    std::transform(iters[i].begin(), iters[i].end(),
+                   std::back_inserter(result[i]),
+                   [](const I &pair) { return pair.second; });
+  }
+  // fill up end to make all vectors the same size
+  fillResult(result);
+  return result;
+}
+
+// actually reading the bag
 void RosBagReader::readBag(const fs::path &bagPath) {
   _bag.open(bagPath.string(), rosbag::bagmode::Read);
   // read entire bag
 
+  BOOST_LOG_TRIVIAL(debug) << "Bag opened.";
   // TODO: make this configurable regarding the number of cameras
   std::vector<std::string> queries(Channel::ChannelCount * _streamsCount);
 
@@ -221,28 +391,62 @@ void RosBagReader::readBag(const fs::path &bagPath) {
   std::transform(views.begin(), views.end(), std::back_inserter(viewEnds),
                  [](rosbag::View &v) { return v.end(); });
 
+  _frameMessages.resize(views.size());
   BOOST_LOG_TRIVIAL(debug) << "Collecting bag handles.";
   // Collect handles to all relevant messages
-  while (!reachedEnd(viewIters, viewEnds)) {
-    auto diff = largestTimeDifference(viewIters);
-    if (diff > _upperFrameDuration) {
-      logIters(viewIters);
-      BOOST_LOG_TRIVIAL(info) << "Frames in FrameWindow no longer sychronized, "
-                                 "trying to recover. Time difference: "
-                              << diff.toSec();
-      // TODO
-      // synchronizeViewIterators(viewIters, viewEnds);
+  for (size_t i = 0; i < _frameMessages.size(); ++i) {
+    _frameMessages[i].clear();
+    while (viewIters[i] != viewEnds[i]) {
+      _frameMessages[i].push_back(*viewIters[i]);
+      ++viewIters[i];
     }
-    // create all necessary MessageInstances
-    std::vector<rosbag::MessageInstance> msgs;
-    std::transform(viewIters.begin(), viewIters.end(), std::back_inserter(msgs),
-                   [](const rosbag::View::iterator &it) { return *it; });
-    _frameMessages.push_back(std::move(msgs));
-    incrementIterators(viewIters);
   }
+
+  BOOST_LOG_TRIVIAL(debug) << "Found " << _frameMessages[0].size()
+                           << " messages.";
+  BOOST_LOG_TRIVIAL(debug) << "Synchronizing bag handles.";
+  _syncedFrameMsgPtrs = unsynchronizedIterators(_frameMessages);
+
+  // check framewindows
+  BOOST_LOG_TRIVIAL(debug)
+      << "Checking synchronization consistency of frameWindows.";
+  bool sync = true;
+  for (size_t i = 0; i < _syncedFrameMsgPtrs[0].size(); ++i) {
+    ros::Time highest;
+    for (size_t j = 0; j < _syncedFrameMsgPtrs.size(); ++j) {
+      auto f = _syncedFrameMsgPtrs[j][i];
+      if (f == NO_MSG) {
+        continue;
+      }
+      rosbag::MessageInstance &msg = _frameMessages[j][f];
+      highest = std::max(highest, msg.getTime());
+    }
+    ros::Time lowest = highest;
+    for (size_t j = 0; j < _syncedFrameMsgPtrs.size(); ++j) {
+      auto f = _syncedFrameMsgPtrs[j][i];
+      if (f == NO_MSG) {
+        continue;
+      }
+      rosbag::MessageInstance &msg = _frameMessages[j][f];
+      lowest = std::min(lowest, msg.getTime());
+    }
+    ros::Duration diff = highest - lowest;
+    if (diff >= _upperFrameDuration) {
+      /*BOOST_LOG_TRIVIAL(warning)
+          << "Frames of framewindow " << i
+          << " are not synced, lowest: " << lowest << ", highest: " << highest
+          << ", diff: " << diff << ", threshold: " << _upperFrameDuration;*/
+      sync = false;
+    }
+  }
+
+  BOOST_LOG_TRIVIAL(debug) << "Found " << _syncedFrameMsgPtrs[0].size()
+                           << (sync ? " synced" : " un-synchronized")
+                           << " frameWindows";
+
   _activeFrame = 0;
   _beginFrame = 0;
-  _endFrame = _frameMessages.size();
+  _endFrame = _syncedFrameMsgPtrs[0].size();
 }
 
 PictureI
@@ -259,83 +463,6 @@ RosBagReader::readImageFromMsg(const rosbag::MessageInstance &it) const {
       im(img->data.data(), img->height, img->width);
   PictureI mat = im.cast<PictureI::Scalar>();
   return mat;
-}
-
-void RosBagReader::synchronizeViewIterators(
-    std::vector<rosbag::View::iterator> &iters,
-    const std::vector<rosbag::View::iterator> &ends) const {
-  // get common time
-  ros::Time highestTime;
-  for (const auto &v : iters) {
-    highestTime = std::max(v->getTime(), highestTime);
-  }
-
-  // for each stream, find closest value to highestTime
-  for (size_t i = 0; i < iters.size(); ++i) {
-    auto &it = iters[i];
-    auto beforeIt = it;
-    int advanced = 0;
-    while (it->getTime() <= highestTime && it != ends[i]) {
-      beforeIt = it;
-      ++it;
-      ++advanced;
-    }
-    if (it == ends[i]) {
-      BOOST_LOG_TRIVIAL(info) << "Reached end of stream, picking last iterator "
-                                 "for synchronization.";
-      it = beforeIt;
-    }
-    // we are now exactly at the largest time smaller or equal highestTime
-    // check which intervall is smaller and move correspondingly
-    if (it->getTime() - highestTime > highestTime - beforeIt->getTime()) {
-      it = std::move(beforeIt);
-      --advanced;
-    }
-    if (advanced > 0) {
-      BOOST_LOG_TRIVIAL(trace)
-          << "Advanced iterator " << i << " by " << advanced;
-    }
-  };
-  // selfcheck
-  auto diff = largestTimeDifference(iters);
-  if (diff > ros::Duration(_upperFrameDuration)) {
-    BOOST_LOG_TRIVIAL(warning)
-        << "Couldn't synchronize stream, frames more than "
-        << _upperFrameDuration << " seconds appart: " << diff;
-  }
-}
-
-ros::Duration RosBagReader::largestTimeDifference(
-    const std::vector<rosbag::View::iterator> &iters) const {
-  ros::Time highestTime;
-  for (const auto &v : iters) {
-    highestTime = std::max(v->getTime(), highestTime);
-  }
-  ros::Time lowestTime = highestTime;
-  for (const auto &v : iters) {
-    lowestTime = std::min(v->getTime(), lowestTime);
-  }
-  assert(lowestTime <= highestTime);
-  return highestTime - lowestTime;
-}
-
-void RosBagReader::incrementIterators(
-    std::vector<rosbag::View::iterator> &iters) const {
-  for (auto &it : iters) {
-    ++it;
-  }
-}
-
-bool RosBagReader::reachedEnd(
-    std::vector<rosbag::View::iterator> &iters,
-    const std::vector<rosbag::View::iterator> &ends) const {
-  assert(iters.size() == ends.size());
-  for (size_t i = 0; i < iters.size(); ++i) {
-    if (iters[i] == ends[i]) {
-      return true;
-    }
-  }
-  return false;
 }
 
 // helpers

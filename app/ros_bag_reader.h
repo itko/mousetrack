@@ -59,7 +59,19 @@ private:
   /// cached messageInstances for random access, according to the documentation
   /// this class is nothing more than a handle and hence lightweight
   std::vector<std::vector<rosbag::MessageInstance>> _frameMessages;
+
+  /// Messages might be missing in the bag file, creating information holes
+  /// This holds a mapping such that all entries at index `i`, e.g.
+  /// `_syncedFrameMsgPtrs[..][i]`, happen at the same time
+  std::vector<std::vector<size_t>> _syncedFrameMsgPtrs;
+
+  /// mi: message index in [0, _frameMessages.size())
+  ///
+  /// f: index into _syncedFrameMsgPtrs
+  const rosbag::MessageInstance *frameMessage(int mi, FrameNumber f) const;
+
   FrameNumber _activeFrame;
+
   bool _valid;
 
   int _beginFrame = 0;
@@ -72,18 +84,6 @@ private:
   /// If the mesages of a frame have a larger distance than
   /// `_upperFrameDuration` seconds, we classify them as no longer synchronized
   ros::Duration _upperFrameDuration = ros::Duration(0.1);
-
-  void synchronizeViewIterators(
-      std::vector<rosbag::View::iterator> &iters,
-      const std::vector<rosbag::View::iterator> &ends) const;
-
-  ros::Duration
-  largestTimeDifference(const std::vector<rosbag::View::iterator> &iters) const;
-
-  bool reachedEnd(std::vector<rosbag::View::iterator> &iters,
-                  const std::vector<rosbag::View::iterator> &ends) const;
-
-  void incrementIterators(std::vector<rosbag::View::iterator> &iters) const;
 
   PictureD normalizeDisparity(const PictureI &disp) const;
 
