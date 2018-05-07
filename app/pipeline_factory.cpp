@@ -7,11 +7,11 @@
 #include "clustering/mean_shift.h"
 #include "clustering/single_cluster.h"
 #include "descripting/cog.h"
+#include "frame_window_filtering/background_subtraction.h"
 #include "frame_window_filtering/disparity_bilateral.h"
 #include "frame_window_filtering/disparity_gaussian_blur.h"
 #include "frame_window_filtering/disparity_median.h"
 #include "frame_window_filtering/disparity_morphology.h"
-#include "frame_window_filtering/background_subtraction.h"
 #include "matching/nearest_neighbour.h"
 #include "matlab_reader.h"
 #include "matlab_reader_concurrent.h"
@@ -196,17 +196,16 @@ PipelineFactory::getWindowFiltering(const std::string &target,
   }
   if (target == "background-subtraction") {
     std::string path;
-    if (options["background-subtraction-cage-directory"].as<std::string>() == "") {
+    if (options.count("background-subtraction-cage-directory") == 0) {
       path = options["src-dir"].as<std::string>();
     } else {
       path = options["background-subtraction-cage-directory"].as<std::string>();
     }
-    MatlabReader reader (path);
-    reader.setBeginFrame(options["background-subtraction-cage-frame"].as<int>());
-    reader.setEndFrame(options["background-subtraction-cage-frame"].as<int>());
+    MatlabReader reader(path);
     reader.setBeginStream(options["first-stream"].as<int>());
-    reader.setEndStream(options["last-stream"].as<int>());
-    FrameWindow cageWindow = reader.frameWindow(options["background-subtraction-cage-frame"].as<int>());
+    reader.setEndStream(options["last-stream"].as<int>() + 1);
+    FrameWindow cageWindow = reader.frameWindow(
+        options["background-subtraction-cage-frame"].as<int>());
     auto ptr = std::make_unique<BackgroundSubtraction>();
     ptr->cage_frame(cageWindow);
     return ptr;
@@ -282,10 +281,10 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
     ptr->setConvergenceThreshold(
         options["mean-shift-convergence-threshold"].as<double>());
     return ptr;
-} else if (target == "single-cluster") {
+  } else if (target == "single-cluster") {
     std::unique_ptr<SingleCluster> ptr{new SingleCluster()};
     return ptr;
-}
+  }
   return nullptr;
 }
 

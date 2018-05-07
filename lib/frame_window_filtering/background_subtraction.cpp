@@ -18,18 +18,25 @@ BackgroundSubtraction::BackgroundSubtraction() {
 }
 
 FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
-    // Initializing return object
-  std::vector<Frame> frames(window.frames().size());
+  // Initializing return object
+  FrameWindow output = window;
   // Cycle through all streams
   for (size_t i = 0; i < _cage_frame.frames().size(); i++) {
-    // Copy the stuff we need from the FrameWindow objects
-    Picture cage_image = _cage_frame.frames()[i].referencePicture;
-    Picture mouse_image = window.frames()[i].referencePicture;
 
-    // ALL the dimensions must match
+    // Copy the stuff we need from the FrameWindow objects
+    const Picture &cage_image = _cage_frame.frames()[i].referencePicture;
+    const Picture &mouse_image = window.frames()[i].referencePicture;
+
+    // Dimensions must match
     if (!(cage_image.rows() == mouse_image.rows() &&
           cage_image.cols() == mouse_image.cols())) {
       // If it fails, return the input (do nothing)
+      BOOST_LOG_TRIVIAL(info)
+          << "Frame dimensions (" << mouse_image.rows() << "x"
+          << mouse_image.cols()
+          << ") do not match empty cage frame dimensions (" << cage_image.rows()
+          << "x" << cage_image.cols()
+          << "). Background subtraction cannot be performed.";
       return window;
     }
 
@@ -54,22 +61,21 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
 
     // A very low threshold means there's no significant bright
     // spots, i.e. no mouse => set mask to zeros
-    if (thresh_otsu < _threshold) {
-      mask *= 0;
+    if (thresh_otsu < _threshold * 255) {
+      mask.setZero();
+      BOOST_LOG_TRIVIAL(debug)
+          << "No Mask stream " << i << " threshold: " << thresh_otsu;
     }
 
     // Build Frame object...
-    Frame frame = window.frames()[i];
-    frame.normalizedDisparityMap.zMap() =
-        mask.array() * frame.normalizedDisparityMap.zMap().array();
-    frame.rawDisparityMap.zMap() =
-        mask.array() * frame.rawDisparityMap.zMap().array();
-    frame.referencePicture = mask.array() * frame.referencePicture.array();
-
-    //... and add it to the output frame window
-    frames[i] = frame;
+    output.frames()[i].normalizedDisparityMap.zMap() =
+        mask.array() * output.frames()[i].normalizedDisparityMap.zMap().array();
+    output.frames()[i].rawDisparityMap.zMap() =
+        mask.array() * output.frames()[i].rawDisparityMap.zMap().array();
+    output.frames()[i].referencePicture =
+        mask.array() * output.frames()[i].referencePicture.array();
   }
-  return FrameWindow(frames);
+  return output;
 }
 
 const FrameWindow &BackgroundSubtraction::cage_frame() const {
@@ -81,7 +87,7 @@ void BackgroundSubtraction::cage_frame(FrameWindow &cage_frame) {
   _cage_frame = cage_frame;
 }
 
-const double BackgroundSubtraction::threshold() const { return _threshold; }
+double BackgroundSubtraction::threshold() const { return _threshold; }
 void BackgroundSubtraction::threshold(double threshold) {
   _threshold = threshold;
 }
