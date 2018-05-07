@@ -325,8 +325,6 @@ std::vector<std::vector<size_t>> synchronizedIterators(
       std::for_each(active.begin(), active.end(), [](const Iter &it) {
         BOOST_LOG_TRIVIAL(trace) << "to: " << it->first;
       });
-      std::cout << std::flush;
-      std::abort();
     } else {
       // we need to skip --(*lowestTime), hence don't roll back lowestTime and
       // insert empty nodes before everything else to give them the same index

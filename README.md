@@ -8,7 +8,7 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev lib-rosbag-dev  lib-sensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev
 ```
 
 - CMake: `$ sudo apt install cmake`
@@ -16,7 +16,8 @@ $ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng1
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
 - Eigen: `$ sudo apt install libeigen3-dev`
 - We need to read PNG files: `$ sudo apt install libpng16-dev`
-- QT: `$ sudo apt-get install qt5-default `
+- QT: `$ sudo apt install qt5-default`
+- ROS bag support: `$ sudo apt install lib-rosbag-dev lib-sensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev`
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
