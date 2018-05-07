@@ -25,6 +25,14 @@ class PointCloud {
   // concept of single points (we basically emulate AoS). Never done this
   // before, should be fun.
 public:
+  /// type of a label entry:
+  ///
+  /// 0 means "not this label"
+  ///
+  /// 1 means "very much this label"
+  ///
+  /// Values inbetween show insecurity
+  typedef double Label;
   class Point;
   class ConstantPoint;
   /// The Point class is a collection of accessors allowing to manipulate the
@@ -84,8 +92,22 @@ public:
     /// Read access to color intensity.
     ColorChannel intensity() const;
 
-    /// Convert to dx1 Eigen Matrix
-    Eigen::VectorXd eigenVec() const;
+    /// Write access labels
+    ///
+    /// 0: This point does not hold this label (non existing entries are to
+    /// zero)
+    ///
+    /// 1: This point very much holds this label
+    void labels(std::vector<Label> newLabels);
+
+    /// Read access on labels
+    const std::vector<Label> &labels() const;
+
+    /// Convert to dx1 Eigen Vector holding all characteristic values
+    Eigen::VectorXd characteristic() const;
+
+    /// Position as eigen column vector
+    Eigen::Vector3d pos() const;
 
     /// assignment
     void operator=(const Point &other);
@@ -127,8 +149,14 @@ public:
     /// Read access to color intensity.
     ColorChannel intensity() const;
 
-    /// Convert to dx1 Eigen Matrix
-    Eigen::VectorXd eigenVec() const;
+    /// Read access on labels
+    const std::vector<double> &labels() const;
+
+    /// Convert to dx1 Eigen Vector holding all characteristic values
+    Eigen::VectorXd characteristic() const;
+
+    /// Position as eigen column vector
+    Eigen::Vector3d pos() const;
   };
 
   PointCloud();
@@ -145,11 +173,23 @@ public:
   /// Read-only access to i-th point.
   const ConstantPoint operator[](size_t i) const;
 
-  /// min corner of bounding box
-  const Eigen::Vector3d min() const;
+  /// How many labels are there?
+  int labelsDim() const;
 
-  /// max corner of bounding box
-  const Eigen::Vector3d max() const;
+  /// How many characteristic dimensions are there?
+  int charDim() const;
+
+  /// min corner of bounding box (all characteristic dimensions)
+  Eigen::VectorXd charMin() const;
+
+  /// max corner of bounding box (all characteristic dimensions)
+  Eigen::VectorXd charMax() const;
+
+  /// min corner of bounding box (only 3d position of points)
+  Eigen::Vector3d posMin() const;
+
+  /// max corner of bounding box (only 3d position of points)
+  Eigen::Vector3d posMax() const;
 
 private:
   std::vector<Coordinate> _xs;
@@ -158,6 +198,7 @@ private:
   std::vector<ColorChannel> _r;
   std::vector<ColorChannel> _g;
   std::vector<ColorChannel> _b;
+  std::vector<std::vector<Label>> _labels;
 };
 
 } // namespace MouseTrack

@@ -20,6 +20,7 @@ void PointCloud::resize(size_t n) {
   _r.resize(n);
   _g.resize(n);
   _b.resize(n);
+  _labels.resize(n);
 }
 
 size_t PointCloud::size() const { return _xs.size(); }
@@ -32,33 +33,60 @@ const PointCloud::ConstantPoint PointCloud::operator[](size_t i) const {
   return PointCloud::ConstantPoint(*this, i);
 }
 
-const Eigen::Vector3d PointCloud::min() const {
-  double minX = std::numeric_limits<double>::max();
-  double minY = std::numeric_limits<double>::max();
-  double minZ = std::numeric_limits<double>::max();
-
-  for (PointIndex i = 0; i < size(); i += 1) {
-    const auto &p = (*this)[i];
-    minX = std::min(minX, p.x());
-    minY = std::min(minY, p.y());
-    minZ = std::min(minZ, p.z());
-  }
-  return Eigen::Vector3d(minX, minY, minZ);
+int PointCloud::labelsDim() const {
+  // temporary approximation
+  return _labels.empty() ? 0 : _labels[0].size();
 }
 
-/// max corner of bounding box
-const Eigen::Vector3d PointCloud::max() const {
-  double maxX = std::numeric_limits<double>::min();
-  double maxY = std::numeric_limits<double>::min();
-  double maxZ = std::numeric_limits<double>::min();
+int PointCloud::charDim() const {
+  // position: 3
+  // intensity: 1
+  // labels: labelsDim()
+  return 3 + 1 + labelsDim();
+}
+
+Eigen::Vector3d PointCloud::posMin() const {
+  Eigen::Vector3d min;
+  min.setConstant(3, std::numeric_limits<double>::max());
 
   for (PointIndex i = 0; i < size(); i += 1) {
     const auto &p = (*this)[i];
-    maxX = std::max(maxX, p.x());
-    maxY = std::max(maxY, p.y());
-    maxZ = std::max(maxZ, p.z());
+    min = min.array().min(p.pos().array());
   }
-  return Eigen::Vector3d(maxX, maxY, maxZ);
+  return min;
+}
+
+Eigen::Vector3d PointCloud::posMax() const {
+  Eigen::Vector3d max;
+  max.setConstant(3, std::numeric_limits<double>::min());
+
+  for (PointIndex i = 0; i < size(); i += 1) {
+    const auto &p = (*this)[i];
+    max = max.array().max(p.pos().array());
+  }
+  return max;
+}
+
+Eigen::VectorXd PointCloud::charMin() const {
+  Eigen::VectorXd min;
+  min.setConstant(charDim(), std::numeric_limits<double>::max());
+
+  for (PointIndex i = 0; i < size(); i += 1) {
+    const auto &p = (*this)[i];
+    min = min.array().min(p.characteristic().array());
+  }
+  return min;
+}
+
+Eigen::VectorXd PointCloud::charMax() const {
+  Eigen::VectorXd max;
+  max.setConstant(charDim(), std::numeric_limits<double>::min());
+
+  for (PointIndex i = 0; i < size(); i += 1) {
+    const auto &p = (*this)[i];
+    max = max.array().max(p.pos().array());
+  }
+  return max;
 }
 
 // Point implementation
@@ -112,8 +140,29 @@ ColorChannel PointCloud::Point::intensity(const ColorChannel &_new) {
   return _new;
 }
 
-Eigen::VectorXd PointCloud::Point::eigenVec() const {
-  return Eigen::Vector4d(x(), y(), z(), intensity());
+void PointCloud::Point::labels(std::vector<PointCloud::Label> newLabels) {
+  _cloud._labels[_index] = newLabels;
+}
+
+const std::vector<PointCloud::Label> &PointCloud::Point::labels() const {
+  return _cloud._labels[_index];
+}
+
+Eigen::VectorXd PointCloud::Point::characteristic() const {
+  Eigen::VectorXd result(_cloud.charDim());
+  result[0] = r();
+  result[1] = g();
+  result[2] = b();
+  result[3] = intensity();
+  const auto &ls = labels();
+  for (size_t i = 0; i < ls.size(); ++i) {
+    result[4 + i] = ls[i];
+  }
+  return result;
+}
+
+Eigen::Vector3d PointCloud::Point::pos() const {
+  return Eigen::Vector3d(x(), y(), z());
 }
 
 void PointCloud::Point::operator=(const PointCloud::Point &o) {
@@ -123,6 +172,7 @@ void PointCloud::Point::operator=(const PointCloud::Point &o) {
   r(o.r());
   g(o.g());
   b(o.b());
+  labels(o.labels());
 }
 
 void PointCloud::Point::operator=(const PointCloud::ConstantPoint &o) {
@@ -132,6 +182,7 @@ void PointCloud::Point::operator=(const PointCloud::ConstantPoint &o) {
   r(o.r());
   g(o.g());
   b(o.b());
+  labels(o.labels());
 }
 
 // ConstantPoint implementation
@@ -169,8 +220,26 @@ ColorChannel PointCloud::ConstantPoint::intensity() const {
   return (_cloud._r[_index] + _cloud._g[_index] + _cloud._b[_index]) / 3.0;
 }
 
-Eigen::VectorXd PointCloud::ConstantPoint::eigenVec() const {
-  return Eigen::Vector4d(x(), y(), z(), intensity());
+const std::vector<PointCloud::Label> &
+PointCloud::ConstantPoint::labels() const {
+  return _cloud._labels[_index];
+}
+
+Eigen::VectorXd PointCloud::ConstantPoint::characteristic() const {
+  Eigen::VectorXd result(_cloud.charDim());
+  result[0] = r();
+  result[1] = g();
+  result[2] = b();
+  result[3] = intensity();
+  const auto &ls = labels();
+  for (size_t i = 0; i < ls.size(); ++i) {
+    result[4 + i] = ls[i];
+  }
+  return result;
+}
+
+Eigen::Vector3d PointCloud::ConstantPoint::pos() const {
+  return Eigen::Vector3d(x(), y(), z());
 }
 
 } // namespace MouseTrack
