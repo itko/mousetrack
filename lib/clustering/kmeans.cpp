@@ -24,14 +24,14 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
     return std::vector<Cluster>();
   }
 
-  const int dims = cloud[0].eigenVec().size();
+  const int dims = cloud.charDim();
   PointList means(dims, K());
   PointList prevMeans;
 
   PointList points;
   points.resize(dims, cloud.size());
   for (PointIndex i = 0; i < cloud.size(); i += 1) {
-    auto v = cloud[i].eigenVec();
+    auto v = cloud[i].characteristic();
     points.col(i) = v;
   }
 
