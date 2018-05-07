@@ -8,7 +8,7 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev lib-rosbag-dev  lib-sensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev lib-rosbag-dev lib-sensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev
 ```
 
 - CMake: `$ sudo apt install cmake`
