@@ -47,8 +47,10 @@ op::options_description cli_options() {
   ad("disparity-morph-close-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
   ad("disparity-morph-close-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
   ad("background-subtraction-threshold", op::value<double>()->default_value(0.01), "Threshold for background subtraction. (Representing an intensity value in [0,1])");
-  ad("background-subtraction-cage-frame", op::value<int>()->default_value(1), "Number of a frame with empty cage");
+  ad("background-subtraction-cage-reader", op::value<std::string>()->default_value("auto"), "Which pipeline-reader should be used?");
+  ad("background-subtraction-cage-frame", op::value<int>()->default_value(-1), "Number of a frame with empty cage. Default: choose first frame of input.");
   ad("background-subtraction-cage-directory", op::value<std::string>(), "Path to directory with empty cage. Default: src");
+  ad("background-subtraction-cage-camchain", op::value<std::string>(), "Path to camchain file for empty cage.");
 
   // point cloud post processing
 

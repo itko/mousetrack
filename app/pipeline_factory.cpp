@@ -85,19 +85,9 @@ std::unique_ptr<Reader>
 PipelineFactory::getReader(const op::variables_map &options) const {
   std::string target = options["pipeline-reader"].as<std::string>();
   std::string src = options["src"].as<std::string>();
-  if (target == "auto") {
-    fs::path sPath(src);
-    if (fs::is_directory(sPath)) {
-      target = "matlab-concurrent";
-    } else if (fs::is_regular_file(sPath)) {
-      target = "ros-bag";
-    } else {
-      BOOST_LOG_TRIVIAL(warning) << "PipelineFactory, Reader: Unexpected path "
-                                    "type encountered, please "
-                                    "add to case distinction or enter other "
-                                    "source path.";
-      return nullptr;
-    }
+  target = chooseReaderTarget(target, src);
+  if (target == "") {
+    return nullptr;
   }
   if (target == "matlab" || target == "matlab-concurrent") {
     std::unique_ptr<MatlabReader> reader;
@@ -151,6 +141,27 @@ PipelineFactory::getReader(const op::variables_map &options) const {
   }
 
   return nullptr;
+}
+
+std::string
+PipelineFactory::chooseReaderTarget(const std::string &givenTarget,
+                                    const std::string &givenSrc) const {
+  std::string target = givenTarget;
+  if (target == "auto") {
+    fs::path sPath(givenSrc);
+    if (fs::is_directory(sPath)) {
+      target = "matlab-concurrent";
+    } else if (fs::is_regular_file(sPath)) {
+      target = "ros-bag";
+    } else {
+      BOOST_LOG_TRIVIAL(warning) << "PipelineFactory, Reader: Unexpected path "
+                                    "type encountered, please "
+                                    "add to case distinction or enter other "
+                                    "source path.";
+      return "";
+    }
+  }
+  return target;
 }
 
 std::vector<std::unique_ptr<FrameWindowFiltering>>
@@ -255,23 +266,94 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     return ptr;
   }
   if (target == "background-subtraction") {
-    std::string path;
+    std::string src;
     if (options.count("background-subtraction-cage-directory") == 0) {
-      path = options["src"].as<std::string>();
+      src = options["src"].as<std::string>();
     } else {
-      path = options["background-subtraction-cage-directory"].as<std::string>();
+      src = options["background-subtraction-cage-directory"].as<std::string>();
     }
-    MatlabReader reader(path);
-    if (options.count("first-stream") > 0) {
-      reader.setBeginStream(
-          std::max(reader.beginStream(), options["first-stream"].as<int>()));
+    FrameNumber desiredFrame =
+        options["background-subtraction-cage-frame"].as<int>();
+    std::unique_ptr<Reader> reader;
+    {
+      // create a reader
+      std::string target;
+      if (options.count("background-subtraction-cage-reader")) {
+        target =
+            options["background-subtraction-cage-reader"].as<std::string>();
+      } else {
+        target = options["pipeline-reader"].as<std::string>();
+      }
+      target = chooseReaderTarget(target, src);
+      if (target == "") {
+        return nullptr;
+      }
+      if (target == "matlab" || target == "matlab-concurrent") {
+        std::unique_ptr<MatlabReader> mReader;
+        if (target == "matlab") {
+          mReader = std::unique_ptr<MatlabReader>(new MatlabReader(src));
+        } else {
+          mReader =
+              std::unique_ptr<MatlabReader>(new MatlabReaderConcurrent(src));
+        }
+        if (options.count("first-stream")) {
+          mReader->setBeginStream(std::max(mReader->beginStream(),
+                                           options["first-stream"].as<int>()));
+        }
+        if (options.count("last-stream")) {
+          mReader->setEndStream(std::min(mReader->endStream(),
+                                         options["last-stream"].as<int>() + 1));
+        }
+        if (desiredFrame == -1) {
+          desiredFrame = mReader->beginFrame();
+        }
+        if (desiredFrame < mReader->beginFrame() &&
+            mReader->endFrame() <= desiredFrame) {
+          BOOST_LOG_TRIVIAL(warning)
+              << "Desired frame number " << desiredFrame
+              << " not available, valid range for source: ["
+              << mReader->beginFrame() << ", " << mReader->endFrame() << ")";
+          return nullptr;
+        }
+        reader = std::move(mReader);
+      } else if (target == "ros-bag") {
+#if ENABLE_ROSBAG
+        std::string camchain;
+        if (options.count("background-subtraction-cage-camchain") > 0) {
+          camchain =
+              options["background-subtraction-cage-camchain"].as<std::string>();
+        } else if (options.count("camchain") > 0) {
+          camchain = options["camchain"].as<std::string>();
+        } else {
+          BOOST_LOG_TRIVIAL(warning)
+              << "You've chosen to process a ROS bag file, "
+                 "please set "
+                 "--background-subtraction-cage-camchain=<YAML-Path> "
+                 "correspondingly.";
+          return nullptr;
+        }
+        std::unique_ptr<RosBagReader> rReader =
+            std::make_unique<RosBagReader>(src, camchain);
+        if (desiredFrame == -1) {
+          desiredFrame = rReader->beginFrame();
+        }
+        if (desiredFrame < rReader->beginFrame() &&
+            rReader->endFrame() <= desiredFrame) {
+          BOOST_LOG_TRIVIAL(warning)
+              << "Desired frame number " << desiredFrame
+              << " not available, valid range for source: ["
+              << rReader->beginFrame() << ", " << rReader->endFrame() << ")";
+          return nullptr;
+        }
+        reader = std::move(rReader);
+#else
+        BOOST_LOG_TRIVIAL(warning) << "Background-subtraction: Application was "
+                                      "compiled without ROS-bag support.";
+        return nullptr;
+#endif
+      }
     }
-    if (options.count("last-stream") > 0) {
-      reader.setEndStream(
-          std::min(reader.endStream(), options["last-stream"].as<int>() + 1));
-    }
-    FrameWindow cageWindow = reader.frameWindow(
-        options["background-subtraction-cage-frame"].as<int>());
+    FrameWindow cageWindow = (*reader)(desiredFrame);
     auto ptr = std::make_unique<BackgroundSubtraction>();
     ptr->cage_frame(cageWindow);
     return ptr;

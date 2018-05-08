@@ -70,8 +70,11 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     // Build Frame object...
     output.frames()[i].normalizedDisparityMap =
         mask.array() * output.frames()[i].normalizedDisparityMap.array();
-    output.frames()[i].rawDisparityMap =
+    // the raw disparity map is optional
+    if(output.frames()[i].rawDisparityMap.size() > 0){
+      output.frames()[i].rawDisparityMap =
         mask.array() * output.frames()[i].rawDisparityMap.array();
+    }
     output.frames()[i].referencePicture =
         mask.array() * output.frames()[i].referencePicture.array();
   }
