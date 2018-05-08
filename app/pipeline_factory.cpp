@@ -7,6 +7,7 @@
 #include "clustering/mean_shift.h"
 #include "clustering/single_cluster.h"
 #include "descripting/cog.h"
+#include "frame_window_filtering/background_subtraction.h"
 #include "frame_window_filtering/disparity_bilateral.h"
 #include "frame_window_filtering/disparity_gaussian_blur.h"
 #include "frame_window_filtering/disparity_median.h"
@@ -193,6 +194,22 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     ptr->kernelShape(shape);
     return ptr;
   }
+  if (target == "background-subtraction") {
+    std::string path;
+    if (options.count("background-subtraction-cage-directory") == 0) {
+      path = options["src-dir"].as<std::string>();
+    } else {
+      path = options["background-subtraction-cage-directory"].as<std::string>();
+    }
+    MatlabReader reader(path);
+    reader.setBeginStream(options["first-stream"].as<int>());
+    reader.setEndStream(options["last-stream"].as<int>() + 1);
+    FrameWindow cageWindow = reader.frameWindow(
+        options["background-subtraction-cage-frame"].as<int>());
+    auto ptr = std::make_unique<BackgroundSubtraction>();
+    ptr->cage_frame(cageWindow);
+    return ptr;
+  }
   if (target == "none") {
     return nullptr;
   }
@@ -264,10 +281,10 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
     ptr->setConvergenceThreshold(
         options["mean-shift-convergence-threshold"].as<double>());
     return ptr;
-} else if (target == "single-cluster") {
+  } else if (target == "single-cluster") {
     std::unique_ptr<SingleCluster> ptr{new SingleCluster()};
     return ptr;
-}
+  }
   return nullptr;
 }
 
