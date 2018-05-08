@@ -92,13 +92,16 @@ public:
     /// Read access to color intensity.
     ColorChannel intensity() const;
 
-    /// Write access labels
+    /// Copies labels
     ///
     /// 0: This point does not hold this label (non existing entries are to
     /// zero)
     ///
     /// 1: This point very much holds this label
-    void labels(std::vector<Label> newLabels);
+    void labels(const std::vector<Label> &newLabels);
+
+    /// Moves labels
+    void labels(std::vector<Label> &&newLabels);
 
     /// Read access on labels
     const std::vector<Label> &labels() const;

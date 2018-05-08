@@ -140,8 +140,13 @@ ColorChannel PointCloud::Point::intensity(const ColorChannel &_new) {
   return _new;
 }
 
-void PointCloud::Point::labels(std::vector<PointCloud::Label> newLabels) {
+void PointCloud::Point::labels(
+    const std::vector<PointCloud::Label> &newLabels) {
   _cloud._labels[_index] = newLabels;
+}
+
+void PointCloud::Point::labels(std::vector<PointCloud::Label> &&newLabels) {
+  _cloud._labels[_index] = std::move(newLabels);
 }
 
 const std::vector<PointCloud::Label> &PointCloud::Point::labels() const {
