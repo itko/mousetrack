@@ -42,22 +42,30 @@ PipelineFactory::fromCliOptions(const op::variables_map &options) const {
   if (options.count("src") == 0) {
     BOOST_LOG_TRIVIAL(info) << "No command line source path given.";
   }
+  BOOST_LOG_TRIVIAL(trace) << "Creating Reader";
   std::unique_ptr<Reader> reader = getReader(options);
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating FrameWindowFiltering";
   std::vector<std::unique_ptr<FrameWindowFiltering>> windowFiltering =
       getWindowFilters(options);
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating Registration";
   std::unique_ptr<Registration> registration{getRegistration(options)};
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating PointCloudFiltering";
   std::vector<std::unique_ptr<PointCloudFiltering>> cloudFiltering{
       getCloudFilters(options)};
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating Clustering";
   std::unique_ptr<Clustering> clustering{getClustering(options)};
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating Descripting";
   std::unique_ptr<Descripting> descripting{getDescripting(options)};
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating Matching";
   std::unique_ptr<Matching> matching{getMatching(options)};
 
+  BOOST_LOG_TRIVIAL(trace) << "Creating Trajectory Builder";
   std::unique_ptr<TrajectoryBuilder> trajectoryBuilder{
       getTrajectoryBuilder(options)};
   BOOST_LOG_TRIVIAL(debug) << "Pipeline modules successfully created.";
@@ -254,8 +262,14 @@ PipelineFactory::getWindowFiltering(const std::string &target,
       path = options["background-subtraction-cage-directory"].as<std::string>();
     }
     MatlabReader reader(path);
-    reader.setBeginStream(options["first-stream"].as<int>());
-    reader.setEndStream(options["last-stream"].as<int>() + 1);
+    if (options.count("first-stream") > 0) {
+      reader.setBeginStream(
+          std::max(reader.beginStream(), options["first-stream"].as<int>()));
+    }
+    if (options.count("last-stream") > 0) {
+      reader.setEndStream(
+          std::min(reader.endStream(), options["last-stream"].as<int>() + 1));
+    }
     FrameWindow cageWindow = reader.frameWindow(
         options["background-subtraction-cage-frame"].as<int>());
     auto ptr = std::make_unique<BackgroundSubtraction>();

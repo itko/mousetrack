@@ -231,6 +231,7 @@ void fillResult(Ret &result) {
     max = std::max(max, result[i].size());
   }
   for (size_t i = 0; i < result.size(); ++i) {
+    result[i].resize(max);
     for (size_t j = result[i].size(); j < max; ++j) {
       result[i][j] = -1;
     }
@@ -244,6 +245,7 @@ std::vector<std::vector<size_t>> unsynchronizedIterators(
     result[i].resize(msgs[i].size());
     std::iota(result[i].begin(), result[i].end(), 0);
   }
+  fillResult(result);
   return result;
 }
 
