@@ -10,6 +10,7 @@
 #include "frame_window_filtering/disparity_gaussian_blur.h"
 #include "frame_window_filtering/disparity_median.h"
 #include "frame_window_filtering/disparity_morphology.h"
+#include "frame_window_filtering/hog_labeling.h"
 
 #include "matching/nearest_neighbour.h"
 
@@ -358,6 +359,10 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     FrameWindow cageWindow = (*reader)(desiredFrame);
     auto ptr = std::make_unique<BackgroundSubtraction>();
     ptr->cage_frame(cageWindow);
+    return ptr;
+  }
+  if (target == "hog-labeling") {
+    auto ptr = std::make_unique<HogLabeling>();
     return ptr;
   }
   if (target == "none") {
