@@ -29,6 +29,7 @@ set(source_files
         frame_window_filtering/disparity_bilateral.cpp
         frame_window_filtering/disparity_median.cpp
         frame_window_filtering/disparity_morphology.cpp
+        frame_window_filtering/background_subtraction.cpp
         point_cloud_filtering/statistical_outlier_removal.cpp
         point_cloud_filtering/subsample.cpp
         registration/disparity_registration.cpp

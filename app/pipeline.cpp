@@ -204,7 +204,8 @@ void Pipeline::runPipeline() {
     }
   } else {
     // no delegate set, fall back to reader
-    for (FrameNumber f = _reader->beginFrame(); f < _reader->endFrame(); ++f) {
+    while (_reader->hasNextFrame()) {
+      FrameNumber f = _reader->nextFrame();
       if (terminateEarly()) {
         break;
       }
