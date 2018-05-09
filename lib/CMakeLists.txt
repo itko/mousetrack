@@ -7,6 +7,7 @@ set(source_files
         clustering/mean_shift.cpp
         clustering/mean_shift_cpu_optimized.cpp
         clustering/single_cluster.cpp
+        clustering/label_clustering.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
         generic/cluster_chain_accumulator.cpp
