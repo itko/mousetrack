@@ -28,6 +28,7 @@
 #include "point_cloud_filtering/subsample.h"
 
 #include "clustering/kmeans.h"
+#include "clustering/label_clustering.h"
 #include "clustering/mean_shift.h"
 #include "clustering/mean_shift_cpu_optimized.h"
 #include "clustering/single_cluster.h"
@@ -463,6 +464,9 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
         options["kmeans-assignment-threshold"].as<double>());
     BOOST_LOG_TRIVIAL(debug) << ptr->K();
     return ptr;
+  }
+  if (target == "label-clustering") {
+    return std::make_unique<LabelClustering>();
   }
 
   return nullptr;

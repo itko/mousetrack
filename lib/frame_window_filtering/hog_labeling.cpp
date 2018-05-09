@@ -20,11 +20,13 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
     cv::Mat img;
     PictureI eig = (frame.referencePicture * 255.0).cast<PictureI::Scalar>();
     cv::eigen2cv(eig, img);
-    std::vector<float> descriptors;
     cv::HOGDescriptor hog;
-    hog.compute(img, descriptors);
+    std::vector<float> descriptors;
+    std::vector<cv::Point> locations;
+    hog.compute(img, descriptors, cv::Size(32, 32), cv::Size(0, 0), locations);
     BOOST_LOG_TRIVIAL(trace)
-        << "Found " << descriptors.size() << " HOG descriptors in frame " << f;
+        << "Found " << descriptors.size() << " HOG descriptors at "
+        << locations.size() << " locations in frame " << f;
   }
   return result;
 }
