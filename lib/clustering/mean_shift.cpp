@@ -5,6 +5,7 @@
 ///
 
 #include "mean_shift.h"
+#include "spatial/flann.h"
 #include "spatial/uniform_grid.h"
 #include <Eigen/Dense>
 #include <boost/log/trivial.hpp>
@@ -24,9 +25,10 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
     return std::vector<Cluster>();
   }
 
-  std::vector<Eigen::VectorXd> currCenters, pointsVec;
-  UniformGrid4d::PointList points;
-  points.resize(4, cloud.size());
+  const int dimensions = cloud[0].eigenVec().size();
+
+  Oracle::PointList points;
+  points.resize(dimensions, cloud.size());
   for (PointIndex i = 0; i < cloud.size(); i += 1) {
     auto v = cloud[i].eigenVec();
     points.col(i) = v;
@@ -39,26 +41,48 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
     Eigen::VectorXd bb_size = max - min;
     points = (points.array().colwise()) / bb_size.array();
   }
-  for (PointIndex i = 0; i < cloud.size(); i += 1) {
+
+  std::vector<Eigen::VectorXd> currCenters = convergePoints(points);
+
+  BOOST_LOG_TRIVIAL(debug) << "Merging points to clusters";
+  // Merge step
+
+  std::vector<Cluster> clusters = mergePoints(currCenters);
+
+  BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: "
+                           << clusters.size();
+  return clusters;
+}
+
+std::vector<Eigen::VectorXd>
+MeanShift::convergePoints(const Oracle::PointList &points) const {
+
+  const int dimensions = points.rows();
+
+  std::vector<Eigen::VectorXd> currCenters, pointsVec;
+
+  for (int i = 0; i < points.cols(); i += 1) {
     auto v = points.col(i);
     currCenters.push_back(v);
     pointsVec.push_back(v);
   }
 
-  // Initialize Clusters. Initially, every point has its own cluster.
-  std::vector<Cluster> clusters(cloud.size());
-  for (PointIndex i = 0; i < cloud.size(); i++) {
-    clusters[i].points().push_back(i);
+  std::unique_ptr<Oracle> oraclePtr;
+  {
+    OFactory::Query q;
+    q.maxR = 2 * _window_size;
+    q.dimensions = dimensions;
+    oraclePtr = oracleFactory().forQuery(q);
   }
+  Oracle &oracle = *oraclePtr;
 
   // Initialize some stuff used in the MeanShift loop
   Eigen::VectorXd prevCenter;
 
-  UniformGrid4d oracle(2 * _window_size, _window_size);
   oracle.compute(points);
 
   // For each point...
-  for (PointIndex i = 0; i < clusters.size(); i++) {
+  for (PointIndex i = 0; i < currCenters.size(); i++) {
     int iterations = 0; // for logging and abort condition
 
     // ... iterate until convergence
@@ -84,8 +108,9 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
 
       if (iterations > _max_iterations) {
         BOOST_LOG_TRIVIAL(warning)
-            << "Max number of iterations for point " << i
-            << " reached - continuing without convergence for this point";
+            << "Max number of " << _max_iterations << " iterations for point "
+            << i << " reached - continuing without convergence for this point";
+        break;
       }
     } while ((prevCenter - currCenters[i]).norm() > _convergence_threshold);
     if (i % 1024 == 0) {
@@ -93,13 +118,23 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
           << "converged i " << i << " after " << iterations << " iterations";
     }
   }
+  return currCenters;
+}
 
-  BOOST_LOG_TRIVIAL(debug) << "Merging points to clusters";
-  // Merge step
+std::vector<Cluster>
+MeanShift::mergePoints(std::vector<Eigen::VectorXd> &currCenters) const {
+  // Initialize Clusters. Initially, every point has its own cluster.
+  const size_t nPoints = currCenters.size();
+  std::vector<Cluster> clusters(nPoints);
+  for (PointIndex i = 0; i < nPoints; i++) {
+    clusters[i].points().push_back(i);
+  }
   // For every mode..
+  int merged = 0;
   for (size_t i = 0; i < currCenters.size(); i++) {
-    if (i % 1024 == 0) {
-      BOOST_LOG_TRIVIAL(trace) << "Merging into " << i;
+    if (merged % 1024 == 0) {
+      BOOST_LOG_TRIVIAL(trace) << merged << " points merged, i: " << i
+                               << ", remaining: " << currCenters.size() - i;
     }
     // Check modes we haven't already executed the (i)-loop for
     for (size_t j = i + 1; j < currCenters.size(); j++) {
@@ -113,13 +148,11 @@ std::vector<Cluster> MeanShift::operator()(const PointCloud &cloud) const {
         // We need to decrement i here because there might be another cluster
         // that wants to merge with i.
         i--;
+        ++merged;
         break;
       }
     }
   }
-
-  BOOST_LOG_TRIVIAL(trace) << "MeanShift converged! #Clusters: "
-                           << clusters.size();
   return clusters;
 }
 
@@ -168,6 +201,17 @@ void MeanShift::setConvergenceThreshold(double convergence_threshold) {
 }
 double MeanShift::getConvergenceThreshold() const {
   return _convergence_threshold;
+}
+
+void MeanShift::setWindowSize(double window_size) {
+  _window_size = window_size;
+}
+double MeanShift::getWindowSize() const { return _window_size; }
+
+MeanShift::OFactory &MeanShift::oracleFactory() { return _oracleFactory; }
+
+const MeanShift::OFactory &MeanShift::oracleFactory() const {
+  return _oracleFactory;
 }
 
 } // namespace MouseTrack

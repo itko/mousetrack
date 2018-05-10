@@ -3,7 +3,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here your source files (*.cpp) of your module
 set(source_files
+        clustering/kmeans.cpp
         clustering/mean_shift.cpp
+        clustering/mean_shift_cpu_optimized.cpp
         clustering/single_cluster.cpp
         generic/cluster.cpp
         generic/cluster_chain.cpp
@@ -40,6 +42,7 @@ set(source_files
 set(test_files
         test_root.cc
         generic/explode.test.cc
+        generic/erase_indices.test.cc
         generic/random_sample.test.cc
         generic/point_cloud.test.cc
         generic/read_csv.test.cc
@@ -51,6 +54,7 @@ set(test_files
         spatial/cubic_neighborhood.test.cc
         spatial/statistical_outlier_detection.test.cc
         spatial/uniform_grid.test.cc
+        spatial/flann.test.cc
         trajectory_builder/cog_trajectory_builder.test.cc
         )
 
@@ -65,6 +69,7 @@ find_package( Boost COMPONENTS
     REQUIRED )
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
+find_package( Flann REQUIRED )
 
 find_package( OpenCV REQUIRED )
 

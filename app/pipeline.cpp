@@ -213,13 +213,16 @@ void Pipeline::runPipeline() {
     }
   }
 
-  std::unique_ptr<std::vector<ClusterChain>> chainsPtr{
-      new std::vector<ClusterChain>()};
-  *chainsPtr = _clusterChains;
-  std::shared_ptr<const std::vector<ClusterChain>> chains{std::move(chainsPtr)};
+  if (!_clusterChains.empty()) {
+    std::unique_ptr<std::vector<ClusterChain>> chainsPtr{
+        new std::vector<ClusterChain>()};
+    *chainsPtr = std::move(_clusterChains);
+    std::shared_ptr<const std::vector<ClusterChain>> chains{
+        std::move(chainsPtr)};
 
-  forallObservers(
-      [&chains](PipelineObserver *o) { o->newClusterChains(chains); });
+    forallObservers(
+        [&chains](PipelineObserver *o) { o->newClusterChains(chains); });
+  }
 }
 
 bool Pipeline::terminateEarly() {
@@ -236,7 +239,7 @@ void Pipeline::processFrameSafe(FrameNumber f) {
   } catch (const std::string &e) {
     BOOST_LOG_TRIVIAL(warning)
         << "Exception while processing frame " << f << ": " << e;
-  } catch (char *e) {
+  } catch (const char *e) {
     BOOST_LOG_TRIVIAL(warning)
         << "Exception while processing frame " << f << ": " << e;
   } catch (int e) {
