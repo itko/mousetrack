@@ -204,7 +204,7 @@ void PipelineWriter::newClusterChains(
     PointCloud cloud = *cloudIt.second;
     for (size_t chainIndex = 0; chainIndex < chains->size(); ++chainIndex) {
       const ClusterChain &chain = (*chains)[chainIndex];
-      const auto clus = chain.clusters();
+      const auto &clus = chain.clusters();
       auto cluster = clus.find(f);
       auto end = clus.end();
       if (cluster == end) {

@@ -8,7 +8,7 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev qt5-default
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev libflann-dev librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev qt5-default
 ```
 
 - CMake: `$ sudo apt install cmake`
@@ -16,8 +16,10 @@ $ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng1
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
 - Eigen: `$ sudo apt install libeigen3-dev`
 - We need to read PNG files: `$ sudo apt install libpng16-dev`
+- We need to read PNG files: `$ sudo apt install libpng16-dev` (comes with OpenCV)
 - QT: `$ sudo apt install qt5-default`
 - ROS bag support: `$ sudo apt install librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev`
+- We use FLANN for spatial queries: `$ sudo apt install libflann-dev` (comes with OpenCV)
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
@@ -31,7 +33,7 @@ Please see the root `CMakeLists.txt` for the corresponding flags (`ENABLE_GUI`, 
 This list is not complete, but might help you to finding possible problems when compiling for the first time.
 Feel free to add or adjust entries on your own experience.
 
-- g++ 4.9 or larger: we need C++11 with regex fully implemented, g++ 4.8 or bellow won't work
+- g++ 4.9 or larger: we need C++11 with regex fully implemented, g++ 4.8 or below won't work
 - gcc 5.4 is known to work
 - clang 3.8 is known to work
 - libpng 1.2 and 1.6 are known to work

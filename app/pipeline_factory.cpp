@@ -26,7 +26,9 @@
 #include "point_cloud_filtering/statistical_outlier_removal.h"
 #include "point_cloud_filtering/subsample.h"
 
+#include "clustering/kmeans.h"
 #include "clustering/mean_shift.h"
+#include "clustering/mean_shift_cpu_optimized.h"
 #include "clustering/single_cluster.h"
 
 #include "descripting/cog.h"
@@ -428,12 +430,53 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
     ptr->setMergeThreshold(options["mean-shift-merge-threshold"].as<double>());
     ptr->setConvergenceThreshold(
         options["mean-shift-convergence-threshold"].as<double>());
+    ptr->oracleFactory().desiredOracle(
+        getOracle(options["mean-shift-oracle"].as<std::string>()));
     return ptr;
   } else if (target == "single-cluster") {
     std::unique_ptr<SingleCluster> ptr{new SingleCluster()};
     return ptr;
   }
+  if (target == "mean-shift-cpu-optimized") {
+    std::unique_ptr<MeanShiftCpuOptimized> ptr{
+        new MeanShiftCpuOptimized(options["mean-shift-sigma"].as<double>())};
+    ptr->setMaxIterations(options["mean-shift-max-iterations"].as<int>());
+    ptr->setMergeThreshold(options["mean-shift-merge-threshold"].as<double>());
+    ptr->setConvergenceThreshold(
+        options["mean-shift-convergence-threshold"].as<double>());
+    ptr->oracleFactory().desiredOracle(
+        getOracle(options["mean-shift-oracle"].as<std::string>()));
+    return ptr;
+  }
+  if (target == "kmeans") {
+    std::unique_ptr<KMeans> ptr{new KMeans(10)};
+    ptr->K(options["kmeans-k"].as<unsigned int>());
+    ptr->oracleFactory().desiredOracle(
+        getOracle(options["kmeans-oracle"].as<std::string>()));
+    ptr->centroidThreshold(options["kmeans-centroid-threshold"].as<double>());
+    ptr->assignmentThreshold(
+        options["kmeans-assignment-threshold"].as<double>());
+    BOOST_LOG_TRIVIAL(debug) << ptr->K();
+    return ptr;
+  }
+
   return nullptr;
+}
+
+PipelineFactory::OFactory::Oracles
+PipelineFactory::getOracle(const std::string &oracleKey) const {
+  if (oracleKey == "brute-force") {
+    return OFactory::Oracles::BRUTE_FORCE;
+  }
+  if (oracleKey == "uniform-grid") {
+    return OFactory::Oracles::UNIFORM_GRID;
+  }
+  if (oracleKey == "flann") {
+    return OFactory::Oracles::FLANN;
+  }
+  BOOST_LOG_TRIVIAL(info) << "Unknown requested oracle \"" << oracleKey
+                          << "\", using brute force.";
+  return OFactory::Oracles::BRUTE_FORCE;
 }
 
 std::unique_ptr<Descripting>
