@@ -3,6 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # list here your source files (*.cpp) of your module
 set(source_files
+        classifier/knn.cpp
         clustering/kmeans.cpp
         clustering/mean_shift.cpp
         clustering/mean_shift_cpu_optimized.cpp
