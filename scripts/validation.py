@@ -9,7 +9,7 @@ USAGE:
     2nd Argument: directory of input images
     (Optional) 3rd Argument: path to params_camchain.csv [optional, if not set input path is used]
 """
-import sys,os,csv
+import sys,os,csv,cv2
 import numpy as np
 
 CAMCHAIN_MAT_DIM = (4,4)
@@ -95,8 +95,7 @@ if __name__ == "__main__":
         # Otherwise, we remove the file from the csv_files list.
         if file[:14] == 'controlPoints_' and file[-4:] == '.csv':
             frame_indices.append(int(file[14:-4]))
-        else:
-            csv_files.pop(i)
+
             
     for frame in frame_indices:
         param_file = os.path.join(png_dir,"params_f_" + str(frame) + ".csv")
@@ -113,4 +112,13 @@ if __name__ == "__main__":
                 continue
             
             projection_matrix = projection_matrix(camchain,R,stream)
-    
+            cp4 = read_controlpoint(os.path.join(csv_dir,"controlPoints_" + str(frame) + ".csv")
+            cp2 = project_point(cp4,projection_matrix,params)
+            pic = cv2.imread(png_file)
+
+            #Display control point in image
+            cv2.circle(pic,cp2,5,(255,255,0))
+            cv2.imshow(os.path.basename(png_file),pic)
+            cv2.waitKey(0)
+
+    cv2.destroyAllWindows()
