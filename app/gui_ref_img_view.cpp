@@ -27,15 +27,15 @@ void GUIRefImgView::draw(std::shared_ptr<const FrameWindow> f) {
   const Picture &pic = f->frames()[0].referencePicture;
   QImage image(pic.cols(), pic.rows(), QImage::Format_Grayscale8);
 
-  BOOST_LOG_TRIVIAL(debug) << "image width to display: " << image->width();
+  BOOST_LOG_TRIVIAL(debug) << "image width to display: " << image.width();
 
   for (size_t x = 0; x < pic.cols(); x++) {
     for (size_t y = 0; y < pic.rows(); y++) {
       int i = 255 * pic(y, x);
-      image->setPixel(pic.cols() - x - 1, y, qRgb(i, i, i));
+      image.setPixel(pic.cols() - x - 1, y, qRgb(i, i, i));
     }
   }
-  _image->setFixedSize(image->width(), image->height());
+  _image->setFixedSize(image.width(), image.height());
   _image->setPixmap(QPixmap::fromImage(std::move(image)));
 }
 
