@@ -11,6 +11,8 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <classifier/knn.h>
+
 namespace MouseTrack {
 
 /// Returns a n x 2 matrix of (x,y) pairs of valid corner coordinates for
@@ -28,11 +30,25 @@ std::vector<cv::Point> slidingWindows(int imgWidth, int imgHeight, int stepSize,
   return result;
 } // namespace MouseTrack
 
+void HogLabeling::train(const Mat &X_train, const Vec &y_train) {
+  _classifier = std::make_unique<KnnClassifier>();
+  _classifier->fit(X_train, y_train);
+  _numLabels = y_train.maxCoeff() + 1;
+}
+
 FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
   if (window.frames().empty()) {
     return window;
   }
   FrameWindow result = window;
+  // create matrices for labels
+  for (Frame &f : result.frames()) {
+    f.labels.resize(_numLabels);
+    for (auto &l : f.labels) {
+      l.resize(f.referencePicture.rows(), f.referencePicture.cols());
+    }
+  }
+
   int windowWidth = 64;
   int windowHeight = 64;
   int stepSize = 64 / 4;
@@ -74,6 +90,32 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
         << "Found " << (descriptors.size() / hog.getDescriptorSize())
         << " HOG descriptors of size " << hog.getDescriptorSize() << " at "
         << locations.size() << " locations in frame " << f;
+    Eigen::Map<Eigen::MatrixXf> map(descriptors.data(), hog.getDescriptorSize(),
+                                    locations.size());
+    Classifier::Mat tmp = map.cast<double>();
+    auto labels = _classifier->predict(tmp);
+    // apply labels of windows to frame.labels
+    for (size_t w = 0; w < locations.size(); ++w) {
+      // iterate over pixels within window w
+      for (int x = locations[w].x; x < locations[w].x + windowWidth; ++x) {
+        for (int y = locations[w].y; y < locations[w].y + windowHeight; ++y) {
+          // distribute labels
+          for (int l = 0; l < _numLabels; ++l) {
+            frame.labels[l](y, x) += labels(l, w);
+          }
+        }
+      }
+    }
+    // normalize label weights
+    PictureD sum;
+    sum.setZero(frame.referencePicture.rows(), frame.referencePicture.cols());
+    for (int l = 0; l < _numLabels; ++l) {
+      sum += frame.labels[l];
+    }
+    sum = sum.array().inverse();
+    for (int l = 0; l < _numLabels; ++l) {
+      frame.labels[l] = frame.labels[l].array() * sum.array();
+    }
   }
   return result;
 }
