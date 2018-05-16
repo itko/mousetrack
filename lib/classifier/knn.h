@@ -14,20 +14,19 @@ namespace MouseTrack {
 
 class KnnClassifier : public Classifier {
 public:
-  typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-      Mat;
   typedef SpatialOracle<Mat, Eigen::VectorXd, double> Oracle;
 
-  void fit(const Mat &X_train, const Eigen::RowVectorXi &y_train);
-  Eigen::MatrixXd predict(const Mat &X_test) const;
+  virtual void fit(const Mat &X_train, const Vec &y_train);
+  virtual Eigen::MatrixXd predict(const Mat &X_test) const;
 
 private:
   std::unique_ptr<Oracle> _oracle;
   Mat _X_train;
-  Eigen::RowVectorXi _y_train;
+  Vec _y_train;
 
   // number of nearest neighbors to consider
   int _k;
+  int _highestLabel;
 };
 
 } // namespace MouseTrack

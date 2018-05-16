@@ -9,7 +9,7 @@
 
 namespace MouseTrack {
 
-void KnnClassifier::fit(const Mat &X_train, const Eigen::RowVectorXi &y_train) {
+void KnnClassifier::fit(const Mat &X_train, const Vec &y_train) {
   _X_train = X_train;
   _y_train = y_train;
   auto min = _X_train.colwise().minCoeff();
@@ -21,10 +21,19 @@ void KnnClassifier::fit(const Mat &X_train, const Eigen::RowVectorXi &y_train) {
   int dims = X_train.cols();
   _oracle = std::make_unique<UniformGrid<double, -1>>(maxR, cellWidth, dims);
   _oracle->compute(_X_train);
+  _highestLabel = _y_train.maxCoeff();
 }
+
 Eigen::MatrixXd KnnClassifier::predict(const Mat &X_test) const {
-  //_oracle.find_closest(X_test, _k);
-  return Eigen::MatrixXd{};
+  Eigen::MatrixXd result{_highestLabel + 1, X_test.cols()};
+  for (int i = 0; i < X_test.cols(); ++i) {
+    auto closest = _oracle->find_closest(X_test.col(i), _k);
+    for (auto c : closest) {
+      result(c, i) += 1;
+    }
+    result.col(i) /= result.col(i).sum();
+  }
+  return result;
 }
 
 } // namespace MouseTrack
