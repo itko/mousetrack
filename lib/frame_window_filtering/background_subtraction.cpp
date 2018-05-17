@@ -63,18 +63,20 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     // spots, i.e. no mouse => set mask to zeros
     if (thresh_otsu < _threshold * 255) {
       mask.setZero();
-      BOOST_LOG_TRIVIAL(debug)
-          << "No Mask stream " << i << " threshold: " << thresh_otsu;
     }
 
     // Build Frame object...
+    if (output.frames()[i].rawDisparityMap.zMap().size() > 0) { //if raw dispartiy was extracted
+        output.frames()[i].rawDisparityMap.zMap() =
+            mask.array() * output.frames()[i].rawDisparityMap.zMap().array();
+        }
     output.frames()[i].normalizedDisparityMap.zMap() =
         mask.array() * output.frames()[i].normalizedDisparityMap.zMap().array();
-    output.frames()[i].rawDisparityMap.zMap() =
-        mask.array() * output.frames()[i].rawDisparityMap.zMap().array();
+
     output.frames()[i].referencePicture =
         mask.array() * output.frames()[i].referencePicture.array();
   }
+
   return output;
 }
 
