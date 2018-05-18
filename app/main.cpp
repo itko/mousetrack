@@ -47,8 +47,8 @@ op::variables_map parseCli(int argc, char *argv[],
                            const op::options_description &option_desc) {
 
   op::positional_options_description pos_desc;
-  // allow to shorten "-src-dir <path>" to "<path>"
-  pos_desc.add("src-dir", -1);
+  // allow to shorten "-src <path>" to "<path>"
+  pos_desc.add("src", -1);
   op::command_line_parser parser{argc, argv};
   parser.options(option_desc).positional(pos_desc).allow_unregistered();
   op::parsed_options parsed_options = parser.run();
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
       return -1;
 #endif
     } else {
-      if (cli_options.count("src-dir") == 0) {
+      if (cli_options.count("src") == 0) {
         std::cout
             << "Source path must not be empty for command line interface. "
                "See --help for further options."
@@ -139,6 +139,8 @@ int main(int argc, char *argv[]) {
       writer = std::make_unique<PipelineWriter>(
           cli_options["out-dir"].as<std::string>());
       controller->pipeline().addObserver(writer.get());
+      // TODO: we should make this configurable at some points
+      writer->writeRawFrameWindow = false;
     }
   } catch (const std::string &e) {
     std::cerr << "Exception caught while creating pipeline: " << e << std::endl;

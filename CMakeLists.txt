@@ -11,9 +11,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # options
 option(ENABLE_GUI "Build with GUI" ON)
 option(ENABLE_OPENMP "Build with OpenMP" ON)
+option(ENABLE_ROSBAG "Build with Ros-Bag support" ON)
 
 message("GUI: " ${ENABLE_GUI})
 message("OpenMP: " ${ENABLE_OPENMP})
+message("RosBag: " ${ENABLE_ROSBAG})
 
 if(ENABLE_OPENMP)
     find_package(OpenMP)

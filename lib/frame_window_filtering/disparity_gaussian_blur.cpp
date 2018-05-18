@@ -14,12 +14,12 @@ FrameWindow DisparityGaussianBlur::operator()(const FrameWindow &window) const {
   FrameWindow result = window;
   for (size_t i = 0; i < window.frames().size(); ++i) {
     Frame &f = result.frames()[i];
-    auto &disp = f.normalizedDisparityMap.zMap();
+    auto &disp = f.normalizedDisparityMap;
     cv::Mat img;
     cv::eigen2cv(disp, img);
     cv::GaussianBlur(img, img, cv::Size(2 * kx() + 1, 2 * ky() + 1), sigmax(),
                      sigmay());
-    cv::cv2eigen(img, f.normalizedDisparityMap.zMap());
+    cv::cv2eigen(img, f.normalizedDisparityMap);
   }
   return result;
 }

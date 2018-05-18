@@ -14,14 +14,14 @@ FrameWindow DisparityMedian::operator()(const FrameWindow &window) const {
   FrameWindow result = window;
   for (size_t i = 0; i < window.frames().size(); ++i) {
     Frame &f = result.frames()[i];
-    auto &disp = f.normalizedDisparityMap.zMap();
+    auto &disp = f.normalizedDisparityMap;
     Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> charMat =
         (255 * disp).cast<unsigned char>();
     cv::Mat img;
     cv::eigen2cv(charMat, img);
     cv::medianBlur(img, img, 2 * diameter() + 1);
     cv::cv2eigen(img, charMat);
-    f.normalizedDisparityMap.zMap() = charMat.cast<double>() / 255.0;
+    f.normalizedDisparityMap = charMat.cast<double>() / 255.0;
   }
   return result;
 }

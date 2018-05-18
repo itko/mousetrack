@@ -15,7 +15,7 @@ namespace MouseTrack {
 struct Frame {
   DisparityMap normalizedDisparityMap;
   DisparityMap rawDisparityMap;
-  Picture referencePicture;
+  PictureD referencePicture;
   Precision focallength;
   Precision baseline;
   Precision ccx;
