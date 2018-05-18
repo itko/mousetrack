@@ -5,7 +5,7 @@
 
 #include "knn.h"
 
-#include "spatial/uniform_grid.h"
+#include "spatial/brute_force.h"
 
 namespace MouseTrack {
 
@@ -19,7 +19,9 @@ void KnnClassifier::fit(const Mat &X_train, const Vec &y_train) {
   // heuristic
   double cellWidth = size.minCoeff() / 5;
   int dims = X_train.cols();
-  _oracle = std::make_unique<UniformGrid<double, -1>>(maxR, cellWidth, dims);
+  // don't use Uniform grid, it uses memory proportional to 2^dimensions
+  //_oracle = std::make_unique<UniformGrid<double, -1>>(maxR, cellWidth, dims);
+  _oracle = std::make_unique<BruteForce<double, -1>>();
   _oracle->compute(_X_train);
   _highestLabel = _y_train.maxCoeff();
 }
