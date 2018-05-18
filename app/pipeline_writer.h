@@ -17,6 +17,9 @@ public:
 
   virtual void newFrameWindow(FrameNumber f,
                               std::shared_ptr<const FrameWindow> window);
+  virtual void
+  newFilteredFrameWindow(FrameNumber f,
+                         std::shared_ptr<const FrameWindow> window);
   virtual void newRawPointCloud(FrameNumber f,
                                 std::shared_ptr<const PointCloud> cloud);
   virtual void newFilteredPointCloud(FrameNumber f,
@@ -39,6 +42,7 @@ public:
   newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains);
 
   bool writeRawFrameWindow = true;
+  bool writeFilteredFrameWindow = true;
   bool writeRawPointCloud = true;
   bool writeFilteredPointCloud = true;
   bool writeClusteredPointCloud = true;
@@ -55,6 +59,12 @@ private:
   std::string _rawFrameWindowRawDisparityPath;
   std::string _rawFrameWindowReferencePath;
   std::string _rawFrameWindowParamsPath;
+  std::string _filteredFrameWindowPath;
+  std::string _filteredFrameWindowDisparityPath;
+  std::string _filteredFrameWindowRawDisparityPath;
+  std::string _filteredFrameWindowReferencePath;
+  std::string _filteredFrameWindowParamsPath;
+  std::string _filteredFrameWindowLabelsPath;
   std::string _rawPointCloudPath;
   std::string _filteredPointCloudPath;
   std::string _clusteredPointCloudPath;
@@ -67,15 +77,13 @@ private:
   std::unordered_map<FrameNumber, std::shared_ptr<const std::vector<Cluster>>>
       _clusters;
 
+  std::string insertLabel(const std::string &templatePath, int l) const;
   std::string insertFrame(const std::string &templatePath, FrameNumber f) const;
   std::string insertStream(const std::string &templatePath,
                            StreamNumber f) const;
 
+  /// only writes image, if not empty
   void writePng(const PictureD &pic, const std::string &path) const;
-
-  void writeFrame(const Frame &frame, const std::string &referencePath,
-                  const std::string &rawDisparityPath,
-                  const std::string &disparityPath) const;
 
   std::vector<std::vector<double>> nColors(int n) const;
 };
