@@ -33,7 +33,7 @@ Eigen::MatrixXd KnnClassifier::predict(const Mat &X_test) const {
     for (auto c : closest) {
       result(c, i) += 1;
     }
-    result.col(i) /= result.col(i).sum();
+    result.col(i) /= (result.col(i).sum() + 0.000001);
   }
   return result;
 }
