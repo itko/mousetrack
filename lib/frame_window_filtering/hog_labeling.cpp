@@ -40,16 +40,17 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
   if (window.frames().empty()) {
     return window;
   }
-  if(_classifier.get() == nullptr){
-      BOOST_LOG_TRIVIAL(warning) << "HOG classifier not trained, no labeling performed.";
-      return window;
+  if (_classifier.get() == nullptr) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "HOG classifier not trained, no labeling performed.";
+    return window;
   }
   FrameWindow result = window;
   // create matrices for labels
   for (Frame &f : result.frames()) {
     f.labels.resize(_numLabels);
     for (auto &l : f.labels) {
-      l.resize(f.referencePicture.rows(), f.referencePicture.cols());
+      l.setZero(f.referencePicture.rows(), f.referencePicture.cols());
     }
   }
 
@@ -116,6 +117,14 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
     for (int l = 0; l < _numLabels; ++l) {
       sum += frame.labels[l];
     }
+    // avoid division by zero
+    sum = sum.array() + 0.0000001;
+    BOOST_LOG_TRIVIAL(trace) << "Min in Sum-Matrix: " << sum.minCoeff();
+    BOOST_LOG_TRIVIAL(trace) << "Max in Sum-Matrix: " << sum.maxCoeff();
+    BOOST_LOG_TRIVIAL(trace)
+        << "#NaN Sum-Matrix: " << sum.array().isNaN().count();
+    BOOST_LOG_TRIVIAL(trace)
+        << "Inf Sum-Matrix: " << sum.array().isInf().count();
     sum = sum.array().inverse();
     for (int l = 0; l < _numLabels; ++l) {
       frame.labels[l] = frame.labels[l].array() * sum.array();
