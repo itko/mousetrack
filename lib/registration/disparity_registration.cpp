@@ -15,7 +15,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
   // how many points will there be at most?
   int expected_points = 0;
   for (const auto &f : frames) {
-    expected_points += f.normalizedDisparityMap.zMap().size();
+    expected_points += f.normalizedDisparityMap.size();
   }
 
   // absolute transformation matrix relative to first camera
@@ -39,7 +39,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
   // relative to first camera
   for (size_t i = 0; i < frames.size(); i += 1) {
     const auto &f = frames[i];
-    const auto &disp = f.normalizedDisparityMap.zMap();
+    const auto &disp = f.normalizedDisparityMap;
     // convert each pixel
     for (int y = border - 1; y < disp.rows() - border; y += 1) {
       for (int x = border - 1; x < disp.cols() - border; x += 1) {

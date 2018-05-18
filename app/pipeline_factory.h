@@ -23,6 +23,8 @@ private:
   typedef OracleFactoryXd OFactory;
   /// Depending on the given options, choose, create and return a reader
   std::unique_ptr<Reader> getReader(const op::variables_map &options) const;
+  std::string chooseReaderTarget(const std::string &givenTarget,
+                                 const std::string &givenSrc) const;
 
   /// Depending on the option, create a list of frame window filters
   std::vector<std::unique_ptr<FrameWindowFiltering>>

@@ -8,19 +8,25 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev libflann-dev
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev libflann-dev librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev qt5-default
 ```
 
 - CMake: `$ sudo apt install cmake`
 - Boost.Test: `$ sudo apt install libboost-all-dev`
 - [OpenCV](https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html): `$ sudo apt install libopencv-dev`
 - Eigen: `$ sudo apt install libeigen3-dev`
+- We need to read PNG files: `$ sudo apt install libpng16-dev`
 - We need to read PNG files: `$ sudo apt install libpng16-dev` (comes with OpenCV)
+- QT: `$ sudo apt install qt5-default`
+- ROS bag support: `$ sudo apt install librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev`
 - We use FLANN for spatial queries: `$ sudo apt install libflann-dev` (comes with OpenCV)
 
 
 If operations run slow, you can try reinstalling OpenCV with these additional dependencies:
 - Atlas: `$ sudo apt-get install libatlas-base-dev gfortran`
+
+If you have trouble meeting some dependencies, there's always the option to turn off unused modules.
+Please see the root `CMakeLists.txt` for the corresponding flags (`ENABLE_GUI`, `ENABLE_ROSBAG`, etc.).
 
 ### Version requirements
 

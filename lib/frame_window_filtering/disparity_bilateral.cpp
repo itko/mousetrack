@@ -14,12 +14,12 @@ FrameWindow DisparityBilateral::operator()(const FrameWindow &window) const {
   FrameWindow result = window;
   for (size_t i = 0; i < window.frames().size(); ++i) {
     Frame &f = result.frames()[i];
-    auto &disp = f.normalizedDisparityMap.zMap();
+    auto &disp = f.normalizedDisparityMap;
     Eigen::MatrixXf floatMat = disp.cast<float>();
     cv::Mat raw, smoothed;
     cv::eigen2cv(floatMat, raw);
     cv::bilateralFilter(raw, smoothed, diameter(), sigmaColor(), sigmaSpace());
-    cv::cv2eigen(smoothed, f.normalizedDisparityMap.zMap());
+    cv::cv2eigen(smoothed, f.normalizedDisparityMap);
   }
   return result;
 }

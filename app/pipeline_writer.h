@@ -14,6 +14,9 @@ namespace MouseTrack {
 class PipelineWriter : public PipelineObserver {
 public:
   PipelineWriter(fs::path targetDir);
+
+  virtual void newFrameWindow(FrameNumber f,
+                              std::shared_ptr<const FrameWindow> window);
   virtual void newRawPointCloud(FrameNumber f,
                                 std::shared_ptr<const PointCloud> cloud);
   virtual void newFilteredPointCloud(FrameNumber f,
@@ -35,8 +38,23 @@ public:
   virtual void
   newClusterChains(std::shared_ptr<const std::vector<ClusterChain>> chains);
 
+  bool writeRawFrameWindow = true;
+  bool writeRawPointCloud = true;
+  bool writeFilteredPointCloud = true;
+  bool writeClusteredPointCloud = true;
+  bool writeClusters = true;
+  bool writeDescriptors = true;
+  bool writeMatches = true;
+  bool writeControlPoints = true;
+  bool writeChainedPointCloud = true;
+
 private:
   fs::path _outputDir;
+  std::string _rawFrameWindowPath;
+  std::string _rawFrameWindowDisparityPath;
+  std::string _rawFrameWindowRawDisparityPath;
+  std::string _rawFrameWindowReferencePath;
+  std::string _rawFrameWindowParamsPath;
   std::string _rawPointCloudPath;
   std::string _filteredPointCloudPath;
   std::string _clusteredPointCloudPath;
@@ -50,6 +68,14 @@ private:
       _clusters;
 
   std::string insertFrame(const std::string &templatePath, FrameNumber f) const;
+  std::string insertStream(const std::string &templatePath,
+                           StreamNumber f) const;
+
+  void writePng(const PictureD &pic, const std::string &path) const;
+
+  void writeFrame(const Frame &frame, const std::string &referencePath,
+                  const std::string &rawDisparityPath,
+                  const std::string &disparityPath) const;
 
   std::vector<std::vector<double>> nColors(int n) const;
 };

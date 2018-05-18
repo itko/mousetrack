@@ -24,8 +24,8 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
   for (size_t i = 0; i < _cage_frame.frames().size(); i++) {
 
     // Copy the stuff we need from the FrameWindow objects
-    const Picture &cage_image = _cage_frame.frames()[i].referencePicture;
-    const Picture &mouse_image = window.frames()[i].referencePicture;
+    const PictureD &cage_image = _cage_frame.frames()[i].referencePicture;
+    const PictureD &mouse_image = window.frames()[i].referencePicture;
 
     // Dimensions must match
     if (!(cage_image.rows() == mouse_image.rows() &&
@@ -41,7 +41,7 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     }
 
     // Perform the subtraction
-    Picture sub = (mouse_image - cage_image).array().abs();
+    PictureD sub = (mouse_image - cage_image).array().abs();
 
     // Convert to opencv format and from [0,1] to [0,255] format
     cv::Mat subcv;
@@ -66,13 +66,13 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     }
 
     // Build Frame object...
-    if (output.frames()[i].rawDisparityMap.zMap().size() > 0) { //if raw dispartiy was extracted
-        output.frames()[i].rawDisparityMap.zMap() =
-            mask.array() * output.frames()[i].rawDisparityMap.zMap().array();
-        }
-    output.frames()[i].normalizedDisparityMap.zMap() =
-        mask.array() * output.frames()[i].normalizedDisparityMap.zMap().array();
-
+    output.frames()[i].normalizedDisparityMap =
+        mask.array() * output.frames()[i].normalizedDisparityMap.array();
+    // the raw disparity map is optional
+    if(output.frames()[i].rawDisparityMap.size() > 0){
+      output.frames()[i].rawDisparityMap =
+        mask.array() * output.frames()[i].rawDisparityMap.array();
+    }
     output.frames()[i].referencePicture =
         mask.array() * output.frames()[i].referencePicture.array();
   }

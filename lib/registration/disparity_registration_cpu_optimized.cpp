@@ -44,7 +44,7 @@ operator()(const FrameWindow &window) const {
 #pragma omp parallel for
   for (size_t i = 0; i < frames.size(); i += 1) {
     const auto &f = frames[i];
-    const auto &disp = f.normalizedDisparityMap.zMap();
+    const auto &disp = f.normalizedDisparityMap;
     int next_insert = 0;
     int expected = disp.size();
     // [x,y,disparity, 1]

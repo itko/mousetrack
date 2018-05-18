@@ -19,11 +19,11 @@ FrameWindow DisparityMorphology::operator()(const FrameWindow &window) const {
       cv::Point(diameter(), diameter()));
   for (size_t i = 0; i < window.frames().size(); ++i) {
     Frame &f = result.frames()[i];
-    auto &disp = f.normalizedDisparityMap.zMap();
+    auto &disp = f.normalizedDisparityMap;
     cv::Mat raw, processed;
     cv::eigen2cv(disp, raw);
     cv::morphologyEx(raw, processed, op, kernel);
-    cv::cv2eigen(processed, f.normalizedDisparityMap.zMap());
+    cv::cv2eigen(processed, f.normalizedDisparityMap);
   }
   return result;
 }

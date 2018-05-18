@@ -12,7 +12,8 @@ op::options_description cli_options() {
   auto ad = desc.add_options();
   // clang-format off
   ad("help,h", "Help screen");
-  ad("src-dir,s", op::value<std::string>(), "Source directory to process");
+  ad("src,s", op::value<std::string>(), "Source directory/file to process");
+  ad("camchain,y", op::value<std::string>(), "If the source points to a ROS bag file, set this variable to the corresponding YAML camchain file.");
   ad("out-dir,o", op::value<std::string>(), "Target directory for computed results. No results will be written, if not provided.");
   ad("cli,c", "Don't start the Graphical User Interface, run on command line.");
   ad("pipeline-timer", "Measures the execution time of each pipeline step end sends it's output to the log with debug priority.");
@@ -23,7 +24,7 @@ op::options_description cli_options() {
   ad("last-stream", op::value<int>(), "Desired highest end stream (inclusive).");
 
   // pipeline modules
-  ad("pipeline-reader", op::value<std::string>()->default_value("matlab-concurrent"), "Which reader module to use. Valid values: none, matlab, matlab-concurrent");
+  ad("pipeline-reader", op::value<std::string>()->default_value("auto"), "Which reader module to use. Valid values: auto, matlab, matlab-concurrent, ros-bag; auto picks 'matlab-concurrent' for source directories and 'ros-bag' in case a bag file is given");
   ad("pipeline-frame-window-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to apply to a frame window. Valid values: none, disparity-gauss, disparity-median, disparity-bilateral, disparity-morph-open, disparity-morph-close, background-subtraction");
   ad("pipeline-registration", op::value<std::string>()->default_value("disparity-cpu-optimized"), "Which registration module to use. Valid values: none, disparity, disparity-cpu-optimized");
   ad("pipeline-point-cloud-filtering", op::value<std::vector<std::string>>()->multitoken(), "Which filtering modules to use. Valid values: none, subsample, statistical-outlier-removal");
@@ -46,8 +47,10 @@ op::options_description cli_options() {
   ad("disparity-morph-close-diameter", op::value<int>()->default_value(2), "Patch diameter in x/y direction, must be positive and integer.");
   ad("disparity-morph-close-shape", op::value<std::string>()->default_value("rect"), "Shape of kernel for morphological operation. Valid values: rect, ellipse, cross");
   ad("background-subtraction-threshold", op::value<double>()->default_value(0.01), "Threshold for background subtraction. (Representing an intensity value in [0,1])");
-  ad("background-subtraction-cage-frame", op::value<int>()->default_value(1), "Number of a frame with empty cage");
-  ad("background-subtraction-cage-directory", op::value<std::string>(), "Path to directory with empty cage. Default: src-dir");
+  ad("background-subtraction-cage-reader", op::value<std::string>()->default_value("auto"), "Which pipeline-reader should be used?");
+  ad("background-subtraction-cage-frame", op::value<int>()->default_value(-1), "Number of a frame with empty cage. Default: choose first frame of input.");
+  ad("background-subtraction-cage-directory", op::value<std::string>(), "Path to directory with empty cage. Default: src");
+  ad("background-subtraction-cage-camchain", op::value<std::string>(), "Path to camchain file for empty cage.");
 
   // point cloud post processing
 
