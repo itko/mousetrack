@@ -52,6 +52,7 @@ op::options_description cli_options() {
   ad("background-subtraction-cage-frame", op::value<int>()->default_value(-1), "Number of a frame with empty cage. Default: choose first frame of input.");
   ad("background-subtraction-cage-directory", op::value<std::string>(), "Path to directory with empty cage. Default: src");
   ad("background-subtraction-cage-camchain", op::value<std::string>(), "Path to camchain file for empty cage.");
+  ad("hog-labeling-train", op::value<std::string>(), "Path to training data for HOG labeling.");
 
   // point cloud post processing
 

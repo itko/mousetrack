@@ -40,6 +40,10 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
   if (window.frames().empty()) {
     return window;
   }
+  if(_classifier.get() == nullptr){
+      BOOST_LOG_TRIVIAL(warning) << "HOG classifier not trained, no labeling performed.";
+      return window;
+  }
   FrameWindow result = window;
   // create matrices for labels
   for (Frame &f : result.frames()) {
