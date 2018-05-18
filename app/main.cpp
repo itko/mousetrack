@@ -131,6 +131,10 @@ int main(int argc, char *argv[]) {
   try {
     controller->pipeline() =
         std::move(pipelineFactory.fromCliOptions(cli_options));
+    if (cli_options.count("pipeline-timer-log")) {
+      std::string p = cli_options["pipeline-timer-log"].as<std::string>();
+      timer.logPath(p);
+    }
     if (cli_options.count("pipeline-timer")) {
       controller->pipeline().addObserver(&timer);
     }
