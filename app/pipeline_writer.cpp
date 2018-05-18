@@ -27,7 +27,7 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
       _filteredFrameWindowRawDisparityPath("disparity_s_<streamNumber>_f_<frameNumber>.png"),
       _filteredFrameWindowReferencePath("pic_s_<streamNumber>_f_<frameNumber>.png"),
       _filteredFrameWindowParamsPath("pic_f_<frameNumber>.csv"),
-      _filteredFrameWindowLabelsPath("label_s_<streamNumber>_f_<frameNumber>_l_<labelNumber>.png"),
+      _filteredFrameWindowLabelsPath("label_s_<streamNumber>_l_<labelNumber>_f_<frameNumber>.png"),
       _rawPointCloudPath("raw_point_cloud_<frameNumber>.ply"),
       _filteredPointCloudPath("filtered_point_cloud_<frameNumber>.ply"),
       _clusteredPointCloudPath("clustered_point_cloud_<frameNumber>.ply"),
