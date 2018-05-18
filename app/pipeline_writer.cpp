@@ -22,6 +22,12 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
       _rawFrameWindowRawDisparityPath("disparity_s_<streamNumber>_f_<frameNumber>.png"),
       _rawFrameWindowReferencePath("pic_s_<streamNumber>_f_<frameNumber>.png"),
       _rawFrameWindowParamsPath("pic_f_<frameNumber>.csv"),
+      _filteredFrameWindowPath("filtered_frame_window"),
+      _filteredFrameWindowDisparityPath("disparity_normalized_s_<streamNumber>_f_<frameNumber>.png"),
+      _filteredFrameWindowRawDisparityPath("disparity_s_<streamNumber>_f_<frameNumber>.png"),
+      _filteredFrameWindowReferencePath("pic_s_<streamNumber>_f_<frameNumber>.png"),
+      _filteredFrameWindowParamsPath("pic_f_<frameNumber>.csv"),
+      _filteredFrameWindowLabelsPath("pic_s_<streamNumber>_f_<frameNumber>_l_<labelNumber>.png"),
       _rawPointCloudPath("raw_point_cloud_<frameNumber>.ply"),
       _filteredPointCloudPath("filtered_point_cloud_<frameNumber>.ply"),
       _clusteredPointCloudPath("clustered_point_cloud_<frameNumber>.ply"),
@@ -60,13 +66,65 @@ void PipelineWriter::newFrameWindow(FrameNumber f,
     fs::path dispRaw = base / insertFrame(insertStream(_rawFrameWindowDisparityPath, s), f);
     // clang-format on
     const Frame &frame = window->frames()[s];
-    writeFrame(frame, ref.string(), dispNorm.string(), dispRaw.string());
+
+    writePng(frame.referencePicture, ref.string());
+    writePng(frame.rawDisparityMap, dispRaw.string());
+    writePng(frame.normalizedDisparityMap, dispNorm.string());
+
     params(s, 0) = frame.focallength;
     params(s, 1) = frame.baseline;
     params(s, 2) = frame.ccx;
     params(s, 3) = frame.ccy;
   }
   fs::path paramsPath = base / insertFrame(_rawFrameWindowParamsPath, f);
+  std::vector<std::vector<Precision>> paramsVec(window->frames().size());
+  const int paramCount = 4;
+  for (int i = 0; (size_t)i < window->frames().size(); ++i) {
+    for (int j = 0; j < paramCount; ++j) {
+      paramsVec[i].push_back(params(i, j));
+    }
+  }
+  write_csv(paramsPath.string(), paramsVec);
+}
+
+void PipelineWriter::newFilteredFrameWindow(
+    FrameNumber f, std::shared_ptr<const FrameWindow> window) {
+  if (!writeFilteredFrameWindow) {
+    return;
+  }
+  fs::path base = _outputDir / insertFrame(_filteredFrameWindowPath, f);
+  if (!fs::exists(base)) {
+    fs::create_directory(base);
+  }
+  Eigen::MatrixXd params(window->frames().size(), 4);
+  for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
+    // clang-format off
+    fs::path ref = base / insertFrame(insertStream(_filteredFrameWindowReferencePath, s), f);
+    fs::path dispNorm = base / insertFrame(insertStream(_filteredFrameWindowRawDisparityPath, s), f);
+    fs::path dispRaw = base / insertFrame(insertStream(_filteredFrameWindowDisparityPath, s), f);
+    // clang-format on
+    const Frame &frame = window->frames()[s];
+
+    writePng(frame.referencePicture, ref.string());
+    writePng(frame.rawDisparityMap, dispRaw.string());
+    writePng(frame.normalizedDisparityMap, dispNorm.string());
+
+    for (size_t l = 0; l < frame.labels.size(); ++l) {
+      const auto &label = frame.labels[l];
+      fs::path labelP =
+          base /
+          insertLabel(
+              insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f),
+              l);
+      writePng(label, labelP.string());
+    }
+
+    params(s, 0) = frame.focallength;
+    params(s, 1) = frame.baseline;
+    params(s, 2) = frame.ccx;
+    params(s, 3) = frame.ccy;
+  }
+  fs::path paramsPath = base / insertFrame(_filteredFrameWindowParamsPath, f);
   std::vector<std::vector<Precision>> paramsVec(window->frames().size());
   const int paramCount = 4;
   for (int i = 0; (size_t)i < window->frames().size(); ++i) {
@@ -181,6 +239,12 @@ void PipelineWriter::newControlPoints(
   write_csv(path.string(), tmp);
 }
 
+std::string PipelineWriter::insertLabel(const std::string &templatePath,
+                                        int l) const {
+  return boost::replace_all_copy(templatePath, "<labelNumber>",
+                                 std::to_string(l));
+}
+
 std::string PipelineWriter::insertFrame(const std::string &templatePath,
                                         FrameNumber f) const {
   return boost::replace_all_copy(templatePath, "<frameNumber>",
@@ -229,26 +293,11 @@ std::vector<std::vector<double>> PipelineWriter::nColors(int n) const {
   return cols;
 }
 
-void PipelineWriter::writeFrame(const Frame &frame,
-                                const std::string &referencePath,
-                                const std::string &rawDisparityPath,
-                                const std::string &disparityPath) const {
-  const auto &dispNorm = frame.normalizedDisparityMap;
-  const auto &dispRaw = frame.rawDisparityMap;
-  const auto &refImg = frame.referencePicture;
-  if (dispNorm.size() > 0) {
-    writePng(dispNorm, disparityPath);
-  }
-  if (dispRaw.size() > 0) {
-    writePng(dispRaw, rawDisparityPath);
-  }
-  if (refImg.size() > 0) {
-    writePng(refImg, referencePath);
-  }
-}
-
 void PipelineWriter::writePng(const PictureD &pic,
                               const std::string &path) const {
+  if (pic.size() == 0) {
+    return;
+  }
   write_png(pic, path);
 }
 
