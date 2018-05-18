@@ -31,8 +31,10 @@ std::vector<cv::Point> slidingWindows(int imgWidth, int imgHeight, int stepSize,
 } // namespace MouseTrack
 
 void HogLabeling::train(const Mat &X_train, const Vec &y_train) {
-  _classifier = std::make_unique<KnnClassifier>();
-  _classifier->fit(X_train, y_train);
+  auto ptr = std::make_unique<KnnClassifier>();
+  ptr->fit(X_train, y_train);
+  ptr->k(11);
+  _classifier = std::move(ptr);
   _numLabels = y_train.maxCoeff() + 1;
 }
 
