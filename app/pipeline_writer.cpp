@@ -12,6 +12,9 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/log/trivial.hpp>
 
+#include <opencv2/core/eigen.hpp>
+#include <opencv2/opencv.hpp>
+
 namespace MouseTrack {
 
 PipelineWriter::PipelineWriter(fs::path targetDir)
@@ -117,6 +120,53 @@ void PipelineWriter::newFilteredFrameWindow(
               insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f),
               l);
       writePng(label, labelP.string());
+    }
+    // write max-label image
+    if (!frame.labels.empty()) {
+      int rows = frame.labels[0].rows();
+      int cols = frame.labels[0].cols();
+      auto colors = nColors(frame.labels.size());
+      colors[0] = std::vector<double>{255, 0, 0};
+      colors[1] = std::vector<double>{0, 255, 0};
+      colors[2] = std::vector<double>{0, 0, 255};
+      colors[3] = std::vector<double>{125, 0, 0};
+      colors[4] = std::vector<double>{0, 125, 0};
+      colors[5] = std::vector<double>{0, 0, 125};
+
+      // ignore background
+      std::set<size_t> ignore{5};
+      cv::Mat allLabels(rows, cols, CV_64FC3);
+      for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+          double v = 0;
+          int maxL = 0;
+          for (int l = 0; l < frame.labels.size(); ++l) {
+            if (ignore.find(l) != ignore.end()) {
+              continue;
+            }
+            auto c = frame.labels[l](y, x);
+            if (v < c) {
+              v = c;
+              maxL = l;
+            }
+          }
+          allLabels.at<cv::Vec3d>(y, x)[0] = colors[maxL][0];
+          allLabels.at<cv::Vec3d>(y, x)[1] = colors[maxL][1];
+          allLabels.at<cv::Vec3d>(y, x)[2] = colors[maxL][2];
+        }
+      }
+      fs::path allPath =
+          base /
+          insertLabel(
+              insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f),
+              9999);
+
+      try {
+        cv::imwrite(allPath.string(), allLabels);
+      } catch (std::runtime_error &ex) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception converting image to PNG format: " << ex.what();
+      }
     }
 
     params(s, 0) = frame.focallength;
