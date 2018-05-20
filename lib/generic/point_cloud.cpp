@@ -155,9 +155,9 @@ const std::vector<PointCloud::Label> &PointCloud::Point::labels() const {
 
 Eigen::VectorXd PointCloud::Point::characteristic() const {
   Eigen::VectorXd result(_cloud.charDim());
-  result[0] = r();
-  result[1] = g();
-  result[2] = b();
+  result[0] = x();
+  result[1] = y();
+  result[2] = z();
   result[3] = intensity();
   const auto &ls = labels();
   for (size_t i = 0; i < ls.size(); ++i) {
