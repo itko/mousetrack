@@ -18,5 +18,5 @@ TRAIN=$3
 FRAMES="--first-frame=${4-0} --last-frame=${5-100000}"
 # CSV with HOG feature vectors
 
-$APP -c -s $SRC -l trace --pipeline-timer -o $OUT ${FRAMES} --pipeline-frame-window-filtering hog-labeling background-subtraction --hog-labeling-train=$TRAIN --background-subtraction-cage-directory=$SRC --pipeline-clustering=kmeans --kmeans-k=16
+$APP -c -s $SRC -l trace --pipeline-timer -o $OUT ${FRAMES} --pipeline-frame-window-filtering hog-labeling strict-labeling background-subtraction --hog-labeling-train=$TRAIN --background-subtraction-cage-directory=$SRC --pipeline-clustering=kmeans --kmeans-k=16 --kmeans-oracle=brute-force
 
