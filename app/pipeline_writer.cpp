@@ -131,7 +131,7 @@ void PipelineWriter::newFilteredFrameWindow(
       colors[2] = std::vector<double>{0, 0, 255};
       colors[3] = std::vector<double>{125, 0, 0};
       colors[4] = std::vector<double>{0, 125, 0};
-      colors[5] = std::vector<double>{0, 0, 125};
+      // colors[5] = std::vector<double>{0, 0, 125};
 
       // ignore background
       std::set<size_t> ignore{5};
