@@ -87,11 +87,20 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
         int pi = clusters[c].points()[i];
         assigned.col(i) = points.col(pi);
       }
-      Eigen::VectorXd mean = assigned.array().rowwise().sum() / assigned.cols();
+      Eigen::VectorXd mean =
+          assigned.array().rowwise().sum() / (assigned.cols() + .000001);
       means.col(c) = mean;
     }
   } while (!meansConverged(means, prevMeans) &&
            !assignmentConverged(clusters, prevClusters, cloud.size()));
+
+  std::stringstream ss;
+  ss << clusters[0].points().size();
+  for (size_t i = 1; i < clusters.size(); ++i) {
+    ss << ", " << clusters[i].points().size();
+  }
+
+  BOOST_LOG_TRIVIAL(trace) << "K-Means cluster sizes: " << ss.str();
 
   return clusters;
 }

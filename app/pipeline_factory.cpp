@@ -14,6 +14,7 @@
 #include "frame_window_filtering/disparity_median.h"
 #include "frame_window_filtering/disparity_morphology.h"
 #include "frame_window_filtering/hog_labeling.h"
+#include "frame_window_filtering/strict_labeling.h"
 
 #include "matching/nearest_neighbour.h"
 
@@ -364,6 +365,9 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     auto ptr = std::make_unique<BackgroundSubtraction>();
     ptr->cage_frame(cageWindow);
     return ptr;
+  }
+  if (target == "strict-labeling") {
+    return std::make_unique<StrictLabeling>();
   }
   if (target == "hog-labeling") {
     if (options.count("hog-labeling-train") == 0) {
