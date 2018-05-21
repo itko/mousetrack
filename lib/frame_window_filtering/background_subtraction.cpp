@@ -63,8 +63,6 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     // spots, i.e. no mouse => set mask to zeros
     if (thresh_otsu < _threshold * 255) {
       mask.setZero();
-      BOOST_LOG_TRIVIAL(debug)
-          << "No Mask stream " << i << " threshold: " << thresh_otsu;
     }
 
     // Build Frame object...
@@ -78,6 +76,7 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     output.frames()[i].referencePicture =
         mask.array() * output.frames()[i].referencePicture.array();
   }
+
   return output;
 }
 
