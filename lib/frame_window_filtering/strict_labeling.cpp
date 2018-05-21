@@ -12,7 +12,7 @@ namespace MouseTrack {
 FrameWindow StrictLabeling::operator()(const FrameWindow &window) const {
   FrameWindow w = window;
   // ignore labels?
-  std::set<size_t> ignore{5};
+  std::set<size_t> ignore;
 
   for (size_t f = 0; f < w.frames().size(); ++f) {
     Frame &frame = w.frames()[f];
