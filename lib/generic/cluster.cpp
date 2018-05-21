@@ -29,7 +29,9 @@ Eigen::VectorXd Cluster::center_of_gravity(const PointCloud &cloud) const {
   for (size_t i = 0; i < points().size(); i++) {
     cog += cloud[points()[i]].characteristic();
   }
-  cog /= points().size();
+  if (points().size() > 0) {
+    cog /= points().size();
+  }
   return cog;
 }
 
