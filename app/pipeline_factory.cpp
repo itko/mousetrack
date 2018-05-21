@@ -515,6 +515,7 @@ PipelineFactory::getClustering(const op::variables_map &options) const {
     return ptr;
   }
   if (target == "label-clustering") {
+    BOOST_LOG_TRIVIAL(debug) << "Creating labelClustering";
     return std::make_unique<LabelClustering>();
   }
 

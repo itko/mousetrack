@@ -32,11 +32,12 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
       _filteredFrameWindowParamsPath("pic_f_<frameNumber>.csv"),
       _filteredFrameWindowLabelsPath("label_s_<streamNumber>_l_<labelNumber>_f_<frameNumber>.png"),
       _rawPointCloudPath("raw_point_cloud_<frameNumber>.ply"),
-      _rawPointCloudMetricsPath("raw_point_cloud_metrics_<frameNumber>.txt"),
+      _rawPointCloudMetricsPath("raw_point_cloud_metrics_<frameNumber>.csv"),
       _filteredPointCloudPath("filtered_point_cloud_<frameNumber>.ply"),
       _filteredPointCloudMetricsPath("filtered_point_cloud_metrics_<frameNumber>.txt"),
       _clusteredPointCloudPath("clustered_point_cloud_<frameNumber>.ply"),
       _clustersPath("clusters_<frameNumber>.csv"),
+      _clustersCoGsPath("cluster_cogs_<frameNumber>.csv"),
       _descriptorsPath("descriptors_<frameNumber>.csv"),
       _matchesPath("matches_<frameNumber>.csv"),
       _controlPointsPath("controlPoints_<frameNumber>.csv"),
@@ -252,6 +253,15 @@ void PipelineWriter::newClusters(
   }
   fs::path cloudPath = _outputDir / insertFrame(_clusteredPointCloudPath, f);
   write_point_cloud(cloudPath.string(), cloud);
+
+  fs::path cogsPath = _outputDir / insertFrame(_clustersCoGsPath, f);
+  std::vector<std::vector<double>> controlPoints;
+  for (const auto &c : *clusters) {
+    const auto p = c.center_of_gravity(cloud);
+    controlPoints.push_back(std::vector<double>{p[0], p[1], p[2]});
+  }
+
+  write_csv(cogsPath.string(), controlPoints);
 }
 
 void PipelineWriter::newDescriptors(

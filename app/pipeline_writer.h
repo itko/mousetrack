@@ -71,6 +71,7 @@ private:
   std::string _filteredPointCloudMetricsPath;
   std::string _clusteredPointCloudPath;
   std::string _clustersPath;
+  std::string _clustersCoGsPath;
   std::string _descriptorsPath;
   std::string _matchesPath;
   std::string _controlPointsPath;
