@@ -5,10 +5,13 @@
 
 #include "label_clustering.h"
 
+#include <boost/log/trivial.hpp>
+
 namespace MouseTrack {
 
 std::vector<Cluster> LabelClustering::
 operator()(const PointCloud &cloud) const {
+  BOOST_LOG_TRIVIAL(trace) << "LabelClustering: dims: " << cloud.labelsDim();
   int clusterCount = cloud.labelsDim() + 1;
   std::vector<Cluster> clusters(clusterCount);
   for (size_t i = 0; i < cloud.size(); ++i) {
