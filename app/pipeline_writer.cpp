@@ -32,7 +32,9 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
       _filteredFrameWindowParamsPath("pic_f_<frameNumber>.csv"),
       _filteredFrameWindowLabelsPath("label_s_<streamNumber>_l_<labelNumber>_f_<frameNumber>.png"),
       _rawPointCloudPath("raw_point_cloud_<frameNumber>.ply"),
+      _rawPointCloudMetricsPath("raw_point_cloud_metrics_<frameNumber>.txt"),
       _filteredPointCloudPath("filtered_point_cloud_<frameNumber>.ply"),
+      _filteredPointCloudMetricsPath("filtered_point_cloud_metrics_<frameNumber>.txt"),
       _clusteredPointCloudPath("clustered_point_cloud_<frameNumber>.ply"),
       _clustersPath("clusters_<frameNumber>.csv"),
       _descriptorsPath("descriptors_<frameNumber>.csv"),
@@ -192,7 +194,9 @@ void PipelineWriter::newRawPointCloud(FrameNumber f,
     return;
   }
   fs::path path = _outputDir / insertFrame(_rawPointCloudPath, f);
+  fs::path pathMetrics = _outputDir / insertFrame(_rawPointCloudMetricsPath, f);
   write_point_cloud(path.string(), *cloud);
+  write_point_cloud_metrics(pathMetrics.string(), *cloud);
 }
 
 void PipelineWriter::newFilteredPointCloud(
@@ -204,7 +208,10 @@ void PipelineWriter::newFilteredPointCloud(
   }
 
   fs::path path = _outputDir / insertFrame(_filteredPointCloudPath, f);
+  fs::path pathMetrics =
+      _outputDir / insertFrame(_filteredPointCloudMetricsPath, f);
   write_point_cloud(path.string(), *cloud);
+  write_point_cloud_metrics(pathMetrics.string(), *cloud);
 }
 
 void PipelineWriter::newClusters(

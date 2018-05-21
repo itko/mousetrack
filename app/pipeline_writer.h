@@ -66,7 +66,9 @@ private:
   std::string _filteredFrameWindowParamsPath;
   std::string _filteredFrameWindowLabelsPath;
   std::string _rawPointCloudPath;
+  std::string _rawPointCloudMetricsPath;
   std::string _filteredPointCloudPath;
+  std::string _filteredPointCloudMetricsPath;
   std::string _clusteredPointCloudPath;
   std::string _clustersPath;
   std::string _descriptorsPath;

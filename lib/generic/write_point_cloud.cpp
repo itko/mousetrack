@@ -32,4 +32,20 @@ void write_point_cloud(const std::string &path, const PointCloud &cloud) {
   out.close();
 }
 
+void write_point_cloud_metrics(const std::string &path,
+                               const PointCloud &cloud) {
+  Eigen::VectorXd posCog;
+  posCog.setZero(3, 1);
+  for (int i = 0; i < cloud.size(); ++i) {
+    posCog += cloud[i].pos();
+  }
+  if (cloud.size() > 0) {
+    posCog /= cloud.size();
+  }
+  std::ofstream out;
+  out.open(path.c_str());
+  out << "# posCog_X, posCog_Y, posCog_Z\n";
+  out << posCog[0] << "," << posCog[1] << "," << posCog[2] << "\n";
+}
+
 } // namespace MouseTrack
