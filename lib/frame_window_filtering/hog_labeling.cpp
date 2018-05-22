@@ -56,20 +56,15 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
     }
   }
 
-  int windowWidth = 64;
-  int windowHeight = 64;
-  int stepSize = 64 / 4;
-
   // hog settings
-  cv::Size windowSize(windowWidth, windowHeight);
-  cv::Size blockSize(16, 16);
-  cv::Size blockStride(8, 8);
-  cv::Size cellSize(8, 8);
-  int nbins = 9;
+  cv::Size windowSize(_windowWidth, _windowHeight);
+  cv::Size blockSize(_blockWidth, _blockHeight);
+  cv::Size blockStride(_blockStrideWidth, _blockStrideHeight);
+  cv::Size cellSize(_cellWidth, _cellHeight);
 
   // create hog descriptor: it is able to tansform images patches to feature
   // vectors
-  cv::HOGDescriptor hog(windowSize, blockSize, blockStride, cellSize, nbins);
+  cv::HOGDescriptor hog(windowSize, blockSize, blockStride, cellSize, _nbins);
 
   // compute settings
   cv::Size windowStride;
@@ -78,13 +73,14 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
   // build locations for sliding window
   const auto &first = result.frames()[0];
   std::vector<cv::Point> locations = slidingWindows(
-      first.referencePicture.cols(), first.referencePicture.rows(), stepSize,
-      windowWidth, windowHeight);
+      first.referencePicture.cols(), first.referencePicture.rows(), _stepSize,
+      _windowWidth, _windowHeight);
 
   BOOST_LOG_TRIVIAL(trace) << "Created " << locations.size()
                            << " sliding window locations to check.";
 
   for (size_t f = 0; f < result.frames().size(); ++f) {
+    BOOST_LOG_TRIVIAL(trace) << "Checking frame " << f;
     Frame &frame = result.frames()[f];
     cv::Mat img;
     PictureI eig = (frame.referencePicture * 255.0).cast<PictureI::Scalar>();
@@ -100,12 +96,14 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
     Eigen::Map<Eigen::MatrixXf> map(descriptors.data(), hog.getDescriptorSize(),
                                     locations.size());
     Classifier::Mat tmp = map.cast<double>();
+    BOOST_LOG_TRIVIAL(trace) << "Classifying...";
     auto labels = _classifier->predict(tmp);
+    BOOST_LOG_TRIVIAL(trace) << "Assigning...";
     // apply labels of windows to frame.labels
     for (size_t w = 0; w < locations.size(); ++w) {
       // iterate over pixels within window w
-      for (int x = locations[w].x; x < locations[w].x + windowWidth; ++x) {
-        for (int y = locations[w].y; y < locations[w].y + windowHeight; ++y) {
+      for (int x = locations[w].x; x < locations[w].x + _windowWidth; ++x) {
+        for (int y = locations[w].y; y < locations[w].y + _windowHeight; ++y) {
           // distribute labels
           for (int l = 0; l < _numLabels; ++l) {
             frame.labels[l](y, x) += labels(l, w);
@@ -146,6 +144,7 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
         frame.labels[l] = frame.labels[l].array() * sum.array();
       }
     }
+    BOOST_LOG_TRIVIAL(trace) << "Frame " << f << " finished.";
   }
   return result;
 }

@@ -65,6 +65,8 @@ private:
   std::string _filteredFrameWindowReferencePath;
   std::string _filteredFrameWindowParamsPath;
   std::string _filteredFrameWindowLabelsPath;
+  std::string _filteredFrameWindowLabelsOverlayPath;
+  std::string _filteredFrameWindowLabelsOverlayMaskedPath;
   std::string _rawPointCloudPath;
   std::string _rawPointCloudMetricsPath;
   std::string _filteredPointCloudPath;
