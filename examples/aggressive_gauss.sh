@@ -14,14 +14,22 @@ APP=./mousetrack
 
 SRC=$1
 OUT=$2
-TRAIN=$3
-FRAMES="--first-frame=${4-0} --last-frame=${5-100000}"
-# CSV with HOG feature vectors
+FRAMES="--first-frame=${3-0} --last-frame=${4-100000}"
 
 $APP -c -s $SRC -l trace --pipeline-timer -o $OUT ${FRAMES} \
-	--pipeline-frame-window-filtering hog-labeling background-subtraction \
-	--hog-labeling-train=$TRAIN \
+	--pipeline-frame-window-filtering \
+		disparity-median \
+		disparity-morph-open\
+		disparity-morph-close\
+		disparity-morph-close\
+		disparity-morph-open\
+		disparity-gauss\
+		disparity-morph-open\
+	--disparity-gauss-k=10 \
+	--disparity-morph-open-diameter=10 \
+	--disparity-morph-close-diameter=10 \
+	--disparity-median-diameter=5 \
 	--background-subtraction-cage-directory=$SRC \
-	--pipeline-clustering=label-clustering
+	--pipeline-clustering=single-cluster 
 
 

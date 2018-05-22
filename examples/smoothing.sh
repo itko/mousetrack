@@ -16,6 +16,21 @@ SRC=$1
 OUT=$2
 FRAMES="--first-frame=${3-0} --last-frame=${4-100000}"
 
-$APP -c -s $SRC -l trace --pipeline-timer -o $OUT ${FRAMES} --pipeline-frame-window-filtering disparity-median background-subtraction --disparity-median-diameter=4 --background-subtraction-cage-directory=$SRC --pipeline-clustering=single-cluster 
+$APP -c -s $SRC -l trace --pipeline-timer -o $OUT ${FRAMES} \
+	--pipeline-frame-window-filtering \
+		disparity-median \
+		disparity-morph-open\
+		disparity-morph-close\
+		disparity-morph-close\
+		disparity-morph-open\
+		disparity-gauss\
+		background-subtraction \
+		disparity-morph-open\
+	--disparity-gauss-k=10 \
+	--disparity-morph-open-diameter=10 \
+	--disparity-morph-close-diameter=10 \
+	--disparity-median-diameter=5 \
+	--background-subtraction-cage-directory=$SRC \
+	--pipeline-clustering=single-cluster 
 
 
