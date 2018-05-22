@@ -23,6 +23,26 @@ private:
   std::unique_ptr<Classifier> _classifier;
   // highest label + 1: we need to know, how many labels there are
   int _numLabels;
+
+  /// width of the sliding window
+  int _windowWidth = 64;
+
+  /// height of the sliding window
+  int _windowHeight = 64;
+
+  /// Distance between two neighboring sliding windows
+  int _stepSize = 64 / 8;
+
+  /// number of histogram bins for HOG??
+  int _nbins = 9;
+
+  /// ?? from opencv HOG
+  int _blockWidth = 16;
+  int _blockHeight = 16;
+  int _blockStrideWidth = 8;
+  int _blockStrideHeight = 8;
+  int _cellWidth = 8;
+  int _cellHeight = 8;
 };
 
 } // namespace MouseTrack

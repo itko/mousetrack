@@ -31,6 +31,8 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
       _filteredFrameWindowReferencePath("pic_s_<streamNumber>_f_<frameNumber>.png"),
       _filteredFrameWindowParamsPath("pic_f_<frameNumber>.csv"),
       _filteredFrameWindowLabelsPath("label_s_<streamNumber>_l_<labelNumber>_f_<frameNumber>.png"),
+      _filteredFrameWindowLabelsOverlayPath("label_overlay_s_<streamNumber>_l_<labelNumber>_f_<frameNumber>.png"),
+      _filteredFrameWindowLabelsOverlayMaskedPath("label_overlay_masked_s_<streamNumber>_l_<labelNumber>_f_<frameNumber>.png"),
       _rawPointCloudPath("raw_point_cloud_<frameNumber>.ply"),
       _rawPointCloudMetricsPath("raw_point_cloud_metrics_<frameNumber>.csv"),
       _filteredPointCloudPath("filtered_point_cloud_<frameNumber>.ply"),
@@ -103,6 +105,18 @@ void PipelineWriter::newFilteredFrameWindow(
     fs::create_directory(base);
   }
   Eigen::MatrixXd params(window->frames().size(), 4);
+  size_t maxLabelCount = 6;
+  for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
+    maxLabelCount = std::max(maxLabelCount, window->frames()[s].labels.size());
+  }
+  auto colors = nColors(maxLabelCount);
+  // fix the first 6 ones so we can decode them
+  colors[0] = std::vector<double>{255, 0, 0};
+  colors[1] = std::vector<double>{0, 255, 0};
+  colors[2] = std::vector<double>{0, 0, 255};
+  colors[3] = std::vector<double>{125, 0, 0};
+  colors[4] = std::vector<double>{0, 125, 0};
+  colors[5] = std::vector<double>{0, 0, 125};
   for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
     // clang-format off
     fs::path ref = base / insertFrame(insertStream(_filteredFrameWindowReferencePath, s), f);
@@ -128,13 +142,6 @@ void PipelineWriter::newFilteredFrameWindow(
     if (!frame.labels.empty()) {
       int rows = frame.labels[0].rows();
       int cols = frame.labels[0].cols();
-      auto colors = nColors(frame.labels.size());
-      colors[0] = std::vector<double>{255, 0, 0};
-      colors[1] = std::vector<double>{0, 255, 0};
-      colors[2] = std::vector<double>{0, 0, 255};
-      colors[3] = std::vector<double>{125, 0, 0};
-      colors[4] = std::vector<double>{0, 125, 0};
-      // colors[5] = std::vector<double>{0, 0, 125};
 
       // ignore background
       std::set<size_t> ignore{5};
@@ -143,7 +150,7 @@ void PipelineWriter::newFilteredFrameWindow(
         for (int x = 0; x < cols; ++x) {
           double v = 0;
           int maxL = 0;
-          for (int l = 0; l < frame.labels.size(); ++l) {
+          for (size_t l = 0; l < frame.labels.size(); ++l) {
             if (ignore.find(l) != ignore.end()) {
               continue;
             }
@@ -166,6 +173,49 @@ void PipelineWriter::newFilteredFrameWindow(
 
       try {
         cv::imwrite(allPath.string(), allLabels);
+      } catch (std::runtime_error &ex) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Exception converting image to PNG format: " << ex.what();
+      }
+    }
+    // write label overlays
+    auto mask = frame.normalizedDisparityMap.array() > 0.0;
+    cv::Mat refImg;
+    Eigen::MatrixXf refF =
+        frame.referencePicture.cast<float>() * 255; // why 255??
+    cv::eigen2cv(refF, refImg);
+    cv::cvtColor(refImg, refImg, cv::COLOR_GRAY2BGR);
+    for (size_t l = 0; l < frame.labels.size(); ++l) {
+      const auto &label = frame.labels[l]; // * mask;
+      // clang-format off
+      fs::path overlayP = base / insertLabel(insertFrame(insertStream(_filteredFrameWindowLabelsOverlayPath, s), f), l);
+      fs::path overlayMP = base / insertLabel(insertFrame(insertStream(_filteredFrameWindowLabelsOverlayMaskedPath, s), f), l);
+      // clang-format on
+      cv::Mat overlay(label.rows(), label.cols(), CV_32FC3);
+      cv::Mat overlayM(label.rows(), label.cols(), CV_32FC3);
+      const auto &c = colors[l];
+      for (int y = 0; y < label.rows(); ++y) {
+        for (int x = 0; x < label.cols(); ++x) {
+          auto m = mask(y, x);
+          auto a = label(y, x);
+          if (!std::isfinite(a)) {
+            a = 0.0;
+          }
+          overlay.at<cv::Vec3f>(y, x)[0] = c[0] * a;
+          overlay.at<cv::Vec3f>(y, x)[1] = c[1] * a;
+          overlay.at<cv::Vec3f>(y, x)[2] = c[2] * a;
+          overlayM.at<cv::Vec3f>(y, x)[0] = c[0] * a * m;
+          overlayM.at<cv::Vec3f>(y, x)[1] = c[1] * a * m;
+          overlayM.at<cv::Vec3f>(y, x)[2] = c[2] * a * m;
+        }
+      }
+      float alpha = 0.6;
+      cv::Mat result, resultM;
+      result = alpha * overlay + refImg;
+      resultM = alpha * overlayM + refImg;
+      try {
+        cv::imwrite(overlayP.string(), result);
+        cv::imwrite(overlayMP.string(), resultM);
       } catch (std::runtime_error &ex) {
         BOOST_LOG_TRIVIAL(warning)
             << "Exception converting image to PNG format: " << ex.what();
