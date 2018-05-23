@@ -150,6 +150,7 @@ if __name__ == "__main__":
         annotations = [None] * N_STREAMS
         label2Annotation = [None] * N_STREAMS
         labels = set()
+        controlPoints = []
         for stream in range(N_STREAMS):
             png_file = "pic_s_" + str(stream+1) + "_f_" + str(frame) + ".png";
             png_path = os.path.join(annotation_dir, png_file)
@@ -189,6 +190,11 @@ if __name__ == "__main__":
                 ts.append(c2w[s])
                 lParams.append(params[stream])
             centerPoint = triangulate(cogs, ts, lParams)
-            print(centerPoint)
-        
+            controlPoints.append(centerPoint)
+    # write found 3d points to csv
+    csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
+    with open(csv_path, 'rb') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        for c in controlPoints:
+            csv_writer.writerow(c)
 
