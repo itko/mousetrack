@@ -7,6 +7,7 @@
 
 #include "pipeline_observer.h"
 #include "types.h"
+#include <set>
 #include <unordered_map>
 
 namespace MouseTrack {
@@ -52,6 +53,12 @@ public:
   bool writeControlPoints = true;
   bool writeChainedPointCloud = true;
 
+  std::vector<std::vector<double>> &forcedNColors();
+  const std::vector<std::vector<double>> &forcedNColors() const;
+
+  std::size<size_t> &labelsToIgnore();
+  const std::size<size_t> &labelsToIgnore() const;
+
 private:
   fs::path _outputDir;
   std::string _rawFrameWindowPath;
@@ -91,6 +98,12 @@ private:
   void writePng(const PictureD &pic, const std::string &path) const;
 
   std::vector<std::vector<double>> nColors(int n) const;
+
+  /// force `nColors` to use these colors as first `_forcedNColors.size()`
+  /// entries
+  std::vector<std::vector<double>> _forcedNColors;
+
+  std::set<size_t> _labelsToIgnore;
 };
 
 } // namespace MouseTrack

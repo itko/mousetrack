@@ -55,6 +55,15 @@ PipelineWriter::PipelineWriter(fs::path targetDir)
         << "Target output path is not a directory: " << _outputDir;
     throw "Target path not a directory.";
   }
+
+  // create default coloring
+  _forcedNColors.resize(6);
+  _forcedNColors[0] = std::vector<double>{255, 0, 0};
+  _forcedNColors[1] = std::vector<double>{0, 255, 0};
+  _forcedNColors[2] = std::vector<double>{0, 0, 255};
+  _forcedNColors[3] = std::vector<double>{125, 0, 0};
+  _forcedNColors[4] = std::vector<double>{0, 125, 0};
+  _forcedNColors[5] = std::vector<double>{0, 0, 125};
 }
 
 void PipelineWriter::newFrameWindow(FrameNumber f,
@@ -105,18 +114,12 @@ void PipelineWriter::newFilteredFrameWindow(
     fs::create_directory(base);
   }
   Eigen::MatrixXd params(window->frames().size(), 4);
-  size_t maxLabelCount = 6;
+  size_t maxLabelCount = 0;
   for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
     maxLabelCount = std::max(maxLabelCount, window->frames()[s].labels.size());
   }
   auto colors = nColors(maxLabelCount);
   // fix the first 6 ones so we can decode them
-  colors[0] = std::vector<double>{255, 0, 0};
-  colors[1] = std::vector<double>{0, 255, 0};
-  colors[2] = std::vector<double>{0, 0, 255};
-  colors[3] = std::vector<double>{125, 0, 0};
-  colors[4] = std::vector<double>{0, 125, 0};
-  colors[5] = std::vector<double>{0, 0, 125};
   for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
     // clang-format off
     fs::path ref = base / insertFrame(insertStream(_filteredFrameWindowReferencePath, s), f);
@@ -131,11 +134,9 @@ void PipelineWriter::newFilteredFrameWindow(
 
     for (size_t l = 0; l < frame.labels.size(); ++l) {
       const auto &label = frame.labels[l];
-      fs::path labelP =
-          base /
-          insertLabel(
-              insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f),
-              l);
+      // clang-format off
+      fs::path labelP = base / insertLabel(insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f), l);
+      // clang-format on
       writePng(label, labelP.string());
     }
     // write max-label image
@@ -144,14 +145,13 @@ void PipelineWriter::newFilteredFrameWindow(
       int cols = frame.labels[0].cols();
 
       // ignore background
-      std::set<size_t> ignore{5};
       cv::Mat allLabels(rows, cols, CV_64FC3);
       for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
           double v = 0;
           int maxL = 0;
           for (size_t l = 0; l < frame.labels.size(); ++l) {
-            if (ignore.find(l) != ignore.end()) {
+            if (labelsToIgnore().find(l) != labelsToIgnore().end()) {
               continue;
             }
             auto c = frame.labels[l](y, x);
@@ -165,11 +165,9 @@ void PipelineWriter::newFilteredFrameWindow(
           allLabels.at<cv::Vec3d>(y, x)[2] = colors[maxL][2];
         }
       }
-      fs::path allPath =
-          base /
-          insertLabel(
-              insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f),
-              9999);
+      // clang-format off
+      fs::path allPath = base / insertLabel(insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f), 9999);
+      // clang-format on
 
       try {
         cv::imwrite(allPath.string(), allLabels);
@@ -407,7 +405,22 @@ void PipelineWriter::newClusterChains(
 
 std::vector<std::vector<double>> PipelineWriter::nColors(int n) const {
   auto cols = GenerateNColors(n);
+  auto min = std::min(cols.size(), _forcedNColors);
+  std::copy(_forcedNColors.begin(), _forcedNColors.begin() + min, cols.begin());
   return cols;
+}
+
+std::vector<std::vector<double>> &PipelineWriter::forcedNColors() {
+  return _forcedNColors;
+}
+
+const std::vector<std::vector<double>> &PipelineWriter::forcedNColors() const {
+  return _forcedNColors;
+}
+
+std::size<size_t> &PipelineWriter::labelsToIgnore() { return _labelsToIgnore; }
+const std::size<size_t> &PipelineWriter::labelsToIgnore() const {
+  return _labelsToIgnore;
 }
 
 void PipelineWriter::writePng(const PictureD &pic,
