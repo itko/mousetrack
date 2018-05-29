@@ -24,6 +24,16 @@ class PointCloud {
   // implement a slim abstraction level (Point) providing accessors and the
   // concept of single points (we basically emulate AoS). Never done this
   // before, should be fun.
+private:
+  static constexpr int X = 0;
+  static constexpr int Y = 1;
+  static constexpr int Z = 2;
+  static constexpr int POS_DIM = 3;
+  static constexpr int R = 0;
+  static constexpr int G = 0;
+  static constexpr int B = 0;
+  static constexpr int COL_DIM = 3;
+
 public:
   /// type of a label entry:
   ///
@@ -36,6 +46,10 @@ public:
   typedef Eigen::Matrix<Label, -1, 1> LabelVec;
   typedef Eigen::Block<Eigen::MatrixXd, -1, 1, true> LabelVecOut;
   typedef Eigen::Block<const Eigen::MatrixXd, -1, 1, true> LabelVecConstOut;
+  typedef Eigen::Matrix<Coordinate, POS_DIM, 1> PosVec;
+  typedef Eigen::Block<const Eigen::Matrix<Coordinate, POS_DIM, -1>, POS_DIM, 1,
+                       true>
+      PosVecConstOut;
   class Point;
   class ConstantPoint;
 
@@ -133,7 +147,7 @@ public:
     Eigen::VectorXd characteristic() const;
 
     /// Position as eigen column vector
-    Eigen::Vector3d pos() const;
+    PosVecConstOut pos() const;
   };
 
   /// The Point class is a collection of accessors allowing to manipulate the
@@ -202,7 +216,6 @@ public:
   PointCloud();
 
   /// Make space to accomodate n points and `labelsCount` labels for each point.
-  /// If labelsCount is zero, the first labels inserted will decide.
   void resize(size_t n, size_t labelsCount = 0);
 
   /// Returns number of points stored.
@@ -227,18 +240,17 @@ public:
   Eigen::VectorXd charMax() const;
 
   /// min corner of bounding box (only 3d position of points)
-  Eigen::Vector3d posMin() const;
+  PosVec posMin() const;
 
   /// max corner of bounding box (only 3d position of points)
-  Eigen::Vector3d posMax() const;
+  PosVec posMax() const;
+
+  /// Center of gravity/centroid of point cloud
+  PosVec posCog() const;
 
 private:
-  std::vector<Coordinate> _xs;
-  std::vector<Coordinate> _ys;
-  std::vector<Coordinate> _zs;
-  std::vector<ColorChannel> _r;
-  std::vector<ColorChannel> _g;
-  std::vector<ColorChannel> _b;
+  Eigen::Matrix<Coordinate, POS_DIM, -1> _pos;
+  Eigen::Matrix<ColorChannel, COL_DIM, -1> _col;
   Eigen::Matrix<Label, -1, -1> _labels;
 };
 

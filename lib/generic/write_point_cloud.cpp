@@ -34,14 +34,7 @@ void write_point_cloud(const std::string &path, const PointCloud &cloud) {
 
 void write_point_cloud_metrics(const std::string &path,
                                const PointCloud &cloud) {
-  Eigen::VectorXd posCog;
-  posCog.setZero(3, 1);
-  for (int i = 0; i < cloud.size(); ++i) {
-    posCog += cloud[i].pos();
-  }
-  if (cloud.size() > 0) {
-    posCog /= cloud.size();
-  }
+  Eigen::VectorXd posCog = cloud.posCog();
   std::ofstream out;
   out.open(path.c_str());
   // out << "# posCog_X, posCog_Y, posCog_Z\n";

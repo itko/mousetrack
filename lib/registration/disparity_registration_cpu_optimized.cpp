@@ -37,7 +37,7 @@ operator()(const FrameWindow &window) const {
 
   // collect data in "frame" vectors
   std::vector<Mat> framePoints(frames.size());
-  // point intdex to (x,y) coordinate
+  // point index to (x,y) coordinate
   std::vector<std::vector<std::pair<int, int>>> coordinates(frames.size());
 
   // go through each frame, converting the disparity values to 3d points
