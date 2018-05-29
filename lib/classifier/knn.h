@@ -23,7 +23,10 @@ public:
   const OFactory &oracleFactory() const;
 
   virtual void fit(const Mat &X_train, const Vec &y_train);
-  virtual Eigen::MatrixXd predict(const Mat &X_test) const;
+
+  virtual Vec predict(const Mat &X_test) const;
+
+  virtual Mat predictProbabilities(const Mat &X_test) const;
 
   int k() const;
   void k(int newK);

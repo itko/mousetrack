@@ -97,7 +97,7 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
                                     locations.size());
     Classifier::Mat tmp = map.cast<double>();
     BOOST_LOG_TRIVIAL(trace) << "Classifying...";
-    auto labels = _classifier->predict(tmp);
+    auto labels = _classifier->predictProbabilities(tmp);
     BOOST_LOG_TRIVIAL(trace) << "Assigning...";
     // apply labels of windows to frame.labels
     for (size_t w = 0; w < locations.size(); ++w) {

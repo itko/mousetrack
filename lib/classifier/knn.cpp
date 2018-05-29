@@ -32,7 +32,23 @@ void KnnClassifier::fit(const Mat &X_train, const Vec &y_train) {
   _highestLabel = _y_train.maxCoeff();
 }
 
-Eigen::MatrixXd KnnClassifier::predict(const Mat &X_test) const {
+KnnClassifier::Vec KnnClassifier::predict(const Mat &X_test) const {
+  Vec result, tmpAgg;
+  result.resize(X_test.cols());
+  for (int i = 0; i < X_test.cols(); ++i) {
+    tmpAgg.setZero(_highestLabel + 1);
+    auto closest = _oracle->find_closest(X_test.col(i), _k);
+    for (auto c : closest) {
+      int l = _y_train[c];
+      tmpAgg[l] += 1;
+    }
+    result[i] = tmpAgg.maxCoeff();
+  }
+  return result;
+}
+
+KnnClassifier::Mat
+KnnClassifier::predictProbabilities(const Mat &X_test) const {
   Eigen::MatrixXd result;
   result.setZero(_highestLabel + 1, X_test.cols());
   for (int i = 0; i < X_test.cols(); ++i) {
@@ -41,7 +57,7 @@ Eigen::MatrixXd KnnClassifier::predict(const Mat &X_test) const {
       int l = _y_train[c];
       result(l, i) += 1;
     }
-    result.col(i) /= (result.col(i).sum() + 0.000001);
+    result.col(i) /= std::max(result.col(i).sum(), 0.00001);
   }
   return result;
 }
