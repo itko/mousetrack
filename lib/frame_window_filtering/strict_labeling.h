@@ -7,6 +7,7 @@
 #include "frame_window_filtering.h"
 
 #include <memory>
+#include <set>
 
 namespace MouseTrack {
 
@@ -15,6 +16,11 @@ namespace MouseTrack {
 class StrictLabeling : public FrameWindowFiltering {
 public:
   virtual FrameWindow operator()(const FrameWindow &window) const;
+
+private:
+  /// labels that should not be considered for classification, they won't get a
+  /// cluster
+  std::set<size_t> labelsToIgnore;
 };
 
 } // namespace MouseTrack
