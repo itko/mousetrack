@@ -10,20 +10,24 @@
 
 namespace MouseTrack {
 
+KnnClassifier::KnnClassifier() {
+  _oracleFactory.desiredOracle(OFactory::FLANN);
+}
+
+KnnClassifier::OFactory &KnnClassifier::oracleFactory() {
+  return _oracleFactory;
+}
+
+const KnnClassifier::OFactory &KnnClassifier::oracleFactory() const {
+  return _oracleFactory;
+}
+
 void KnnClassifier::fit(const Mat &X_train, const Vec &y_train) {
   _X_train = X_train;
   _y_train = y_train;
-  auto min = _X_train.colwise().minCoeff();
-  auto max = _X_train.colwise().maxCoeff();
-  Eigen::VectorXd size = max - min;
-  double maxR = size.norm();
-  // heuristic
-  double cellWidth = size.minCoeff() / 5;
-  int dims = X_train.cols();
-  // don't use Uniform grid, it uses memory proportional to 2^dimensions
-  //_oracle = std::make_unique<UniformGrid<double, -1>>(maxR, cellWidth, dims);
-  //_oracle = std::make_unique<BruteForce<double, -1>>();
-  _oracle = std::make_unique<Flann<double, -1>>();
+  OFactory::Query query;
+  query.example_data = &_X_train;
+  _oracle = _oracleFactory.forQuery(query);
   _oracle->compute(_X_train);
   _highestLabel = _y_train.maxCoeff();
 }
