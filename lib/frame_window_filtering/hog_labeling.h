@@ -43,6 +43,12 @@ private:
   int _blockStrideHeight = 8;
   int _cellWidth = 8;
   int _cellHeight = 8;
+
+  /// make sure the highest value is 1 and the lowest value is 0
+  bool _normalizeRange = true;
+
+  /// normalize accross labels such that all labels for one pixel sum to 1
+  bool _normalizeAccross = false;
 };
 
 } // namespace MouseTrack

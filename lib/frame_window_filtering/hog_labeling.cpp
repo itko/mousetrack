@@ -112,10 +112,7 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
       }
     }
     // normalize label weights
-    // make sure the highest value is 1 and the lowest value is 0
-    bool normalizePeaks = true;
-    bool normalizeAccross = false;
-    if (normalizePeaks) {
+    if (_normalizeRange) {
       for (auto &l : frame.labels) {
         auto min = l.minCoeff();
         l = l.array() - min;
@@ -125,7 +122,7 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
     }
 
     // normalize accross labels
-    if (normalizeAccross) {
+    if (_normalizeAccross) {
       PictureD sum;
       sum.setZero(frame.referencePicture.rows(), frame.referencePicture.cols());
       for (int l = 0; l < _numLabels; ++l) {
@@ -133,12 +130,6 @@ FrameWindow HogLabeling::operator()(const FrameWindow &window) const {
       }
       // avoid division by zero
       sum = sum.array() + 0.0000001;
-      BOOST_LOG_TRIVIAL(trace) << "Min in Sum-Matrix: " << sum.minCoeff();
-      BOOST_LOG_TRIVIAL(trace) << "Max in Sum-Matrix: " << sum.maxCoeff();
-      BOOST_LOG_TRIVIAL(trace)
-          << "#NaN Sum-Matrix: " << sum.array().isNaN().count();
-      BOOST_LOG_TRIVIAL(trace)
-          << "Inf Sum-Matrix: " << sum.array().isInf().count();
       sum = sum.array().inverse();
       for (int l = 0; l < _numLabels; ++l) {
         frame.labels[l] = frame.labels[l].array() * sum.array();
