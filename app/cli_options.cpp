@@ -17,6 +17,7 @@ op::options_description cli_options() {
   ad("out-dir,o", op::value<std::string>(), "Target directory for computed results. No results will be written, if not provided.");
   ad("cli,c", "Don't start the Graphical User Interface, run on command line.");
   ad("pipeline-timer", "Measures the execution time of each pipeline step end sends it's output to the log with debug priority.");
+  ad("pipeline-timer-log", op::value<std::string>(), "If set, the pipeline times will be written to this file in csv format. (frame number, total frame time, READ_FRAME_WINDOW,FRAME_WINDOW_FILTERING,REGISTRATION,POINT_CLOUD_FILTERING,CLUSTERING,DESCRIPTING,MATCHING,CONTROL_POINTS)");
   ad("log,l", op::value<std::string>()->default_value("info"), "Set lowest log level to show. Possible options: trace, debug, info, warning, error, fatal, none. Default: info");
   ad("first-frame", op::value<int>(), "Desired lowest start frame (inclusive).");
   ad("last-frame", op::value<int>(), "Desired highest end frame (inclusive).");
