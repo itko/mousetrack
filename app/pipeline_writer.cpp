@@ -114,12 +114,6 @@ void PipelineWriter::newFilteredFrameWindow(
     fs::create_directory(base);
   }
   Eigen::MatrixXd params(window->frames().size(), 4);
-  size_t maxLabelCount = 0;
-  for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
-    maxLabelCount = std::max(maxLabelCount, window->frames()[s].labels.size());
-  }
-  auto colors = nColors(maxLabelCount);
-  // fix the first 6 ones so we can decode them
   for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
     // clang-format off
     fs::path ref = base / insertFrame(insertStream(_filteredFrameWindowReferencePath, s), f);
@@ -139,48 +133,77 @@ void PipelineWriter::newFilteredFrameWindow(
       // clang-format on
       writePng(label, labelP.string());
     }
-    // write max-label image
-    if (!frame.labels.empty()) {
-      int rows = frame.labels[0].rows();
-      int cols = frame.labels[0].cols();
 
-      // ignore background
-      cv::Mat allLabels(rows, cols, CV_64FC3);
-      for (int y = 0; y < rows; ++y) {
-        for (int x = 0; x < cols; ++x) {
-          double v = 0;
-          int maxL = 0;
-          for (size_t l = 0; l < frame.labels.size(); ++l) {
-            if (labelsToIgnore().find(l) != labelsToIgnore().end()) {
-              continue;
-            }
-            auto c = frame.labels[l](y, x);
-            if (v < c) {
-              v = c;
-              maxL = l;
-            }
+    params(s, 0) = frame.focallength;
+    params(s, 1) = frame.baseline;
+    params(s, 2) = frame.ccx;
+    params(s, 3) = frame.ccy;
+  }
+  fs::path paramsPath = base / insertFrame(_filteredFrameWindowParamsPath, f);
+  std::vector<std::vector<Precision>> paramsVec(window->frames().size());
+  const int paramCount = 4;
+  for (int i = 0; (size_t)i < window->frames().size(); ++i) {
+    for (int j = 0; j < paramCount; ++j) {
+      paramsVec[i].push_back(params(i, j));
+    }
+  }
+  write_csv(paramsPath.string(), paramsVec);
+  // stuff coming now, is a "for convenience" as it can also easily be generated
+  // from the previous outputs
+  if (!writeFilteredFrameWindowExtensions) {
+    return;
+  }
+  size_t maxLabelCount = 0;
+  for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
+    maxLabelCount = std::max(maxLabelCount, window->frames()[s].labels.size());
+  }
+  auto colors = nColors(maxLabelCount);
+  // write max-label image
+  for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
+    const Frame &frame = window->frames()[s];
+    int rows = frame.labels[0].rows();
+    int cols = frame.labels[0].cols();
+    // ignore background
+    cv::Mat allLabels(rows, cols, CV_64FC3);
+    for (int y = 0; y < rows; ++y) {
+      for (int x = 0; x < cols; ++x) {
+        double v = 0;
+        int maxL = 0;
+        for (size_t l = 0; l < frame.labels.size(); ++l) {
+          if (labelsToIgnore().find(l) != labelsToIgnore().end()) {
+            continue;
           }
-          allLabels.at<cv::Vec3d>(y, x)[0] = colors[maxL][0];
-          allLabels.at<cv::Vec3d>(y, x)[1] = colors[maxL][1];
-          allLabels.at<cv::Vec3d>(y, x)[2] = colors[maxL][2];
+          auto c = frame.labels[l](y, x);
+          if (v < c) {
+            v = c;
+            maxL = l;
+          }
         }
-      }
-      // clang-format off
-      fs::path allPath = base / insertLabel(insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f), 9999);
-      // clang-format on
-
-      try {
-        cv::imwrite(allPath.string(), allLabels);
-      } catch (std::runtime_error &ex) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Exception converting image to PNG format: " << ex.what();
+        allLabels.at<cv::Vec3d>(y, x)[0] = colors[maxL][0];
+        allLabels.at<cv::Vec3d>(y, x)[1] = colors[maxL][1];
+        allLabels.at<cv::Vec3d>(y, x)[2] = colors[maxL][2];
       }
     }
-    // write label overlays
+    // clang-format off
+    fs::path allPath = base / insertLabel(insertFrame(insertStream(_filteredFrameWindowLabelsPath, s), f), 9999);
+    // clang-format on
+
+    try {
+      cv::imwrite(allPath.string(), allLabels);
+    } catch (std::runtime_error &ex) {
+      BOOST_LOG_TRIVIAL(warning)
+          << "Exception converting image to PNG format: " << ex.what();
+    }
+  }
+  // write label overlays
+  for (StreamNumber s = 0; (size_t)s < window->frames().size(); ++s) {
+    const Frame &frame = window->frames()[s];
     auto mask = frame.normalizedDisparityMap.array() > 0.0;
     cv::Mat refImg;
-    Eigen::MatrixXf refF =
-        frame.referencePicture.cast<float>() * 255; // why 255??
+
+    // why 255??
+    Eigen::MatrixXf refF = frame.referencePicture.cast<float>() * 255;
+
     cv::eigen2cv(refF, refImg);
     cv::cvtColor(refImg, refImg, cv::COLOR_GRAY2BGR);
     for (size_t l = 0; l < frame.labels.size(); ++l) {
@@ -219,21 +242,7 @@ void PipelineWriter::newFilteredFrameWindow(
             << "Exception converting image to PNG format: " << ex.what();
       }
     }
-
-    params(s, 0) = frame.focallength;
-    params(s, 1) = frame.baseline;
-    params(s, 2) = frame.ccx;
-    params(s, 3) = frame.ccy;
   }
-  fs::path paramsPath = base / insertFrame(_filteredFrameWindowParamsPath, f);
-  std::vector<std::vector<Precision>> paramsVec(window->frames().size());
-  const int paramCount = 4;
-  for (int i = 0; (size_t)i < window->frames().size(); ++i) {
-    for (int j = 0; j < paramCount; ++j) {
-      paramsVec[i].push_back(params(i, j));
-    }
-  }
-  write_csv(paramsPath.string(), paramsVec);
 }
 
 void PipelineWriter::newRawPointCloud(FrameNumber f,
@@ -405,7 +414,7 @@ void PipelineWriter::newClusterChains(
 
 std::vector<std::vector<double>> PipelineWriter::nColors(int n) const {
   auto cols = GenerateNColors(n);
-  auto min = std::min(cols.size(), _forcedNColors);
+  auto min = std::min(cols.size(), _forcedNColors.size());
   std::copy(_forcedNColors.begin(), _forcedNColors.begin() + min, cols.begin());
   return cols;
 }
@@ -418,8 +427,8 @@ const std::vector<std::vector<double>> &PipelineWriter::forcedNColors() const {
   return _forcedNColors;
 }
 
-std::size<size_t> &PipelineWriter::labelsToIgnore() { return _labelsToIgnore; }
-const std::size<size_t> &PipelineWriter::labelsToIgnore() const {
+std::set<size_t> &PipelineWriter::labelsToIgnore() { return _labelsToIgnore; }
+const std::set<size_t> &PipelineWriter::labelsToIgnore() const {
   return _labelsToIgnore;
 }
 

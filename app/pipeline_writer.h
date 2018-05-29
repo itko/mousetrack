@@ -44,6 +44,9 @@ public:
 
   bool writeRawFrameWindow = true;
   bool writeFilteredFrameWindow = true;
+  /// Should additional images also be written? Example: label overlays or
+  /// masked label overlays
+  bool writeFilteredFrameWindowExtensions = true;
   bool writeRawPointCloud = true;
   bool writeFilteredPointCloud = true;
   bool writeClusteredPointCloud = true;
@@ -56,8 +59,8 @@ public:
   std::vector<std::vector<double>> &forcedNColors();
   const std::vector<std::vector<double>> &forcedNColors() const;
 
-  std::size<size_t> &labelsToIgnore();
-  const std::size<size_t> &labelsToIgnore() const;
+  std::set<size_t> &labelsToIgnore();
+  const std::set<size_t> &labelsToIgnore() const;
 
 private:
   fs::path _outputDir;

@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
       writer->writeRawFrameWindow = false;
       // by default, remove label 5, which in our case is background
       // TODO: This should be configurable
-      wirter->labelsToIgnore().push_back(5);
+      writer->labelsToIgnore().insert(5);
     }
   } catch (const std::string &e) {
     std::cerr << "Exception caught while creating pipeline: " << e << std::endl;
