@@ -12,7 +12,7 @@ namespace utf = boost::unit_test;
 
 BOOST_AUTO_TEST_CASE(point_cloud_read_write) {
   MouseTrack::PointCloud pc;
-  pc.resize(1);
+  pc.resize(1, 0);
   pc[0].x(1.0);
   pc[0].y(2.0);
   pc[0].z(3.0);

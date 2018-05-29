@@ -216,7 +216,7 @@ public:
   PointCloud();
 
   /// Make space to accomodate n points and `labelsCount` labels for each point.
-  void resize(size_t n, size_t labelsCount = 0);
+  void resize(size_t n, size_t labelsCount);
 
   /// Returns number of points stored.
   size_t size() const;

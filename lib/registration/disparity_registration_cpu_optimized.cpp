@@ -99,7 +99,7 @@ operator()(const FrameWindow &window) const {
     points_count += i.size();
   }
   PointCloud cloud;
-  cloud.resize(points_count);
+  cloud.resize(points_count, frames[0].labels.size());
   // copy to cloud
   int next_insert = 0;
   for (size_t f = 0; f < frames.size(); ++f) {

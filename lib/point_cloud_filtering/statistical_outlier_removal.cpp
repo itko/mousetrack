@@ -39,7 +39,7 @@ operator()(const PointCloud &inCloud) const {
       pts, &ug, alpha(), k());
 
   PointCloud outCloud;
-  outCloud.resize(inCloud.size() - outliers.size());
+  outCloud.resize(inCloud.size() - outliers.size(), inCloud.labelsDim());
   size_t next_insert = 0;
   size_t o = 0;
   for (size_t i = 0; i < inCloud.size(); ++i) {

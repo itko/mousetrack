@@ -24,7 +24,7 @@ FrameWindow StrictLabeling::operator()(const FrameWindow &window) const {
       for (int x = 0; x < cols; ++x) {
         double v = 0;
         int maxL = 0;
-        for (size_t l = 0; l < frame.labels.size(); ++l) {
+        for (int l = 0; (size_t)l < frame.labels.size(); ++l) {
           if (labelsToIgnore.find(l) != labelsToIgnore.end()) {
             continue;
           }
@@ -34,7 +34,7 @@ FrameWindow StrictLabeling::operator()(const FrameWindow &window) const {
             maxL = l;
           }
         }
-        for (size_t l = 0; l < frame.labels.size(); ++l) {
+        for (int l = 0; (size_t)l < frame.labels.size(); ++l) {
           if (maxL == l) {
             frame.labels[l](y, x) = 1.0;
           } else {

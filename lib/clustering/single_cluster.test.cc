@@ -10,7 +10,7 @@ namespace utf = boost::unit_test;
 
 BOOST_AUTO_TEST_CASE(single_cluster) {
   MouseTrack::PointCloud pc;
-  pc.resize(10);
+  pc.resize(10, 0);
   for (int i = 0; i < 10; i += 1) {
     pc[i].y(0);
     pc[i].z(0);

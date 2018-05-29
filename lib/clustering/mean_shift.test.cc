@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(mean_shift_single_point) {
   MouseTrack::MeanShift ms = MouseTrack::MeanShift(1);
 
   MouseTrack::PointCloud pc;
-  pc.resize(1);
+  pc.resize(1, 0);
   pc[0].x(0);
   pc[0].y(3);
   pc[0].z(5);
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(mean_shift_single_point) {
 BOOST_AUTO_TEST_CASE(two_faraway_points) {
   MouseTrack::MeanShift ms = MouseTrack::MeanShift(1);
   MouseTrack::PointCloud pc;
-  pc.resize(2);
+  pc.resize(2, 0);
   pc[0].x(0);
   pc[0].y(0);
   pc[0].z(0);
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(two_faraway_points) {
 BOOST_AUTO_TEST_CASE(two_closetogether_points) {
   MouseTrack::MeanShift ms = MouseTrack::MeanShift(1);
   MouseTrack::PointCloud pc;
-  pc.resize(2);
+  pc.resize(2, 0);
   pc[0].x(0);
   pc[0].y(0);
   pc[0].z(0);
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(three_gaussian_clusters) {
   std::normal_distribution<double> gauss10(100.0, 1.0);
 
   MouseTrack::PointCloud pc;
-  pc.resize(300);
+  pc.resize(300, 0);
 
   MouseTrack::MeanShift ms = MouseTrack::MeanShift(2.0);
 
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(three_gaussian_clusters) {
 
 BOOST_AUTO_TEST_CASE(expected_clustering) {
   MouseTrack::PointCloud pc;
-  pc.resize(10);
+  pc.resize(10, 0);
   for (int i = 0; i < 10; i += 1) {
     pc[i].y(0);
     pc[i].z(0);
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(expected_clustering) {
   BOOST_CHECK_EQUAL(clusters.size(), 3);
 
   std::vector<std::multiset<size_t>> received{3};
-  for (int i = 0; i < received.size(); ++i) {
+  for (size_t i = 0; i < received.size(); ++i) {
     received[i].insert(clusters[i].points().begin(),
                        clusters[i].points().end());
   }

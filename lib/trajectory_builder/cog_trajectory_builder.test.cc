@@ -14,7 +14,7 @@ namespace utf = boost::unit_test;
 
 BOOST_AUTO_TEST_CASE(two_points_cog) {
   MouseTrack::PointCloud pc;
-  pc.resize(2);
+  pc.resize(2, 0);
 
   pc[0].x(0.0);
   pc[0].y(-1.0);

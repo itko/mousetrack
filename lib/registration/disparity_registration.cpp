@@ -27,9 +27,11 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
     inverses[i] = prepareInverseTransformation(mat);
   }
 
+  int labelsCount = frames[0].labels.size();
+
   // Allocate point cloud enough large to capture all points
   PointCloud cloud;
-  cloud.resize(expected_points);
+  cloud.resize(expected_points, labelsCount);
   int next_insert = 0;
   const int border = frameBorder();
   const double xshift = correctingXShift();
@@ -63,7 +65,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
         p.z(tmp[2]);
         p.intensity(f.referencePicture(y, x));
         PointCloud::LabelVec labels(f.labels.size());
-        for (int l = 0; l < f.labels.size(); ++l) {
+        for (size_t l = 0; l < f.labels.size(); ++l) {
           labels[l] = f.labels[l](y, x);
         }
         p.labels(std::move(labels));
@@ -71,7 +73,7 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
       }
     }
   }
-  cloud.resize(next_insert); // shrink to actual number of points
+  cloud.resize(next_insert, labelsCount); // shrink to actual number of points
 
   auto min = cloud.posMin();
   auto max = cloud.posMax();
