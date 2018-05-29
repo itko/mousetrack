@@ -52,15 +52,15 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
         }
         const double invDisparity = 1.0 / disparity;
         auto p = cloud[next_insert];
-        p.x() = (x + xshift - f.ccx) * f.baseline * invDisparity;
-        p.y() = (y + yshift - f.ccy) * f.baseline * invDisparity;
-        p.z() = f.focallength * f.baseline * invDisparity;
+        p.x((x + xshift - f.ccx) * f.baseline * invDisparity);
+        p.y((y + yshift - f.ccy) * f.baseline * invDisparity);
+        p.z(f.focallength * f.baseline * invDisparity);
 
         Eigen::Vector4d tmp = applyInverseTransformation(
             inverses[i], Eigen::Vector4d(p.x(), p.y(), p.z(), 1.0));
-        p.x() = tmp[0];
-        p.y() = tmp[1];
-        p.z() = tmp[2];
+        p.x(tmp[0]);
+        p.y(tmp[1]);
+        p.z(tmp[2]);
         p.intensity(f.referencePicture(y, x));
         PointCloud::LabelVec labels(f.labels.size());
         for (int l = 0; l < f.labels.size(); ++l) {

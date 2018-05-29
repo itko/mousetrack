@@ -107,9 +107,9 @@ operator()(const FrameWindow &window) const {
 #pragma omp parallel for
     for (size_t i = 0; i < coordinates[f].size(); ++i) {
       auto p = cloud[next_insert + i];
-      p.x() = framePoints[f](X, i);
-      p.y() = framePoints[f](Y, i);
-      p.z() = framePoints[f](D, i);
+      p.x(framePoints[f](X, i));
+      p.y(framePoints[f](Y, i));
+      p.z(framePoints[f](D, i));
       const int x = coordinates[f][i].first;
       const int y = coordinates[f][i].second;
       p.intensity(frame.referencePicture(y, x));

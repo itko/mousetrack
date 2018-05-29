@@ -38,62 +38,148 @@ public:
   typedef Eigen::Block<const Eigen::MatrixXd, -1, 1, true> LabelVecConstOut;
   class Point;
   class ConstantPoint;
+
+  /// Exactly the same as `Point` but it only provides read-only access to the
+  /// data.
+  class ConstantPoint {
+    /// `Point` and `ConstantPoint` are a little bit hacky:
+    ///
+    /// - `ConstantPoint` provides all read acessors
+    ///
+    /// - `Point` provides all write accessors and also inherits from
+    /// `ConstantPoint` to reuse the read accessors
+    ///
+    /// We can't inverse the inheritance order, as a `ConstantPoint` with write
+    /// accessors wouldn't really make sense.
+    ///
+    /// Why is it hacky?
+    ///
+    /// Let's return to the conceptual level and forget the inheritance for a
+    /// moment:
+    ///
+    /// Both classes need a reference to the underlying `PointCloud`.
+    ///
+    /// If point cloud wants to return a `ConstantPoint` to a client,
+    /// `ConstantPoint` needs to promise, not to change point cloud.
+    ///
+    /// But `Point` should be allowed to modify the underlying cloud.
+    ///
+    /// There are ways, to make the type system happy:
+    ///
+    /// - Create two abstract Read/Write classes with protected
+    /// cloud()=0/constCloud()=0 methods and let the point classes inherit from
+    /// them. Then Point no longer needs to inherit from ConstantPoint, can
+    /// store its own reference and everything is fine. The problem: I try to
+    /// make this class as efficient as possible, but having virtual methods
+    /// doesn't seem as slim as possible.
+    ///
+    /// - Introduce duplicated code for read-operations: Both classes are
+    /// completely independent but we get penalized by having a larger code
+    /// size and a higher chance of bugs since we need to maintain redundant
+    /// code.
+    ///
+    /// - Probably better/cleaner solutions then the one implemented, please
+    /// tell me in that case.
+    ///
+    /// The most efficient way seems to let `Point` inherit from
+    /// `ConstantPoint` and make sure that `ConstantPoint` never breaks its
+    /// promise on its own.
+    ///
+    /// Single exception: It is allowed to do one thing:
+    /// hand on a modifyable reference to its child as it is the
+    /// only purpose of `Point` to actually modify things.
+    ///
+    /// This definitely breaks the one or other OO-principle, but I haven't
+    /// found a cleaner way to get rid of all unnecessary overhead.
+    friend class PointCloud;
+
+  private:
+    ConstantPoint(const PointCloud &cloud, size_t i);
+
+    const PointCloud &_cloud;
+    size_t _index;
+
+  protected:
+    PointCloud &cloud() const;
+    const PointCloud &constCloud() const;
+    size_t index() const;
+
+  public:
+    /// Read access to x coordinate.
+    const Coordinate &x() const;
+
+    /// Read access to y coordinate.
+    const Coordinate &y() const;
+
+    /// Read access to z coordinate.
+    const Coordinate &z() const;
+
+    /// Read access to color r.
+    const ColorChannel &r() const;
+
+    /// Read access to color g.
+    const ColorChannel &g() const;
+
+    /// Read access to color b.
+    const ColorChannel &b() const;
+
+    /// Read access to color intensity.
+    ColorChannel intensity() const;
+
+    /// Read access on labels
+    LabelVecConstOut labels() const;
+
+    /// Convert to dx1 Eigen Vector holding all characteristic values
+    Eigen::VectorXd characteristic() const;
+
+    /// Position as eigen column vector
+    Eigen::Vector3d pos() const;
+  };
+
   /// The Point class is a collection of accessors allowing to manipulate the
   /// values inside the PointCloud in an intuitive way.
-  class Point {
+  class Point : public ConstantPoint {
+
     // Design note: I tend to keep the hierarchy flat,
     // this way we can implement it by storing a reference to the PointCloud
     // and an index, and nothing more.
     friend class PointCloud;
 
-  private:
-    PointCloud &_cloud;
-    size_t _index;
     /// Create a Point instance that manipulates the i-th point of cloud
     Point(PointCloud &cloud, size_t i);
 
   public:
-    /// Write access to x coordinate.
-    Coordinate &x();
+    // clang-format off
+    using ConstantPoint::x;
+    using ConstantPoint::y;
+    using ConstantPoint::z;
+    using ConstantPoint::r;
+    using ConstantPoint::g;
+    using ConstantPoint::b;
+    using ConstantPoint::intensity;
+    using ConstantPoint::labels;
+    // clang-format on
 
-    /// Read access to x coordinate.
-    const Coordinate &x() const;
+    /// Write access to x coordinate.
+    void x(const Coordinate &_new);
 
     /// Write access to y coordinate.
-    Coordinate &y();
-
-    /// Read access to y coordinate.
-    const Coordinate &y() const;
+    void y(const Coordinate &_new);
 
     /// Write access to z coordinate.
-    Coordinate &z();
-
-    /// Read access to z coordinate.
-    const Coordinate &z() const;
+    void z(const Coordinate &_new);
 
     /// Write access to color r.
-    const ColorChannel &r(const ColorChannel &_new);
-
-    /// Read access to color r.
-    const ColorChannel &r() const;
+    void r(const ColorChannel &_new);
 
     /// Write access to color g.
-    const ColorChannel &g(const ColorChannel &_new);
-
-    /// Read access to color g.
-    const ColorChannel &g() const;
+    void g(const ColorChannel &_new);
 
     /// Write access to color b.
-    const ColorChannel &b(const ColorChannel &_new);
-
-    /// Read access to color b.
-    const ColorChannel &b() const;
+    void b(const ColorChannel &_new);
 
     /// Write access: set `r = g = b = _new`
-    ColorChannel intensity(const ColorChannel &_new);
-
-    /// Read access to color intensity.
-    ColorChannel intensity() const;
+    void intensity(const ColorChannel &_new);
 
     /// Copies labels
     ///
@@ -106,63 +192,11 @@ public:
     /// Moves labels
     void labels(LabelVec &&newLabels);
 
-    /// Read access on labels
-    LabelVecConstOut labels() const;
-
-    /// Convert to dx1 Eigen Vector holding all characteristic values
-    Eigen::VectorXd characteristic() const;
-
-    /// Position as eigen column vector
-    Eigen::Vector3d pos() const;
-
     /// assignment
     void operator=(const Point &other);
 
     /// assignment
     void operator=(const ConstantPoint &other);
-  };
-
-  /// Exactly the same as `Point` but it only provides read-only access to the
-  /// data.
-  class ConstantPoint {
-    friend class PointCloud;
-
-  private:
-    const PointCloud &_cloud;
-    size_t _index;
-    /// Create a Point instance that manipulates the i-th point of cloud
-    ConstantPoint(const PointCloud &cloud, size_t i);
-
-  public:
-    /// Read access to x coordinate.
-    const Coordinate &x() const;
-
-    /// Read access to y coordinate.
-    const Coordinate &y() const;
-
-    /// Read access to z coordinate.
-    const Coordinate &z() const;
-
-    /// Read access to color r.
-    const ColorChannel &r() const;
-
-    /// Read access to color g.
-    const ColorChannel &g() const;
-
-    /// Read access to color b.
-    const ColorChannel &b() const;
-
-    /// Read access to color intensity.
-    ColorChannel intensity() const;
-
-    /// Read access on labels
-    LabelVecConstOut labels() const;
-
-    /// Convert to dx1 Eigen Vector holding all characteristic values
-    Eigen::VectorXd characteristic() const;
-
-    /// Position as eigen column vector
-    Eigen::Vector3d pos() const;
   };
 
   PointCloud();

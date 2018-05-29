@@ -89,100 +89,46 @@ Eigen::VectorXd PointCloud::charMax() const {
 // Point implementation
 
 PointCloud::Point::Point(PointCloud &cloud, size_t i)
-    : _cloud(cloud), _index(i) {
+    : ConstantPoint(cloud, i) {
   // empty
 }
 
-Coordinate &PointCloud::Point::x() { return _cloud._xs[_index]; }
-
-const Coordinate &PointCloud::Point::x() const { return _cloud._xs[_index]; }
-
-Coordinate &PointCloud::Point::y() { return _cloud._ys[_index]; }
-
-const Coordinate &PointCloud::Point::y() const { return _cloud._ys[_index]; }
-
-Coordinate &PointCloud::Point::z() { return _cloud._zs[_index]; }
-
-const Coordinate &PointCloud::Point::z() const { return _cloud._zs[_index]; }
-
-const ColorChannel &PointCloud::Point::r(const ColorChannel &_new) {
-  _cloud._r[_index] = _new;
-  return _cloud._r[_index];
+void PointCloud::Point::x(const Coordinate &_new) {
+  cloud()._xs[_index] = _new;
 }
 
-const ColorChannel &PointCloud::Point::r() const { return _cloud._r[_index]; }
-
-const ColorChannel &PointCloud::Point::g(const ColorChannel &_new) {
-  _cloud._g[_index] = _new;
-  return _cloud._g[_index];
+void PointCloud::Point::y(const Coordinate &_new) {
+  cloud()._ys[_index] = _new;
 }
 
-const ColorChannel &PointCloud::Point::g() const { return _cloud._g[_index]; }
-
-const ColorChannel &PointCloud::Point::b(const ColorChannel &_new) {
-  _cloud._b[_index] = _new;
-  return _cloud._b[_index];
+void PointCloud::Point::z(const Coordinate &_new) {
+  cloud()._zs[_index] = _new;
 }
 
-const ColorChannel &PointCloud::Point::b() const { return _cloud._b[_index]; }
-
-ColorChannel PointCloud::Point::intensity() const {
-  return (_cloud._r[_index] + _cloud._g[_index] + _cloud._b[_index]) / 3.0;
+void PointCloud::Point::r(const ColorChannel &_new) {
+  cloud()._r[_index] = _new;
 }
 
-ColorChannel PointCloud::Point::intensity(const ColorChannel &_new) {
-  _cloud._r[_index] = _new;
-  _cloud._g[_index] = _new;
-  _cloud._b[_index] = _new;
-  return _new;
+void PointCloud::Point::g(const ColorChannel &_new) {
+  cloud()._g[_index] = _new;
+}
+
+void PointCloud::Point::b(const ColorChannel &_new) {
+  cloud()._b[_index] = _new;
+}
+
+void PointCloud::Point::intensity(const ColorChannel &_new) {
+  cloud()._r[_index] = _new;
+  cloud()._g[_index] = _new;
+  cloud()._b[_index] = _new;
 }
 
 void PointCloud::Point::labels(const PointCloud::LabelVec &newLabels) {
-  _cloud._labels.col(_index) = newLabels;
+  cloud()._labels.col(_index) = newLabels;
 }
 
 void PointCloud::Point::labels(PointCloud::LabelVec &&newLabels) {
-  _cloud._labels.col(_index) = std::move(newLabels);
-}
-
-PointCloud::LabelVecConstOut PointCloud::Point::labels() const {
-  // easiest way to add `const`?
-  const auto &l = _cloud._labels;
-  return l.col(_index);
-}
-
-Eigen::VectorXd PointCloud::Point::characteristic() const {
-  Eigen::VectorXd result(_cloud.charDim());
-  result[0] = x();
-  result[1] = y();
-  result[2] = z();
-  result[3] = intensity();
-  result.block(4, 0, _cloud.labelsDim(), 1) = labels();
-  return result;
-}
-
-Eigen::Vector3d PointCloud::Point::pos() const {
-  return Eigen::Vector3d(x(), y(), z());
-}
-
-void PointCloud::Point::operator=(const PointCloud::Point &o) {
-  x() = o.x();
-  y() = o.y();
-  z() = o.z();
-  r(o.r());
-  g(o.g());
-  b(o.b());
-  labels(o.labels());
-}
-
-void PointCloud::Point::operator=(const PointCloud::ConstantPoint &o) {
-  x() = o.x();
-  y() = o.y();
-  z() = o.z();
-  r(o.r());
-  g(o.g());
-  b(o.b());
-  labels(o.labels());
+  cloud()._labels.col(_index) = std::move(newLabels);
 }
 
 // ConstantPoint implementation
@@ -192,45 +138,56 @@ PointCloud::ConstantPoint::ConstantPoint(const PointCloud &cloud, size_t i)
   // empty
 }
 
+// a little hack to prived write-access for `Point`
+PointCloud &PointCloud::ConstantPoint::cloud() const {
+  return const_cast<PointCloud &>(_cloud);
+}
+
+const PointCloud &PointCloud::ConstantPoint::constCloud() const {
+  return _cloud;
+}
+size_t PointCloud::ConstantPoint::index() const { return _index; }
+
 const Coordinate &PointCloud::ConstantPoint::x() const {
-  return _cloud._xs[_index];
+  return constCloud()._xs[_index];
 }
 
 const Coordinate &PointCloud::ConstantPoint::y() const {
-  return _cloud._ys[_index];
+  return constCloud()._ys[_index];
 }
 
 const Coordinate &PointCloud::ConstantPoint::z() const {
-  return _cloud._zs[_index];
+  return constCloud()._zs[_index];
 }
 
 const ColorChannel &PointCloud::ConstantPoint::r() const {
-  return _cloud._r[_index];
+  return constCloud()._r[_index];
 }
 
 const ColorChannel &PointCloud::ConstantPoint::g() const {
-  return _cloud._g[_index];
+  return constCloud()._g[_index];
 }
 
 const ColorChannel &PointCloud::ConstantPoint::b() const {
-  return _cloud._b[_index];
+  return constCloud()._b[_index];
 }
 
 ColorChannel PointCloud::ConstantPoint::intensity() const {
-  return (_cloud._r[_index] + _cloud._g[_index] + _cloud._b[_index]) / 3.0;
+  return (constCloud()._r[_index] + cloud()._g[_index] + cloud()._b[_index]) /
+         3.0;
 }
 
 PointCloud::LabelVecConstOut PointCloud::ConstantPoint::labels() const {
-  return _cloud._labels.col(_index);
+  return constCloud()._labels.col(_index);
 }
 
 Eigen::VectorXd PointCloud::ConstantPoint::characteristic() const {
-  Eigen::VectorXd result(_cloud.charDim());
+  Eigen::VectorXd result(constCloud().charDim());
   result[0] = x();
   result[1] = y();
   result[2] = z();
   result[3] = intensity();
-  result.block(4, 0, _cloud.labelsDim(), 1) = labels();
+  result.block(4, 0, constCloud().labelsDim(), 1) = labels();
   return result;
 }
 
