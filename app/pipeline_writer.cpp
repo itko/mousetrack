@@ -106,7 +106,7 @@ void PipelineWriter::newFrameWindow(FrameNumber f,
 
 void PipelineWriter::newFilteredFrameWindow(
     FrameNumber f, std::shared_ptr<const FrameWindow> window) {
-  if (!writeFilteredFrameWindow) {
+  if (!writeFilteredFrameWindow || window->frames().empty()) {
     return;
   }
   fs::path base = _outputDir / insertFrame(_filteredFrameWindowPath, f);
@@ -148,9 +148,10 @@ void PipelineWriter::newFilteredFrameWindow(
     }
   }
   write_csv(paramsPath.string(), paramsVec);
-  // stuff coming now, is a "for convenience" as it can also easily be generated
-  // from the previous outputs
-  if (!writeFilteredFrameWindowExtensions) {
+  // stuff following now, is a "for convenience" as it can also easily be
+  // generated from the previous outputs
+  if (!writeFilteredFrameWindowExtensions ||
+      window->frames()[0].labels.empty()) {
     return;
   }
   size_t maxLabelCount = 0;

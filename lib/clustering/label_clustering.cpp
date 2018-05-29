@@ -18,7 +18,7 @@ operator()(const PointCloud &cloud) const {
     const auto p = cloud[i];
     const auto &labels = p.labels();
     auto max = std::max_element(labels.begin(), labels.end());
-    if (*max > _rejectionThreshold) {
+    if (max != labels.end() && *max > _rejectionThreshold) {
       clusters[max - labels.begin()].points().push_back(i);
     } else {
       // rubbish is collected in the last cluster
