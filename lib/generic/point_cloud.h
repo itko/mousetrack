@@ -33,6 +33,9 @@ public:
   ///
   /// Values inbetween show insecurity
   typedef double Label;
+  typedef Eigen::Matrix<Label, -1, 1> LabelVec;
+  typedef Eigen::Block<Eigen::MatrixXd, -1, 1, true> LabelVecOut;
+  typedef Eigen::Block<const Eigen::MatrixXd, -1, 1, true> LabelVecConstOut;
   class Point;
   class ConstantPoint;
   /// The Point class is a collection of accessors allowing to manipulate the
@@ -98,13 +101,13 @@ public:
     /// zero)
     ///
     /// 1: This point very much holds this label
-    void labels(const std::vector<Label> &newLabels);
+    void labels(const LabelVec &newLabels);
 
     /// Moves labels
-    void labels(std::vector<Label> &&newLabels);
+    void labels(LabelVec &&newLabels);
 
     /// Read access on labels
-    const std::vector<Label> &labels() const;
+    LabelVecConstOut labels() const;
 
     /// Convert to dx1 Eigen Vector holding all characteristic values
     Eigen::VectorXd characteristic() const;
@@ -153,7 +156,7 @@ public:
     ColorChannel intensity() const;
 
     /// Read access on labels
-    const std::vector<double> &labels() const;
+    LabelVecConstOut labels() const;
 
     /// Convert to dx1 Eigen Vector holding all characteristic values
     Eigen::VectorXd characteristic() const;
@@ -164,8 +167,9 @@ public:
 
   PointCloud();
 
-  /// Make space to accomodate n points.
-  void resize(size_t n);
+  /// Make space to accomodate n points and `labelsCount` labels for each point.
+  /// If labelsCount is zero, the first labels inserted will decide.
+  void resize(size_t n, size_t labelsCount = 0);
 
   /// Returns number of points stored.
   size_t size() const;
@@ -201,7 +205,7 @@ private:
   std::vector<ColorChannel> _r;
   std::vector<ColorChannel> _g;
   std::vector<ColorChannel> _b;
-  std::vector<std::vector<Label>> _labels;
+  Eigen::Matrix<Label, -1, -1> _labels;
 };
 
 } // namespace MouseTrack

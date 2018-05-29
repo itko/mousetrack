@@ -113,8 +113,8 @@ operator()(const FrameWindow &window) const {
       const int x = coordinates[f][i].first;
       const int y = coordinates[f][i].second;
       p.intensity(frame.referencePicture(y, x));
-      std::vector<PointCloud::Label> labels(frame.labels.size());
-      for (size_t l = 0; l < labels.size(); ++l) {
+      PointCloud::LabelVec labels(frame.labels.size());
+      for (int l = 0; l < labels.size(); ++l) {
         labels[l] = frame.labels[l](y, x);
       }
       p.labels(std::move(labels));

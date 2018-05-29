@@ -62,8 +62,8 @@ PointCloud DisparityRegistration::operator()(const FrameWindow &window) const {
         p.y() = tmp[1];
         p.z() = tmp[2];
         p.intensity(f.referencePicture(y, x));
-        std::vector<PointCloud::Label> labels(f.labels.size());
-        for (size_t l = 0; l < f.labels.size(); ++l) {
+        PointCloud::LabelVec labels(f.labels.size());
+        for (int l = 0; l < f.labels.size(); ++l) {
           labels[l] = f.labels[l](y, x);
         }
         p.labels(std::move(labels));

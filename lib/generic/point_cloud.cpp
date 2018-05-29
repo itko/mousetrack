@@ -13,14 +13,14 @@ PointCloud::PointCloud() {
   // empty
 }
 
-void PointCloud::resize(size_t n) {
+void PointCloud::resize(size_t n, size_t labelsCount) {
   _xs.resize(n);
   _ys.resize(n);
   _zs.resize(n);
   _r.resize(n);
   _g.resize(n);
   _b.resize(n);
-  _labels.resize(n);
+  _labels.resize(labelsCount, n);
 }
 
 size_t PointCloud::size() const { return _xs.size(); }
@@ -33,10 +33,7 @@ const PointCloud::ConstantPoint PointCloud::operator[](size_t i) const {
   return PointCloud::ConstantPoint(*this, i);
 }
 
-int PointCloud::labelsDim() const {
-  // temporary approximation
-  return _labels.empty() ? 0 : _labels[0].size();
-}
+int PointCloud::labelsDim() const { return _labels.rows(); }
 
 int PointCloud::charDim() const {
   // position: 3
@@ -140,17 +137,18 @@ ColorChannel PointCloud::Point::intensity(const ColorChannel &_new) {
   return _new;
 }
 
-void PointCloud::Point::labels(
-    const std::vector<PointCloud::Label> &newLabels) {
-  _cloud._labels[_index] = newLabels;
+void PointCloud::Point::labels(const PointCloud::LabelVec &newLabels) {
+  _cloud._labels.col(_index) = newLabels;
 }
 
-void PointCloud::Point::labels(std::vector<PointCloud::Label> &&newLabels) {
-  _cloud._labels[_index] = std::move(newLabels);
+void PointCloud::Point::labels(PointCloud::LabelVec &&newLabels) {
+  _cloud._labels.col(_index) = std::move(newLabels);
 }
 
-const std::vector<PointCloud::Label> &PointCloud::Point::labels() const {
-  return _cloud._labels[_index];
+PointCloud::LabelVecConstOut PointCloud::Point::labels() const {
+  // easiest way to add `const`?
+  const auto &l = _cloud._labels;
+  return l.col(_index);
 }
 
 Eigen::VectorXd PointCloud::Point::characteristic() const {
@@ -159,10 +157,7 @@ Eigen::VectorXd PointCloud::Point::characteristic() const {
   result[1] = y();
   result[2] = z();
   result[3] = intensity();
-  const auto &ls = labels();
-  for (size_t i = 0; i < ls.size(); ++i) {
-    result[4 + i] = ls[i];
-  }
+  result.block(4, 0, _cloud.labelsDim(), 1) = labels();
   return result;
 }
 
@@ -225,9 +220,8 @@ ColorChannel PointCloud::ConstantPoint::intensity() const {
   return (_cloud._r[_index] + _cloud._g[_index] + _cloud._b[_index]) / 3.0;
 }
 
-const std::vector<PointCloud::Label> &
-PointCloud::ConstantPoint::labels() const {
-  return _cloud._labels[_index];
+PointCloud::LabelVecConstOut PointCloud::ConstantPoint::labels() const {
+  return _cloud._labels.col(_index);
 }
 
 Eigen::VectorXd PointCloud::ConstantPoint::characteristic() const {
@@ -236,10 +230,7 @@ Eigen::VectorXd PointCloud::ConstantPoint::characteristic() const {
   result[1] = y();
   result[2] = z();
   result[3] = intensity();
-  const auto &ls = labels();
-  for (size_t i = 0; i < ls.size(); ++i) {
-    result[4 + i] = ls[i];
-  }
+  result.block(4, 0, _cloud.labelsDim(), 1) = labels();
   return result;
 }
 
