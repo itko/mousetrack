@@ -55,6 +55,37 @@ def computeNearestPoints(ray1, ray2):
 
     return [Fg, Fh]
 
+def toRays(framePts, frameC2W, params):
+    rays = []
+    # build the rays through the camera center and the framePt
+    for f in range(len(framePts)):
+        focallength = float(params[f][0])
+        ccx = float(params[f][2])
+        ccy = float(params[f][3])
+
+        o = np.array([0,0,0,1])
+        p2 = framePts[f]
+        p3h = np.array([p2[0] + v.X_SHIFT - ccx, p2[1] + v.Y_SHIFT - ccy, focallength, 1.0])
+        c2w = frameC2W[f]
+        p3 = np.matmul(c2w, p3h)
+        o = np.matmul(c2w, o)
+        direction = p3 - o
+        direction = direction / np.linalg.norm(direction)
+        rays.append((o[0:3], direction[0:3]))
+    return rays
+
+def findRayCenter(rays):
+    rn = len(rays)
+    # find pairwise nearest points
+    points = []
+    for i in range(rn):
+        for j in range(i+1,rn):
+            ps = computeNearestPoints(rays[i], rays[j])
+            points.extend(ps)
+    matrix = np.array(points)
+    center = np.sum(matrix, axis=0) / matrix.shape[0]
+    return center
+
 
 def triangulate(framePts, frameC2W, params):
     """
@@ -64,31 +95,8 @@ def triangulate(framePts, frameC2W, params):
     It then returns one point in 3d space such that the camera rays
     through framePts pass as close as possible
     """
-    rays = []
-    # build the rays through the camera center and the framePt
-    for f in range(len(framePts)):
-        focallength = float(params[f][0])
-        ccx = float(params[f][2])
-        ccy = float(params[f][3])
-
-        p2 = framePts[f]
-        p2h = focallength * np.array([p2[0] + v.X_SHIFT - ccx, p2[1] + v.Y_SHIFT - ccy, 1.0])
-        p3 = np.array([p2[0], p2[1], 1.0, 1])
-        o = np.array([0,0,0,1])
-        c2w = frameC2W[f]
-        p3 = np.matmul(c2w, p3)
-        o = np.matmul(c2w, o)
-        direction = p3 - o
-        rays.append((o[0:3], direction[0:3]))
-    rn = len(rays)
-    # find pairwise nearest points
-    points = []
-    for i in range(rn):
-        for j in range(i+1,rn):
-            ps = computeNearestPoints(rays[i], rays[j])
-            points.extend(ps)
-    matrix = np.array(points)
-    center = np.sum(matrix, axis=0)
+    rays = toRays(framePts, frameC2W, params)
+    center = findRayCenter(rays)
     return center
 
 if __name__ == "__main__":
@@ -133,6 +141,7 @@ if __name__ == "__main__":
 
 
     frame_indices = findFrameIndices(re.compile("pic_s_(?P<streamIndex>\d+)_f_(?P<frameIndex>\d+)\.png"), 'frameIndex', annotation_dir)
+    frame_indices = sorted(frame_indices)
     for frame in frame_indices:
         param_file = os.path.join(params_dir,"params_f_" + str(frame) + ".csv")
         if not os.path.isfile(param_file):
@@ -191,10 +200,10 @@ if __name__ == "__main__":
                 lParams.append(params[stream])
             centerPoint = triangulate(cogs, ts, lParams)
             controlPoints.append(centerPoint)
-    # write found 3d points to csv
-    csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
-    with open(csv_path, 'rb') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        for c in controlPoints:
-            csv_writer.writerow(c)
+        # write found 3d points to csv
+        csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
+        with open(csv_path, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            for c in controlPoints:
+                csv_writer.writerow(c)
 
