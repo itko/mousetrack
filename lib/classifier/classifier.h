@@ -12,7 +12,8 @@ namespace MouseTrack {
 /// Interface for classification algorithms.
 class Classifier {
 public:
-  typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+  typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
+                        Eigen::ColMajor + Eigen::AutoAlign>
       Mat;
 
   typedef Eigen::VectorXi Vec;

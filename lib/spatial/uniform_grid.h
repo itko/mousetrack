@@ -44,11 +44,11 @@ using namespace SpatialImpl;
 template <typename _Precision, int _Dim>
 class UniformGrid
     : public SpatialOracle<Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic,
-                                         Eigen::RowMajor + Eigen::AutoAlign>,
-                           Eigen::Matrix<_Precision, _Dim, 1>, _Precision> {
+                                         Eigen::ColMajor + Eigen::AutoAlign>,
+                           _Precision> {
 public:
   typedef Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic,
-                        Eigen::RowMajor + Eigen::AutoAlign>
+                        Eigen::ColMajor + Eigen::AutoAlign>
       PointList;
   typedef Eigen::Matrix<_Precision, _Dim, 1> Point;
   typedef _Precision Precision;
@@ -157,97 +157,103 @@ public:
     _compute();
   }
 
-  virtual std::vector<PointIndex> find_closest(const Point &p,
-                                               unsigned int k) const {
+  virtual std::vector<std::vector<PointIndex>>
+  find_closest(const PointList &ps, unsigned int k) const {
     assert(points != nullptr);
     assert(k >= 1);
-    // idea: we define hollow cubes around the cell containing p, called layers
-    // we search the layers from the inside to the outside
-    // if we have enough closest candidates, we stop as soon as our active
-    // layer's closest point is above our furthest candidate
-    auto zeroCell = indexOfPosition(p);
-    typedef std::pair<Precision, PointIndex> P;
-    std::priority_queue<P> neighbors;
-    neighbors.push(P(std::numeric_limits<Precision>::max(), (PointIndex)-1));
-    // We only loop up to the largest bounding box dimension (assumes cube
-    // shells)
-    for (int l = 0; l < neighborhood.size(); l += 1) {
-      const auto &layer = neighborhood[l];
-      double layerDist = layer.min() * cellWidth;
-      if (neighbors.top().first < layerDist * layerDist) {
-        // the closest point in the layer is further away than our worst
-        // candidate we can stop
-        break;
+    std::vector<std::vector<PointIndex>> results(ps.cols());
+    for (int pi = 0; pi < ps.cols(); ++pi) {
+      // idea: we define hollow cubes around the cell containing p, called
+      // layers we search the layers from the inside to the outside if we have
+      // enough closest candidates, we stop as soon as our active layer's
+      // closest point is above our furthest candidate
+      auto p = ps.col(pi);
+      auto zeroCell = indexOfPosition(p);
+      typedef std::pair<Precision, PointIndex> P;
+      std::priority_queue<P> neighbors;
+      neighbors.push(P(std::numeric_limits<Precision>::max(), (PointIndex)-1));
+      // We only loop up to the largest bounding box dimension (assumes cube
+      // shells)
+      for (int l = 0; l < neighborhood.size(); l += 1) {
+        const auto &layer = neighborhood[l];
+        double layerDist = layer.min() * cellWidth;
+        if (neighbors.top().first < layerDist * layerDist) {
+          // the closest point in the layer is further away than our worst
+          // candidate we can stop
+          break;
+        }
+        for (int i = 0; i < layer.size(); ++i) {
+          Cell cell = zeroCell + layer[i];
+          // skip, if outside of bounding box
+          if (!in_bb(cell)) {
+            continue;
+          }
+          // we are inside the bounding box and have to check against all verts
+          // in the cell
+          const auto candidates = grid.find(cell);
+          if (candidates == grid.end()) {
+            // no points stored in this cell
+            continue;
+          }
+          for (PointIndex cIndex : candidates->second) {
+            double dist = (points->col(cIndex) - p).squaredNorm();
+            if (dist < neighbors.top().first) {
+              neighbors.push(P(dist, cIndex));
+              if (neighbors.size() > k) {
+                neighbors.pop();
+              }
+            }
+          }
+        }
       }
-      for (int i = 0; i < layer.size(); ++i) {
-        Cell cell = zeroCell + layer[i];
-        // skip, if outside of bounding box
-        if (!in_bb(cell)) {
-          continue;
+      while (neighbors.size() > 0) {
+        auto i = neighbors.top().second;
+        if (i != (PointIndex)-1) {
+          results[pi].push_back(i);
         }
-        // we are inside the bounding box and have to check against all verts in
-        // the cell
-        const auto candidates = grid.find(cell);
-        if (candidates == grid.end()) {
-          // no points stored in this cell
-          continue;
+        neighbors.pop();
+      }
+    }
+    return results;
+  }
+
+  virtual std::vector<std::vector<PointIndex>>
+  find_in_range(const PointList &ps, const Precision r) const {
+    assert(points != nullptr);
+    std::vector<std::vector<PointIndex>> ranges(ps.cols());
+    for (int pi = 0; pi < ps.cols(); ++pi) {
+      auto p = ps.col(pi);
+      auto zeroCell = indexOfPosition(p);
+      const double r2 = r * r;
+      for (int l = 0; l <= neighborhood.size(); l += 1) {
+        const auto &layer = neighborhood[l];
+        if (r < layer.min() * cellWidth) {
+          break;
         }
-        for (PointIndex cIndex : candidates->second) {
-          double dist = (points->col(cIndex) - p).squaredNorm();
-          if (dist < neighbors.top().first) {
-            neighbors.push(P(dist, cIndex));
-            if (neighbors.size() > k) {
-              neighbors.pop();
+        for (int i = 0; i < layer.size(); i += 1) {
+          Cell cell = zeroCell + layer[i];
+          // skip, if outside of bounding box
+          if (!in_bb(cell)) {
+            continue;
+          }
+          // we are inside the bounding box and have to check against all verts
+          // in the cell
+          const auto candidates = grid.find(cell);
+          if (candidates == grid.end()) {
+            // no points stored in this cell
+            continue;
+          }
+          for (PointIndex c : candidates->second) {
+            auto &v = points->col(c);
+            double dist = (v - p).squaredNorm();
+            if (dist <= r2) {
+              ranges[pi].push_back(c);
             }
           }
         }
       }
     }
-    std::vector<PointIndex> result;
-    while (neighbors.size() > 0) {
-      auto i = neighbors.top().second;
-      if (i != (PointIndex)-1) {
-        result.push_back(i);
-      }
-      neighbors.pop();
-    }
-    return result;
-  }
-
-  virtual std::vector<PointIndex> find_in_range(const Point &p,
-                                                const Precision r) const {
-    assert(points != nullptr);
-    std::vector<PointIndex> range;
-    auto zeroCell = indexOfPosition(p);
-    const double r2 = r * r;
-    for (int l = 0; l <= neighborhood.size(); l += 1) {
-      const auto &layer = neighborhood[l];
-      if (r < layer.min() * cellWidth) {
-        break;
-      }
-      for (int i = 0; i < layer.size(); i += 1) {
-        Cell cell = zeroCell + layer[i];
-        // skip, if outside of bounding box
-        if (!in_bb(cell)) {
-          continue;
-        }
-        // we are inside the bounding box and have to check against all verts in
-        // the cell
-        const auto candidates = grid.find(cell);
-        if (candidates == grid.end()) {
-          // no points stored in this cell
-          continue;
-        }
-        for (PointIndex c : candidates->second) {
-          auto &v = points->col(c);
-          double dist = (v - p).squaredNorm();
-          if (dist <= r2) {
-            range.push_back(c);
-          }
-        }
-      }
-    }
-    return range;
+    return ranges;
   }
 };
 

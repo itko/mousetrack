@@ -26,7 +26,6 @@ operator()(const PointCloud &inCloud) const {
   UniformGrid3d ug(bb_size.maxCoeff(), bb_size.minCoeff() / 50.0);
 
   typedef UniformGrid3d::PointList PointList;
-  typedef UniformGrid3d::Point Point;
   PointList pts(3, inCloud.size());
   for (size_t i = 0; i < inCloud.size(); ++i) {
     auto p = inCloud[i];
@@ -35,8 +34,8 @@ operator()(const PointCloud &inCloud) const {
     pts(2, i) = p.x();
   }
   ug.compute(pts);
-  auto outliers = statisticalOutlierDetection<PointList, Point, Precision>(
-      pts, &ug, alpha(), k());
+  auto outliers =
+      statisticalOutlierDetection<PointList, Precision>(pts, &ug, alpha(), k());
 
   PointCloud outCloud;
   outCloud.resize(inCloud.size() - outliers.size(), inCloud.labelsDim());
