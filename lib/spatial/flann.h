@@ -67,7 +67,10 @@ public:
     const flann::Matrix<Precision> query = flannFrom(ps);
 
     // querying
-    _index->knnSearch(query, indices, dists, k, flann::SearchParams(128));
+    auto params = flann::SearchParams(128);
+    // automatically parallelize
+    params.cores = 0;
+    _index->knnSearch(query, indices, dists, k, params);
 
     return std::move(indices);
   }
@@ -82,7 +85,10 @@ public:
     const flann::Matrix<Precision> query = flannFrom(ps);
 
     // querying
-    _index->radiusSearch(query, indices, dists, r, flann::SearchParams(128));
+    auto params = flann::SearchParams(128);
+    // automatically parallelize
+    params.cores = 0;
+    _index->radiusSearch(query, indices, dists, r, params);
 
     return std::move(indices);
   }
