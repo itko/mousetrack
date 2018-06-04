@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Default configuration to get the center of a mouse via background subtraction
-# Background subtraction uses the first image of SRC
+# Demonstrates the application of different 2D filters on the disparity map.
+# Uses opening, closing and a median filter.
+#
 # $1: source directory with pngs
 # $2: target directory for output data
 # $3: first frame, default: 0

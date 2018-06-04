@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Default configuration to get the center of a mouse via background subtraction
-# Background subtraction uses the first image of SRC
+# Performs hog labeling and background subtraction to extract the positions of the mouse body parts.
+#
 # $1: source directory with pngs
 # $2: target directory for output data
 # $3: first frame, default: 0

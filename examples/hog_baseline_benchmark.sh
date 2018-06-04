@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Default configuration to get the center of a mouse via background subtraction
-# Background subtraction uses the first image of SRC
+# Like "hog_baseline.sh" but without writing data to disk, allows for better time measurements of the pipeline-steps.
+#
 # $1: source directory with pngs
 # $2: target directory for output data
 # $3: first frame, default: 0
