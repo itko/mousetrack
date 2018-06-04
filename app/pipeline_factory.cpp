@@ -412,6 +412,11 @@ PipelineFactory::getWindowFiltering(const std::string &target,
       y_train[s] = v;
     }
     auto ptr = std::make_unique<HogLabeling>();
+    int windowSize = options["hog-labeling-window-size"].as<int>();
+    int windowStride = options["hog-labeling-window-stride"].as<int>();
+    ptr->slidingWindowWidth(windowSize);
+    ptr->slidingWindowHeight(windowSize);
+    ptr->slidingWindowStride(windowStride);
     ptr->train(X_train, y_train);
     return ptr;
   }

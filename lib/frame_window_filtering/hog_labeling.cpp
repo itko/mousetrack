@@ -30,6 +30,34 @@ std::vector<cv::Point> slidingWindows(int imgWidth, int imgHeight, int stepSize,
   return result;
 } // namespace MouseTrack
 
+
+int HogLabeling::slidingWindowWidth() const {
+    return _windowWidth;
+}
+
+void HogLabeling::slidingWindowWidth(int _new) {
+    _windowWidth = _new;
+}
+
+int HogLabeling::slidingWindowHeight() const{
+    return _windowHeight;
+}
+
+void HogLabeling::slidingWindowHeight(int _new){
+    _windowHeight = _new;
+}
+
+/// Get the number of pixels between two neighboring sliding windows (used along both axis)
+int HogLabeling::slidingWindowStride() const {
+    return _stepSize;
+}
+
+/// Set the number of pixels between two neighboring sliding windows (used along both axis)
+void HogLabeling::slidingWindowStride(int _new) {
+    _stepSize = _new;
+}
+
+
 void HogLabeling::train(const Mat &X_train, const Vec &y_train) {
   auto ptr = std::make_unique<KnnClassifier>();
   ptr->fit(X_train, y_train);

@@ -12,6 +12,16 @@
 
 namespace MouseTrack {
 
+///
+/// Feed the object hog-feature vectors and the corresponding labels via the `train` method.
+///
+/// The data is passed on to an internal classifier.
+///
+/// The operator() method, runs a sliding window over each reference frame to collect hog feature vectors.
+///
+/// Those feature vectors are then classified according to the training data.
+/// The window labels are the passed to each pixel and stored in the `labels` member of each frame.
+///
 class HogLabeling : public FrameWindowFiltering {
 public:
   typedef Classifier::Mat Mat;
@@ -19,9 +29,22 @@ public:
   void train(const Mat &X_train, const Vec &y_train);
   virtual FrameWindow operator()(const FrameWindow &window) const;
 
+  int slidingWindowWidth() const;
+  void slidingWindowWidth(int _new);
+
+  int slidingWindowHeight() const;
+  void slidingWindowHeight(int _new);
+
+  /// Get the number of pixels between two neighboring sliding windows (used along both axis)
+  int slidingWindowStride() const;
+
+  /// Set the number of pixels between two neighboring sliding windows (used along both axis)
+  void slidingWindowStride(int _new);
+
+
 private:
   std::unique_ptr<Classifier> _classifier;
-  // highest label + 1: we need to know, how many labels there are
+  /// highest label + 1: we need to know, how many labels there are. Set by `train()`
   int _numLabels;
 
   /// width of the sliding window

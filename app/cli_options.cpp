@@ -53,6 +53,9 @@ op::options_description cli_options() {
   ad("background-subtraction-cage-directory", op::value<std::string>(), "Path to directory with empty cage. Default: src");
   ad("background-subtraction-cage-camchain", op::value<std::string>(), "Path to camchain file for empty cage.");
   ad("hog-labeling-train", op::value<std::string>(), "Path to training data for HOG labeling.");
+  ad("hog-labeling-window-size", op::value<int>()->default_value(64), "Dimension along X and Y axis of the sliding window.");
+  ad("hog-labeling-window-stride", op::value<int>()->default_value(16), "Step size between two neighboring sliding windows.");
+
 
   // point cloud post processing
 
