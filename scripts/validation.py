@@ -53,6 +53,10 @@ def make_projection_matrix(camchain,R,cam):
     return np.asarray(matrix,dtype='float64')
 
 def project_point(control_point, projection_matrix, params):
+    """
+    Takes a 3 dimensional control point (np.array([[x,y,z]])), a 4x4 projection_matrix from world to camera, and 
+    params = [focallength, _, ccx, ccy]
+    """
     focallength = float(params[0])
     ccx = float(params[2])
     ccy = float(params[3])
@@ -63,6 +67,21 @@ def project_point(control_point, projection_matrix, params):
     cc = np.array([[ccx, ccy]]).T
     shift = np.array([[X_SHIFT,Y_SHIFT]]).T
     return p2D - shift + cc
+
+colors = [
+        (0, 0, 255), 
+        (0, 255, 0), 
+        (255, 0, 0), 
+        (255, 255, 0),
+        (255, 0, 255),
+        (0, 255, 255),
+        (255, 255, 255),
+        (0,0,0)
+        ]
+
+def point_color(i):
+    return colors[i % len(colors)]
+    
 
 if __name__ == "__main__":
 
@@ -121,11 +140,12 @@ if __name__ == "__main__":
                 continue
             pic = cv2.imread(png_file)
             projection_matrix = make_projection_matrix(camchain,R,stream)
-            for cp4 in cpoints: 
+            for ci in range(len(cpoints)): 
+                cp4 = cpoints[ci]
                 cp2 = project_point(cp4,projection_matrix,params[stream])
                 cp2 = cp2.astype(np.int32)
                 #Display control point in image
-                cv2.circle(pic,(cp2[0],cp2[1]),5,(0,0,255),-1)
+                cv2.circle(pic,(cp2[0],cp2[1]),5,point_color(ci),-1)
             pics.append(pic)
             
         pics12 = np.hstack((pics[0],pics[1]))
