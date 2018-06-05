@@ -180,3 +180,14 @@ If everything succeeds, it will return an error code of 0.
 
 To add new tests, create a new file with the suffix `.test.cc` and add it to its corresponding `CMakeLists.txt` (either in `app/` or `lib/`).
 For the exact skeleton and available Macros, see an existing unit test or the [Boost.Test](http://www.boost.org/doc/libs/1_66_0/libs/test/doc/html/boost_test/testing_tools.html) documentation.
+
+
+## Examples
+
+In the folder `examples` you can find a bunch of bash scripts, demonstrating different pipeline configurations.
+
+Each script takes a "minimum" of parameters, this means in the best case you only need to provide the input and output paths, while parameters are "hard-coded" in the bash script.
+
+The scripts try to provide a starting point for further parameter tweaking as they already hold "reasonable" configurations.
+
+For furhter information, please see the comments inside each bash script.

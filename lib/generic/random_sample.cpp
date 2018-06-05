@@ -14,7 +14,7 @@ PointCloud random_sample(const PointCloud &cloud, const int size) {
 
   // Create new point cloud object
   PointCloud output;
-  output.resize(size);
+  output.resize(size, cloud.labelsDim());
 
   // Flags corresponding to which points have already been used
   std::vector<bool> already_used(cloud.size());
@@ -25,9 +25,9 @@ PointCloud random_sample(const PointCloud &cloud, const int size) {
     // Take a random point from cloud and append it to output
     int index = rand() % cloud.size();
     if (!already_used[index]) {
-      output[current_size].x() = cloud[index].x();
-      output[current_size].y() = cloud[index].y();
-      output[current_size].z() = cloud[index].z();
+      output[current_size].x(cloud[index].x());
+      output[current_size].y(cloud[index].y());
+      output[current_size].z(cloud[index].z());
       output[current_size].r(cloud[index].r());
       output[current_size].g(cloud[index].g());
       output[current_size].b(cloud[index].b());
