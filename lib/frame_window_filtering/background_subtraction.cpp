@@ -55,13 +55,11 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     double thresh_otsu = cv::threshold(subcv, maskcv, 0, 255,
                                        cv::THRESH_BINARY + cv::THRESH_OTSU);
     maskcv = subcv > (thresh_otsu * _threshold);
-    cv::imwrite("mask.png", maskcv);
 
     // Convert back to Eigen
     Eigen::MatrixXd mask;
     maskcv = maskcv / 255;
     cv::cv2eigen(maskcv, mask);
-    BOOST_LOG_TRIVIAL(debug) << thresh_otsu << " " << _threshold;
     // A very low threshold means there's no significant bright
     // spots, i.e. no mouse => set mask to zeros
     if (thresh_otsu < 0.01 * 255) {
