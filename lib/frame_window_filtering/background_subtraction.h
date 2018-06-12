@@ -25,7 +25,7 @@ public:
 
 private:
   FrameWindow _cage_frame = FrameWindow();
-  double _threshold = 0.01;
+  double _threshold = 1.0;
 };
 
 } // namespace MouseTrack
