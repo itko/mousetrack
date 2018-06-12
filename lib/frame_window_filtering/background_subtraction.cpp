@@ -9,6 +9,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <boost/log/trivial.hpp>
 
@@ -53,8 +54,8 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     cv::Mat maskcv;
     double thresh_otsu = cv::threshold(subcv, maskcv, 0, 255,
                                        cv::THRESH_BINARY + cv::THRESH_OTSU);
-    maskcv = subcv < (thresh_otsu * _threshold);
-
+    // maskcv = subcv > (thresh_otsu * _threshold);
+    cv::imwrite("mask.png", maskcv);
     // Convert back to Eigen
     // Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> mask =
     //    sub.cast<double>().array() < (thresh_otsu * _threshold);
