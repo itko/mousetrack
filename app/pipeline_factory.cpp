@@ -364,6 +364,9 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     FrameWindow cageWindow = (*reader)(desiredFrame);
     auto ptr = std::make_unique<BackgroundSubtraction>();
     ptr->cage_frame(cageWindow);
+    if (options.count("background-subtraction-threshold")) {
+      ptr->threshold(options["background-subtraction-threshold"].as<double>());
+    }
     return ptr;
   }
   if (target == "strict-labeling") {
