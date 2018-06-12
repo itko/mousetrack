@@ -9,7 +9,6 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 
 #include <boost/log/trivial.hpp>
 
