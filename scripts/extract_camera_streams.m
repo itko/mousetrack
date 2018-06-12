@@ -236,7 +236,7 @@ for image_index = startFrame:endIndex
                     xyzPoints{i}(y,x,2) = (y+yshift-ccy(i))/focallengths(i)*xyzPoints{i}(y,x,3);
 
                     %rotate/translate 3D points to cam rect reference frame
-                    temp = R{i}*T\[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
+                    temp = (R{i}*T)\[xyzPoints{i}(y,x,1),xyzPoints{i}(y,x,2),xyzPoints{i}(y,x,3),1 ]';
                     xyzPoints{i}(y,x,1) = temp(1);
                     xyzPoints{i}(y,x,2) = temp(2);
                     xyzPoints{i}(y,x,3) = temp(3);
