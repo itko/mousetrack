@@ -22,7 +22,7 @@ def findFrameIndices(rex, grp, searchDir):
     """
     Takes a compiled regular expression and a search directory.
     Checks each entry of the directory, if a match is found, 
-    the frame number is extracted according to the groupt name `grp`
+    the frame number is extracted according to the group named `grp`
     """
     files = os.listdir(searchDir)
     frame_indices = []
@@ -112,6 +112,12 @@ def triangulate(framePts, frameC2W, params):
     rays = toRays(framePts, frameC2W, params)
     center = findRayCenter(rays)
     return center
+
+def write_csv(csv_path, csv_rows):
+    with open(csv_path, 'w+') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        for row in csv_rows:
+            csv_writer.writerow(row)
 
 if __name__ == "__main__":
 
@@ -221,8 +227,5 @@ if __name__ == "__main__":
                 controlPoints.extend(closestPointsOfRays)
         # write found 3d points to csv
         csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
-        with open(csv_path, 'w+') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            for c in controlPoints:
-                csv_writer.writerow(c)
+        write_csv(csv_path, controlPoints)
 
