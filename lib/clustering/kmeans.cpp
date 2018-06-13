@@ -65,11 +65,10 @@ std::vector<Cluster> KMeans::operator()(const PointCloud &cloud) const {
     oracle.compute(means);
     prevClusters = std::move(clusters);
     clusters = std::vector<Cluster>(K());
-
+    std::vector<std::vector<PointIndex>> allCs = oracle.find_closest(points, 1);
     for (int i = 0; i < points.cols(); ++i) {
-      std::vector<size_t> cs = oracle.find_closest(points.col(i), 1);
+      auto &cs = allCs[i];
       if (cs.empty()) {
-        oracle.find_closest(points.col(i), 1);
         BOOST_LOG_TRIVIAL(error)
             << "Couldn't find nearest mean for point " << i << " ("
             << points.col(i) << "), assigning to 1";

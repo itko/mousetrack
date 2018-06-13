@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(outlier_2d) {
   oracle.compute(all);
 
   std::vector<PointIndex> result =
-      statisticalOutlierDetection<UG::PointList, UG::Point, UG::Precision>(
-          all, &oracle, 2.0, 10);
+      statisticalOutlierDetection<UG::PointList, UG::Precision>(all, &oracle,
+                                                                2.0, 10);
 
   std::multiset<PointIndex> received(result.begin(), result.end());
 

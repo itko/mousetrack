@@ -51,7 +51,7 @@ MeanShiftCpuOptimized::convergePoints(const Oracle::PointList &points) const {
       // perform one iteration of mean shift
       prevCenter = currCenters[i];
       std::vector<PointIndex> locals =
-          oracle.find_in_range(currCenters[i], 2 * getWindowSize());
+          oracle.find_in_range(currCenters[i], 2 * getWindowSize())[0];
       if (locals.empty()) {
         BOOST_LOG_TRIVIAL(warning)
             << "No points in neighborhood, falling back to brute force.";
@@ -106,7 +106,7 @@ std::vector<Cluster> MeanShiftCpuOptimized::mergePoints(
   // pick first point and ask spatial oracle for it's neighbors within the merge
   // threshold and create a new cluster from it.
   //
-  // Removed the clustered points from `remainingPoints` and repeat
+  // Remove the clustered points from `remainingPoints` and repeat
   while (!remainingPoints.empty()) {
     Oracle::PointList points(dimensions, remainingPoints.size());
 
@@ -116,7 +116,7 @@ std::vector<Cluster> MeanShiftCpuOptimized::mergePoints(
 
     mergeOracle.compute(points);
     auto neighbors = mergeOracle.find_in_range(currCenters[remainingPoints[0]],
-                                               getMergeThreshold());
+                                               getMergeThreshold())[0];
     // erase_indices assumes a sorted index vector
     std::sort(neighbors.begin(), neighbors.end());
 

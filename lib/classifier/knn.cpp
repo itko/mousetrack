@@ -35,10 +35,10 @@ void KnnClassifier::fit(const Mat &X_train, const Vec &y_train) {
 KnnClassifier::Vec KnnClassifier::predict(const Mat &X_test) const {
   Vec result, tmpAgg;
   result.resize(X_test.cols());
+  auto closest = _oracle->find_closest(X_test, _k);
   for (int i = 0; i < X_test.cols(); ++i) {
     tmpAgg.setZero(_highestLabel + 1);
-    auto closest = _oracle->find_closest(X_test.col(i), _k);
-    for (auto c : closest) {
+    for (auto c : closest[i]) {
       int l = _y_train[c];
       tmpAgg[l] += 1;
     }
@@ -51,9 +51,9 @@ KnnClassifier::Mat
 KnnClassifier::predictProbabilities(const Mat &X_test) const {
   Eigen::MatrixXd result;
   result.setZero(_highestLabel + 1, X_test.cols());
+  auto closest = _oracle->find_closest(X_test, _k);
   for (int i = 0; i < X_test.cols(); ++i) {
-    auto closest = _oracle->find_closest(X_test.col(i), _k);
-    for (auto c : closest) {
+    for (auto c : closest[i]) {
       int l = _y_train[c];
       result(l, i) += 1;
     }

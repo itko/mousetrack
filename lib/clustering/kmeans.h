@@ -15,10 +15,9 @@
 namespace MouseTrack {
 class KMeans : public Clustering {
 public:
-  typedef OracleFactory<double> OFactory;
+  typedef OracleFactory<Precision> OFactory;
   typedef OFactory::Oracle Oracle;
   typedef Oracle::PointList PointList;
-  typedef Oracle::Point Point;
 
   KMeans(int k);
 
