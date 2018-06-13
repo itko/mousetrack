@@ -23,11 +23,6 @@ def rotZ(gamma):
     return Rz
 
 
-def rotationMatrix(alpha, beta, gamma):
-    Rx = rotX(alpha)
-    Ry = rotY(beta)
-    Rz = rotZ(gamma)
-    return np.matmul(Rx, np.matmul(Ry, Rz))
 
 
 def readFile(path):
@@ -99,9 +94,14 @@ def writeCsv(csv_path, verts, fObj):
 
 
 if __name__ == "__main__":
-    alphaX = (180+48.0)/360*2*math.pi
-    alphaY = 3/360*2*math.pi
-    alphaZ = 0
+    alphaX = (180+45.0)/360*2*math.pi
+    betaY = 3/360*2*math.pi
+    gammaZ = -20/360*2*math.pi
+    Rx = rotX(alphaX)
+    Ry = rotY(betaY)
+    Rz = rotZ(gammaZ)
+    rotMat = np.matmul(Rz, np.matmul(Rx, Ry))
+    dt = np.array([0,0,0.285]).T
     if len(sys.argv) >= 3:
         srcPath = os.path.abspath(sys.argv[1])
         outPath = os.path.abspath(sys.argv[2])
@@ -110,10 +110,10 @@ if __name__ == "__main__":
                 Argument 1: Source path to file with points\n\
                 Argument 2: Target path where new file should be written')
         sys.exit(1)
-    rotMat = rotationMatrix(alphaX, alphaY, alphaZ)
     print("Reading...")
     (verts, fObj) = readFile(srcPath)
     print("Transforming...")
     verts = np.matmul(rotMat, verts)
+    verts += dt[:,np.newaxis]
     print("Writing...")
     writeFile(outPath, verts, fObj)
