@@ -126,7 +126,8 @@ if __name__ == "__main__":
     SHOW_CLOSEST_POINTS = True
     N_STREAMS = 4
     #Parse Arguments
-    
+    # creates a separate direcotry for each label
+    DIR_PER_LABEL = True
     if len(sys.argv) >= 4:
         annotation_dir = os.path.abspath(sys.argv[1])
         params_dir = os.path.abspath(sys.argv[2])
@@ -182,7 +183,6 @@ if __name__ == "__main__":
         annotations = [None] * N_STREAMS
         label2Annotation = [None] * N_STREAMS
         labels = set()
-        controlPoints = []
         for stream in range(N_STREAMS):
             png_file = "pic_s_" + str(stream+1) + "_f_" + str(frame) + ".png";
             png_path = os.path.join(annotation_dir, png_file)
@@ -205,7 +205,7 @@ if __name__ == "__main__":
                 l2a[a.name] = a
                 labels.add(a.name)
             label2Annotation[stream] = l2a
-        
+        controlPoints = []
         for l in labels:
             appearsIn = []
             for s in range(N_STREAMS):
@@ -225,7 +225,15 @@ if __name__ == "__main__":
             controlPoints.append(centerPoint)
             if SHOW_CLOSEST_POINTS:
                 controlPoints.extend(closestPointsOfRays)
-        # write found 3d points to csv
-        csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
-        write_csv(csv_path, controlPoints)
+            # write found 3d points to csv
+            if DIR_PER_LABEL:
+                final_out_dir = os.path.join(out_dir, l)
+                if not os.path.isdir(final_out_dir):
+                    os.mkdir(final_out_dir)
+                csv_path = os.path.join(final_out_dir, 'controlPoints_' + str(frame) + '.csv')
+                write_csv(csv_path, controlPoints)
+                controlPoints = []
+        if not DIR_PER_LABEL:
+            csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
+            write_csv(csv_path, controlPoints)
 

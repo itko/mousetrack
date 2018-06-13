@@ -8,6 +8,9 @@ import validation as v
 if __name__ == "__main__":
     # line index we want to collect
     TARGET_LINE = 0
+    file_key = "controlPoints"
+    #file_key = "cluster_cogs"
+    regex_str = file_key + "_(?P<frameIndex>\d+)\.csv"
     if len(sys.argv) >= 3:
         src_dir = os.path.abspath(sys.argv[1])
         out_dir = os.path.abspath(sys.argv[2])
@@ -16,11 +19,11 @@ if __name__ == "__main__":
         print('Usage: \n\
                 Argument 1: source directory with files to aggregate\n\
                 Argument 2: output directory')
-    frame_indices = p2c.findFrameIndices(re.compile("controlPoints_(?P<frameIndex>\d+)\.csv"), 'frameIndex', src_dir)
+    frame_indices = p2c.findFrameIndices(re.compile(regex_str), 'frameIndex', src_dir)
     frame_indices = sorted(frame_indices)
     agg = []
     for f in frame_indices:
-        path = os.path.join(src_dir, "controlPoints_" + str(f) + ".csv")
+        path = os.path.join(src_dir, file_key + "_" + str(f) + ".csv")
         lines = v.read_controlpoints(path)
         row = lines[TARGET_LINE].T.tolist()[0]
         row.insert(0, f)
