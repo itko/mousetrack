@@ -123,9 +123,10 @@ if __name__ == "__main__":
         if file[:14] == 'controlPoints_' and file[-4:] == '.csv':
             frame_indices.append(int(file[14:-4]))
 
-
+    frame_indices = sorted(frame_indices)
     for frame in frame_indices:
-        
+        if frame % 100 == 0:
+            print("Processing frame " + str(frame))
         param_file = os.path.join(png_dir,"params_f_" + str(frame) + ".csv")
         if not os.path.isfile(param_file):
             print("Parameter .csv not found - skipping frame " + str(frame))

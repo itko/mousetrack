@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # line index we want to collect
     TARGET_LINE = 0
     file_key = "controlPoints"
-    #file_key = "cluster_cogs"
+    file_key = "cluster_cogs"
     regex_str = file_key + "_(?P<frameIndex>\d+)\.csv"
     if len(sys.argv) >= 3:
         src_dir = os.path.abspath(sys.argv[1])
@@ -20,6 +20,7 @@ if __name__ == "__main__":
                 Argument 1: source directory with files to aggregate\n\
                 Argument 2: output directory')
     frame_indices = p2c.findFrameIndices(re.compile(regex_str), 'frameIndex', src_dir)
+    frame_indices = map(lambda x : int(x), frame_indices)
     frame_indices = sorted(frame_indices)
     agg = []
     for f in frame_indices:
