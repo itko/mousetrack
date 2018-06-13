@@ -13,18 +13,15 @@ namespace MouseTrack {
 /// proecesses and stores it internally, and allows the client
 /// to perform spatial queries.
 ///
-/// `PointList`: data type to communicate a batch of points.
-///
-/// `Point`: representation of points
+/// `PointList`:
 ///
 /// `Precision`: desired numerical precision (double, float)
-template <typename _PointList, typename _Point, typename _Precision>
-class SpatialOracle {
+template <typename _PointList, typename _Precision> class SpatialOracle {
 public:
-  /// Make available to client
+  /// Data type to communicate a batch of points. Columns are points,
+  /// rows are dimensions.
   typedef _PointList PointList;
-  /// Make available to client
-  typedef _Point Point;
+
   /// Make available to client
   typedef _Precision Precision;
 
@@ -37,13 +34,13 @@ public:
   virtual void compute(const PointList &points) = 0;
 
   /// Find `k` nearest points to `p`
-  virtual std::vector<PointIndex> find_closest(const Point &p,
-                                               unsigned int k = 1) const = 0;
+  virtual std::vector<std::vector<PointIndex>>
+  find_closest(const PointList &ps, unsigned int k = 1) const = 0;
 
   /// Give an index-list of all points within distance `r` around `p`
   /// The indexes are returned in random order.
-  virtual std::vector<PointIndex> find_in_range(const Point &p,
-                                                Precision r) const = 0;
+  virtual std::vector<std::vector<PointIndex>>
+  find_in_range(const PointList &ps, Precision r) const = 0;
 };
 
 } // namespace MouseTrack

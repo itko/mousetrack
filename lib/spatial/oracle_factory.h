@@ -40,11 +40,11 @@ public:
   void desiredOracle(Oracles oracle) { _desiredOracle = oracle; }
 
   typedef Eigen::Matrix<Precision, Dim, Eigen::Dynamic,
-                        Eigen::RowMajor + Eigen::AutoAlign>
+                        Eigen::ColMajor + Eigen::AutoAlign>
       PointList;
   typedef Eigen::Matrix<Precision, Dim, 1> Point;
 
-  typedef SpatialOracle<PointList, Point, Precision> Oracle;
+  typedef SpatialOracle<PointList, Precision> Oracle;
 
   struct Query {
     /// maximum range query you intend to perform

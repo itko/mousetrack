@@ -14,7 +14,7 @@ namespace MouseTrack {
 
 class KnnClassifier : public Classifier {
 public:
-  typedef SpatialOracle<Mat, Eigen::VectorXd, double> Oracle;
+  typedef SpatialOracle<Mat, double> Oracle;
   typedef OracleFactory<Precision, -1> OFactory;
 
   KnnClassifier();
