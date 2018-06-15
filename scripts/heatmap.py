@@ -12,7 +12,8 @@ Assumes an aligned point cloud where z+ points upwards from the floor
 
 
 if __name__ == "__main__":
-    bins = (32, 32)
+    res = 4
+    bins = (res, res)
     if len(sys.argv) >= 3:
         srcPath = os.path.abspath(sys.argv[1])
         outPath = os.path.abspath(sys.argv[2])
@@ -24,5 +25,9 @@ if __name__ == "__main__":
     print("Reading...")
     (verts, fObj) = ro.readFile(srcPath)
     heatmap, xedges, yedges = np.histogram2d(verts[0], verts[1], bins=bins)
-    plt.imshow(heatmap)
+    # normalize to percentages
+    heatmap = heatmap / np.sum(heatmap)
+    plt.imshow(heatmap)#, cmap='cool')
+    plt.colorbar()
+    plt.axis('off')
     plt.savefig(outPath)

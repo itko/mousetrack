@@ -30,7 +30,6 @@ $APP -c -s $SRC -l trace --pipeline-timer -o $OUT ${FRAMES} \
 	--disparity-morph-open-diameter=10 \
 	--disparity-morph-close-diameter=10 \
 	--disparity-median-diameter=5 \
-	--background-subtraction-cage-directory=$SRC \
 	--pipeline-clustering=single-cluster 
 
 

@@ -304,14 +304,6 @@ PipelineFactory::getWindowFiltering(const std::string &target,
           mReader =
               std::unique_ptr<MatlabReader>(new MatlabReaderConcurrent(src));
         }
-        if (options.count("first-stream")) {
-          mReader->setBeginStream(std::max(mReader->beginStream(),
-                                           options["first-stream"].as<int>()));
-        }
-        if (options.count("last-stream")) {
-          mReader->setEndStream(std::min(mReader->endStream(),
-                                         options["last-stream"].as<int>() + 1));
-        }
         if (desiredFrame == -1) {
           desiredFrame = mReader->beginFrame();
         }
