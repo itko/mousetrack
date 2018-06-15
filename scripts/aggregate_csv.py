@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # line index we want to collect
     TARGET_LINE = 0
     file_key = "controlPoints"
-    file_key = "cluster_cogs"
+    #file_key = "cluster_cogs"
     regex_str = file_key + "_(?P<frameIndex>\d+)\.csv"
     if len(sys.argv) >= 3:
         src_dir = os.path.abspath(sys.argv[1])
