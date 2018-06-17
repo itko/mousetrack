@@ -85,8 +85,7 @@ def point_color(i):
 
 if __name__ == "__main__":
     # choose your data source files, cluster_cogs work on a per frame basis
-    key_str = 'controlPoints'
-    #key_str = 'cluster_cogs'
+    file_keys = ['cluster_cogs', 'controlPoints']
     #Parse Arguments
     if len(sys.argv) < 4 or not os.path.isdir(os.path.abspath(sys.argv[1])) or not os.path.isdir(os.path.abspath(sys.argv[2])):
 
@@ -118,12 +117,20 @@ if __name__ == "__main__":
         os.mkdir(out_dir)
     #Find all valid controlPoints.csv
     csv_files = os.listdir(csv_dir)
-    frame_indices = []
+    frame_indices = [[] for i in range(len(file_keys))]
     for file in csv_files:
         # If we find a valid controlPoints*.csv, we extract the index and add it to the list of frames we want to validate.
         # Otherwise, we remove the file from the csv_files list.
-        if file[:len(key_str)+1] == key_str + '_' and file[-4:] == '.csv':
-            frame_indices.append(int(file[len(key_str)+1:-4]))
+        for f in range(len(file_keys)):
+            key_str = file_keys[f]
+            if file[:len(key_str)+1] == key_str + '_' and file[-4:] == '.csv':
+                frame_indices[f].append(int(file[len(key_str)+1:-4]))
+    for i in range(len(frame_indices)):
+        if len(frame_indices[i]) > 0:
+            frame_indices = frame_indices[i]
+            key_str = file_keys[i]
+            break
+    
 
     frame_indices = sorted(frame_indices)
     for frame in frame_indices:

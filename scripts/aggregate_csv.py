@@ -8,9 +8,9 @@ import validation as v
 if __name__ == "__main__":
     # line index we want to collect
     TARGET_LINE = 0
-    file_key = "controlPoints"
-    #file_key = "cluster_cogs"
-    regex_str = file_key + "_(?P<frameIndex>\d+)\.csv"
+    # priority list of file keys, the first one found is taken
+    file_keys = ["cluster_cogs", "controlPoints"]
+    regex_str = "_(?P<frameIndex>\d+)\.csv"
     if len(sys.argv) >= 3:
         src_dir = os.path.abspath(sys.argv[1])
         out_dir = os.path.abspath(sys.argv[2])
@@ -19,9 +19,18 @@ if __name__ == "__main__":
         print('Usage: \n\
                 Argument 1: source directory with files to aggregate\n\
                 Argument 2: output directory')
-    frame_indices = p2c.findFrameIndices(re.compile(regex_str), 'frameIndex', src_dir)
-    frame_indices = map(lambda x : int(x), frame_indices)
-    frame_indices = sorted(frame_indices)
+    frame_indices = [[] for i in range(len(file_keys))]
+    file_key = "notFound"
+    # search for file key
+    for i in range(len(file_keys)):
+        file_key_t = file_keys[i]
+        frame_indices[i] = p2c.findFrameIndices(re.compile(file_key_t + regex_str), 'frameIndex', src_dir)
+        file_key = file_keys[i]
+    # choose the first non-empty one
+    for i in range(len(frame_indices)):
+        if len(frame_indices[i]) > 0:
+            frame_indices = frame_indices[i]
+            break
     agg = []
     for f in frame_indices:
         path = os.path.join(src_dir, file_key + "_" + str(f) + ".csv")
