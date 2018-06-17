@@ -43,6 +43,7 @@ void setLogLevel(const std::string &level) {
   boost::log::core::get()->set_filter(log::severity >= logFilter);
 }
 
+/// Adds some additional settings to the command line options and parses the passed arguments.
 op::variables_map parseCli(int argc, char *argv[],
                            const op::options_description &option_desc) {
 
@@ -57,6 +58,7 @@ op::variables_map parseCli(int argc, char *argv[],
   return cli_options;
 }
 
+/// Main entry point for application, nothing special.
 int main(int argc, char *argv[]) {
   op::options_description option_desc = cli_options();
   op::variables_map cli_options;

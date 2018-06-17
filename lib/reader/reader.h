@@ -10,6 +10,7 @@
 
 namespace MouseTrack {
 
+/// Pipeline module that reads data from a source and creates FrameWindows that can be processed by other pipeline modules.
 class Reader : public FrameIterable {
 public:
   /// true if the reader is ready to provide output

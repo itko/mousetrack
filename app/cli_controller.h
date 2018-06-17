@@ -7,6 +7,10 @@
 
 #include "controller.h"
 
+
+/// Application controller for command line mode.
+///
+///
 namespace MouseTrack {
 
 class CliController : public Controller {
