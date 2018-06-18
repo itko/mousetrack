@@ -53,7 +53,7 @@ FrameWindow BackgroundSubtraction::operator()(const FrameWindow &window) const {
     cv::Mat maskcv;
     double thresh_otsu = cv::threshold(subcv, maskcv, 0, 255,
                                        cv::THRESH_BINARY + cv::THRESH_OTSU);
-    maskcv = subcv > (thresh_otsu * _threshold);
+    maskcv = subcv > (thresh_otsu * _otsu_factor);
 
     // Convert back to Eigen
     Eigen::MatrixXd mask;
@@ -82,9 +82,9 @@ void BackgroundSubtraction::cage_frame(FrameWindow &cage_frame) {
   _cage_frame = cage_frame;
 }
 
-double BackgroundSubtraction::threshold() const { return _threshold; }
-void BackgroundSubtraction::threshold(double threshold) {
-  _threshold = threshold;
+double BackgroundSubtraction::otsu_factor() const { return _otsu_factor; }
+void BackgroundSubtraction::otsu_factor(double otsu_factor) {
+  _otsu_factor = otsu_factor;
 }
 
 } // namespace MouseTrack
