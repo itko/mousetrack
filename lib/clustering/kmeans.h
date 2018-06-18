@@ -13,6 +13,13 @@
 #include <vector>
 
 namespace MouseTrack {
+
+/// Also called Lloyds algorithm:
+/// k cluster centers are randomly set.
+/// Based on the euclidean distance, voronoi cells are created.
+/// Each data point is assigned to one cell.
+/// For each cell a new cluster center is created based on the center of gravity of the assigned data points.
+/// This is repeated until convergence.
 class KMeans : public Clustering {
 public:
   typedef OracleFactory<Precision> OFactory;

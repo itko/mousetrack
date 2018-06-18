@@ -9,6 +9,7 @@
 
 namespace MouseTrack {
 
+/// Holds the hard-coded configuration for all command line options.
 op::options_description cli_options();
 
 } // namespace MouseTrack

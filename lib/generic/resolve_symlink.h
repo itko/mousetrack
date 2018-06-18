@@ -9,6 +9,7 @@
 
 namespace MouseTrack {
 
+/// follows symlinks `maxSymlinksFollowed` times and returns the found path
 std::string resolve_symlink(const std::string &p, int maxSymlinksFollowed);
 
 } // namespace MouseTrack

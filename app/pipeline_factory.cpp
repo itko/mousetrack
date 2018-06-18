@@ -8,6 +8,8 @@
 #include "generic/read_csv.h"
 #include "generic/resolve_symlink.h"
 
+#include "classifier/knn.h"
+
 #include "frame_window_filtering/background_subtraction.h"
 #include "frame_window_filtering/disparity_bilateral.h"
 #include "frame_window_filtering/disparity_gaussian_blur.h"
@@ -304,14 +306,6 @@ PipelineFactory::getWindowFiltering(const std::string &target,
           mReader =
               std::unique_ptr<MatlabReader>(new MatlabReaderConcurrent(src));
         }
-        if (options.count("first-stream")) {
-          mReader->setBeginStream(std::max(mReader->beginStream(),
-                                           options["first-stream"].as<int>()));
-        }
-        if (options.count("last-stream")) {
-          mReader->setEndStream(std::min(mReader->endStream(),
-                                         options["last-stream"].as<int>() + 1));
-        }
         if (desiredFrame == -1) {
           desiredFrame = mReader->beginFrame();
         }
@@ -417,6 +411,9 @@ PipelineFactory::getWindowFiltering(const std::string &target,
     ptr->slidingWindowWidth(windowSize);
     ptr->slidingWindowHeight(windowSize);
     ptr->slidingWindowStride(windowStride);
+    auto classifier = std::make_unique<KnnClassifier>();
+    classifier->k(options["hog-labeling-classifier-k"].as<int>());
+    ptr->classifier() = std::move(classifier);
     ptr->train(X_train, y_train);
     return ptr;
   }

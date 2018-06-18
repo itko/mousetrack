@@ -8,6 +8,9 @@
 
 namespace MouseTrack {
 
+/// Samples points randomly (without repetition) from a point cloud.
+///
+/// This creates a new point cloud that holds less data, but has the same statistical properties as the old point cloud.
 class SubSample : public PointCloudFiltering {
 public:
   SubSample() = default;

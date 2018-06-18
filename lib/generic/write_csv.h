@@ -10,6 +10,8 @@
 
 namespace MouseTrack {
 
+
+/// Writes a csv file to `path` where `payload[row][col]` is assumed
 template <typename T>
 void write_csv(const std::string &path,
                const std::vector<std::vector<T>> &payload) {
