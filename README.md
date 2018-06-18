@@ -199,7 +199,7 @@ Here some scripts you might want to try to get started:
 - `raw_reconstruction.sh`: This script only takes an input and an output path. All it does is to reconstruct the entire 3D data. Use this to get an idea of your dataset in 3D.
 
 - `baseline.sh`:
- This scripts assumes the first frame window of your data to be "empty", hence the object you want to observe is no visible in any camera view.
+ This scripts assumes the first frame window of your data to be "empty", hence the object you want to observe is not visible in any camera view.
  The baseline subtracts the background from each frame, hence you only find changes in the observed are.
  Use this script, to get an idea of how something moves in a scene.
 

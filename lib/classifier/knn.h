@@ -13,8 +13,8 @@
 namespace MouseTrack {
 
 /// A k-nearest neighbor classifier.
-/// For each vectory, it queries the k nearest neighbors.
-/// Each neighbor has a vote for a label, the label with the most votes wins (try to use a prime for k).
+/// For each vector, it queries the k nearest neighbors.
+/// Each neighbor has a vote for a label, the label with the most votes wins (you probably want to use a prime, or at least an odd number for k).
 class KnnClassifier : public Classifier {
 public:
   typedef SpatialOracle<Mat, double> Oracle;
