@@ -15,37 +15,35 @@ namespace MouseTrack {
 template <typename _Precision, int _Dim>
 class Flann
     : public SpatialOracle<Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic,
-                                         Eigen::RowMajor + Eigen::AutoAlign>,
-                           Eigen::Matrix<_Precision, _Dim, 1>, _Precision> {
+                                         Eigen::ColMajor + Eigen::AutoAlign>,
+                           _Precision> {
 public:
   // columns are points
   typedef Eigen::Matrix<_Precision, _Dim, Eigen::Dynamic,
-                        Eigen::RowMajor + Eigen::AutoAlign>
+                        Eigen::ColMajor + Eigen::AutoAlign>
       PointList;
-  typedef Eigen::Matrix<_Precision, _Dim, 1> Point;
   typedef _Precision Precision;
 
 private:
-  // rows are points
-  typedef Eigen::Matrix<_Precision, Eigen::Dynamic, _Dim,
-                        Eigen::RowMajor + Eigen::AutoAlign>
-      PointListT;
   // make sure to store one point per row for flann
-  PointListT _points;
+  const PointList *_points = nullptr;
   std::unique_ptr<flann::Index<flann::L2<Precision>>> _index;
   flann::Matrix<Precision> dataset;
 
+  const flann::Matrix<Precision> flannFrom(const PointList &ps) const {
+    // flann matrices expect row major data, where rows are samples and cols
+    // dimensions, we are responsible for the lifetime
+    const flann::Matrix<Precision> converted =
+        flann::Matrix<Precision>((Precision *)ps.data(), ps.cols(), ps.rows());
+    return converted;
+  }
+
 public:
   virtual void compute(const PointList &srcData) {
-    // transpose data: we get points as columns,
-    // but points must be rows for flann
-    _points = srcData.transpose();
-    // flann matrices expects row major data,
-    // we are responsible for the lifetime
-    dataset = flann::Matrix<Precision>(_points.data(), _points.rows(),
-                                       _points.cols());
+    _points = &srcData;
+    dataset = flannFrom(srcData);
     // choose exact implementation: this is a list of tried values
-    flann::IndexParams params = flann::KDTreeIndexParams(); // inacurate
+    flann::IndexParams params = flann::KDTreeIndexParams(); // inaccurate
     params = flann::LinearIndexParams();                    // slow
     params = flann::KDTreeSingleIndexParams(); // for low dimensional data
     params = flann::AutotunedIndexParams();    // auto tuning: target precision,
@@ -57,8 +55,8 @@ public:
     _index->buildIndex();
   }
 
-  virtual std::vector<PointIndex> find_closest(const Point &p,
-                                               unsigned int k) const {
+  virtual std::vector<std::vector<PointIndex>>
+  find_closest(const PointList &ps, unsigned int k) const {
     assert(k >= 1);
     // d: dimensions
     // k: desired nearest neighbors
@@ -66,31 +64,33 @@ public:
     std::vector<std::vector<PointIndex>> indices;
     std::vector<std::vector<Precision>> dists;
     // query
-    // query: 1xd point
-    // strip off const just for a moment
-    const flann::Matrix<Precision> query((Precision *)p.data(), 1, p.size());
+    const flann::Matrix<Precision> query = flannFrom(ps);
 
     // querying
-    _index->knnSearch(query, indices, dists, k, flann::SearchParams(128));
+    auto params = flann::SearchParams(128);
+    // automatically parallelize
+    params.cores = 0;
+    _index->knnSearch(query, indices, dists, k, params);
 
-    return std::move(indices[0]);
+    return std::move(indices);
   }
 
-  virtual std::vector<PointIndex> find_in_range(const Point &p,
-                                                const Precision r) const {
+  virtual std::vector<std::vector<PointIndex>>
+  find_in_range(const PointList &ps, const Precision r) const {
     // d: dimensions
     std::vector<std::vector<PointIndex>> indices;
     std::vector<std::vector<Precision>> dists;
 
     // query
-    // query: 1xd point
-    // strip off const just for a moment
-    const flann::Matrix<Precision> query((Precision *)p.data(), 1, p.size());
+    const flann::Matrix<Precision> query = flannFrom(ps);
 
     // querying
-    _index->radiusSearch(query, indices, dists, r, flann::SearchParams(128));
+    auto params = flann::SearchParams(128);
+    // automatically parallelize
+    params.cores = 0;
+    _index->radiusSearch(query, indices, dists, r, params);
 
-    return std::move(indices[0]);
+    return std::move(indices);
   }
 };
 

@@ -55,26 +55,36 @@ def computeNearestPoints(ray1, ray2):
 
     return [Fg, Fh]
 
+def register(p2, C2WMatrix, params):
+    """
+    Takes a 2d point in pixel space (p2), a 4x4 projection matrix from camera to world, and 
+    params = [focallength, _, ccx, ccy]
+    returns the corresponding 3d point on the camera plane
+    """
+    focallength = float(params[0])
+    ccx = float(params[2])
+    ccy = float(params[3])
+
+    p3h = np.array([(p2[0] + v.X_SHIFT - ccx)/focallength, (p2[1] + v.Y_SHIFT - ccy)/focallength, 1.0, 1.0])
+    p3 = np.matmul(C2WMatrix, p3h)[0:3]
+    return p3
+    
+
 def toRays(framePts, frameC2W, params):
     rays = []
     # build the rays through the camera center and the framePt
     for f in range(len(framePts)):
-        focallength = float(params[f][0])
-        ccx = float(params[f][2])
-        ccy = float(params[f][3])
-
-        o = np.array([0,0,0,1])
-        p2 = framePts[f]
-        p3h = np.array([p2[0] + v.X_SHIFT - ccx, p2[1] + v.Y_SHIFT - ccy, focallength, 1.0])
         c2w = frameC2W[f]
-        p3 = np.matmul(c2w, p3h)
-        o = np.matmul(c2w, o)
+        p3 = register(framePts[f], c2w, params[f])
+        o = np.array([0,0,0,1])
+        o = np.matmul(c2w, o)[0:3]
         direction = p3 - o
         direction = direction / np.linalg.norm(direction)
-        rays.append((o[0:3], direction[0:3]))
+        rays.append((o, direction))
     return rays
 
-def findRayCenter(rays):
+def findRayCenters(rays):
+    """ It is actually quite interesting to be able to visualize the points which we usualy average """
     rn = len(rays)
     # find pairwise nearest points
     points = []
@@ -83,8 +93,12 @@ def findRayCenter(rays):
             ps = computeNearestPoints(rays[i], rays[j])
             points.extend(ps)
     matrix = np.array(points)
+    return matrix
+
+def findRayCenter(rays):
+    matrix = findRayCenters(rays)
     center = np.sum(matrix, axis=0) / matrix.shape[0]
-    return center
+    return (center, matrix)
 
 
 def triangulate(framePts, frameC2W, params):
@@ -101,6 +115,9 @@ def triangulate(framePts, frameC2W, params):
 
 if __name__ == "__main__":
 
+    # Switch this to true and the closest points on the rays are also exported as control points
+    # (first cog, then the 2n control points)
+    SHOW_CLOSEST_POINTS = True
     N_STREAMS = 4
     #Parse Arguments
     
@@ -152,7 +169,7 @@ if __name__ == "__main__":
         w2c = [None] * N_STREAMS
         c2w = [None] * N_STREAMS
         for stream in range(N_STREAMS):
-            w2c[stream] = projection_matrix = v.make_projection_matrix(camchain,R,stream);
+            w2c[stream] = v.make_projection_matrix(camchain,R,stream);
             c2w[stream] = np.linalg.inv(w2c[stream])
         pics = [None] * N_STREAMS
         annotationsPath = [None] * N_STREAMS
@@ -197,9 +214,11 @@ if __name__ == "__main__":
             for s in appearsIn:
                 cogs.append(label2Annotation[s][l].shape.centroid())
                 ts.append(c2w[s])
-                lParams.append(params[stream])
-            centerPoint = triangulate(cogs, ts, lParams)
+                lParams.append(params[s])
+            (centerPoint, closestPointsOfRays) = triangulate(cogs, ts, lParams)
             controlPoints.append(centerPoint)
+            if SHOW_CLOSEST_POINTS:
+                controlPoints.extend(closestPointsOfRays)
         # write found 3d points to csv
         csv_path = os.path.join(out_dir, 'controlPoints_' + str(frame) + '.csv')
         with open(csv_path, 'w+') as csv_file:

@@ -91,7 +91,7 @@ MeanShift::convergePoints(const Oracle::PointList &points) const {
       // perform one iteration of mean shift
       prevCenter = currCenters[i];
       std::vector<PointIndex> locals =
-          oracle.find_in_range(currCenters[i], 2 * _window_size);
+          oracle.find_in_range(currCenters[i], 2 * _window_size)[0];
       if (locals.empty()) {
         BOOST_LOG_TRIVIAL(warning)
             << "No points in neighborhood, falling back to brute force.";
