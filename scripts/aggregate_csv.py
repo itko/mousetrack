@@ -30,7 +30,9 @@ if __name__ == "__main__":
     for i in range(len(frame_indices)):
         if len(frame_indices[i]) > 0:
             frame_indices = frame_indices[i]
+            file_key = file_keys[i]
             break
+    frame_indices = sorted(frame_indices)
     agg = []
     for f in frame_indices:
         path = os.path.join(src_dir, file_key + "_" + str(f) + ".csv")

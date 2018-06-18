@@ -11,8 +11,9 @@
 #include <mutex>
 #include <vector>
 
-/// For CPU optimized version of MeanShift
 namespace MouseTrack {
+
+/// For CPU optimized version of MeanShift (parallelizm, cache locallity)
 class MeanShiftCpuOptimized : public MeanShift {
 public:
   /// k is the number of desired clusters

@@ -7,6 +7,7 @@
 #include "frame_window_filtering.h"
 namespace MouseTrack {
 
+/// Wrapper for OpenCV's morphology operations
 class DisparityMorphology : public FrameWindowFiltering {
 public:
   virtual FrameWindow operator()(const FrameWindow &window) const;

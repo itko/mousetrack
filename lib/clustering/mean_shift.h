@@ -12,6 +12,8 @@
 #include <Eigen/Core>
 #include <vector>
 
+namespace MouseTrack {
+
 /// ***The Mean Shift Algorithm***
 /// Goal: assign each given point to a cluster based on the nearest local
 /// maximum of the point density.
@@ -27,7 +29,6 @@
 /// one cluster.
 ///
 
-namespace MouseTrack {
 class MeanShift : public Clustering {
 public:
   typedef OracleFactory<double> OFactory;

@@ -9,6 +9,7 @@
 
 namespace MouseTrack {
 
+/// A variation of the MatlabReader to check if concurrent reads are worth it.
 class MatlabReaderConcurrent : public MatlabReader {
 public:
   /// Root directory to search (file content as extracted by the matlab script)

@@ -11,6 +11,8 @@
 
 namespace MouseTrack {
 
+/// The pipeline timer measures the time for each module of the pipeline but also for the entire pipeline execution.
+/// It writes the measured times to the console output but also allows to write it to a file.
 class PipelineTimer : public PipelineObserver {
 public:
   virtual void pipelineStarted();

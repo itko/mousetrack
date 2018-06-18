@@ -8,6 +8,7 @@
 
 namespace MouseTrack {
 
+/// Wrapper for OpenCV's median filter
 class DisparityMedian : public FrameWindowFiltering {
 public:
   virtual FrameWindow operator()(const FrameWindow &window) const;

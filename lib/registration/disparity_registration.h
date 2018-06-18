@@ -10,6 +10,7 @@
 
 namespace MouseTrack {
 
+/// Registration algorithm for known disparity maps.
 class DisparityRegistration : public Registration {
 public:
   /// Simple, sequential, straight forward solution.

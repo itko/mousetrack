@@ -8,6 +8,8 @@
 
 namespace MouseTrack {
 
+
+/// Iteration interface to read new frames.
 class FrameIterable {
 public:
   ~FrameIterable() = default;

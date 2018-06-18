@@ -57,12 +57,17 @@ void HogLabeling::slidingWindowStride(int _new) {
     _stepSize = _new;
 }
 
+std::unique_ptr<Classifier>& HogLabeling::classifier(){
+  return _classifier;
+}
 
 void HogLabeling::train(const Mat &X_train, const Vec &y_train) {
-  auto ptr = std::make_unique<KnnClassifier>();
-  ptr->fit(X_train, y_train);
-  ptr->k(11);
-  _classifier = std::move(ptr);
+  if(_classifier.get() == nullptr){
+    auto ptr = std::make_unique<KnnClassifier>();
+    ptr->k(11);
+    _classifier = std::move(ptr);
+  }
+  _classifier->fit(X_train, y_train);
   _numLabels = y_train.maxCoeff() + 1;
 }
 

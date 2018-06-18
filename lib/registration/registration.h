@@ -9,6 +9,7 @@
 
 namespace MouseTrack {
 
+/// General Registration interface: A set of 2D images is given from which a 3D point cloud has to be created.
 class Registration {
 public:
   /// Assumes the camchain matrices to be chained according to the indices of
