@@ -8,8 +8,11 @@ This project will be awesome!
 
 TL;DR: Convenient one-liner for Ubuntu:
 ``` bash
-$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libpng16-dev libflann-dev librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev qt5-default
+$ sudo apt install -y cmake libboost-all-dev libopencv-dev libeigen3-dev libflann-dev librosbag-dev libsensor-msgs-dev libimage-transport-dev libyaml-cpp-dev libbz2-dev qt5-default
 ```
+
+There are some issues with libpng, depending on your machine configuration you might need to run ```$sudo apt install -y libpng16-dev``` or ```$ sudo apt install -y libpng-dev``` in addition.
+
 
 - CMake: `$ sudo apt install cmake`
 - Boost.Test: `$ sudo apt install libboost-all-dev`
@@ -27,6 +30,18 @@ If operations run slow, you can try reinstalling OpenCV with these additional de
 
 If you have trouble meeting some dependencies, there's always the option to turn off unused modules.
 Please see the root `CMakeLists.txt` for the corresponding flags (`ENABLE_GUI`, `ENABLE_ROSBAG`, etc.).
+
+#### Python dependencies
+
+You don't need these for the main application, but there is a folder with useful helper scripts (`scripts`) for post processing.
+
+Those need following dependencies:
+
+```bash
+$ pip3 install opencv-python plyfile matplotlib
+$ sudo apt install python3-tk
+
+```
 
 ### Version requirements
 
