@@ -55,6 +55,7 @@ op::options_description cli_options() {
   ad("hog-labeling-train", op::value<std::string>(), "Path to training data for HOG labeling.");
   ad("hog-labeling-window-size", op::value<int>()->default_value(64), "Dimension along X and Y axis of the sliding window.");
   ad("hog-labeling-window-stride", op::value<int>()->default_value(16), "Step size between two neighboring sliding windows.");
+  ad("hog-labeling-classifier-k", op::value<int>()->default_value(11), "Number of neighbors to consider during classification.");
 
 
   // point cloud post processing

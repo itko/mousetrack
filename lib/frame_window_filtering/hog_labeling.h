@@ -41,6 +41,7 @@ public:
   /// Set the number of pixels between two neighboring sliding windows (used along both axis)
   void slidingWindowStride(int _new);
 
+  std::unique_ptr<Classifier>& classifier();
 
 private:
   std::unique_ptr<Classifier> _classifier;
