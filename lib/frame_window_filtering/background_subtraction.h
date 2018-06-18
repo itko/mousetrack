@@ -20,12 +20,12 @@ public:
   const FrameWindow &cage_frame() const;
   void cage_frame(FrameWindow &cage_frame);
 
-  double threshold() const;
-  void threshold(double threshold);
+  double otsu_factor() const;
+  void otsu_factor(double otsu_factor);
 
 private:
   FrameWindow _cage_frame = FrameWindow();
-  double _threshold = 0.01;
+  double _otsu_factor = 1;
 };
 
 } // namespace MouseTrack
