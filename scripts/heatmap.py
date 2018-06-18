@@ -27,7 +27,7 @@ if __name__ == "__main__":
     heatmap, xedges, yedges = np.histogram2d(verts[0], verts[1], bins=bins)
     # normalize to percentages
     heatmap = heatmap / np.sum(heatmap)
-    plt.imshow(heatmap)#, cmap='cool')
+    plt.imshow(heatmap, aspect=0.7)#, cmap='cool')
     plt.colorbar()
     plt.axis('off')
     plt.savefig(outPath)
