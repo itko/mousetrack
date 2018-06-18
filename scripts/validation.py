@@ -27,7 +27,7 @@ TRAJECTORY_LENGTH = 20
 DRAW_ORIENTATION = 0
 
 # Set to 1 if the .csv's were generated before 21. May 2018
-OLD_COG_READ_TYPE = 0
+OLD_COG_READ_TYPE = 1
 
 def read_matrix_chain(csv_path):
     csv_path = os.path.abspath(csv_path)
